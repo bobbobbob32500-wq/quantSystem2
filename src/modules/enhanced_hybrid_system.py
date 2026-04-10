@@ -167,6 +167,11 @@ class EnhancedHybridSystem:
         self.minute_max_symbols_per_round = int(
             self.system_config.get("data_source.minute_max_symbols_per_round", 12)
         )
+        self.allow_quote_fallback_when_minute_missing = bool(
+            self.system_config.get("monitor.allow_quote_fallback_when_minute_missing", True)
+        )
+        # symbol -> minute / quote_fallback / unavailable
+        self._last_intraday_source: Dict[str, str] = {}
         self.enable_intraday_industry_confirmation = bool(
             self.system_config.get("monitor.intraday_industry_confirm_enabled", True)
         )
@@ -1964,7 +1969,7 @@ class EnhancedHybridSystem:
             high=high,
             low=low,
             minute_map=minute_map,
-            allow_quote_fallback=False,
+            allow_quote_fallback=self.allow_quote_fallback_when_minute_missing,
         )
 
     def monitor_candidates(self) -> List[Dict]:

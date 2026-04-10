@@ -55,8 +55,12 @@ class ConfigManager:
             logger.error(f"配置文件加载失败: {e}")
             raise ConfigException(f"配置文件加载失败: {e}")
     
+    SENSITIVE_KEY_PATTERNS = (
+        'token', 'webhook', 'secret', 'password', 'api_key', 'private_key',
+    )
+
     def _load_sensitive_from_env(self):
-        """从环境变量加载敏感配置"""
+        """从环境变量加载敏感配置（优先级高于配置文件）"""
         env_mappings = {
             'TUSHARE_TOKEN': 'data_source.tushare_token',
             'WECHAT_WEBHOOK': 'push.wechat_webhook',
@@ -65,7 +69,7 @@ class ConfigManager:
             'LOG_LEVEL': 'system.log_level',
             'DATABASE_PATH': 'database.path',
         }
-        
+
         for env_key, config_key in env_mappings.items():
             env_value = EnvManager.get(env_key)
             if env_value:
@@ -77,6 +81,34 @@ class ConfigManager:
                     config = config[k]
                 config[keys[-1]] = env_value
                 logger.debug(f"从环境变量加载配置: {config_key}")
+
+        self._clear_sensitive_in_config()
+
+    def _clear_sensitive_in_config(self):
+        """清除配置文件中残留的明文敏感值，防止意外泄露"""
+        sensitive_keys = [
+            ('data_source', 'tushare_token'),
+            ('push', 'wechat_webhook'),
+            ('push', 'position_wechat_webhook'),
+            ('push', 'dingtalk_webhook'),
+        ]
+        for path in sensitive_keys:
+            section = self._config
+            for k in path[:-1]:
+                if isinstance(section, dict) and k in section:
+                    section = section[k]
+                else:
+                    break
+            else:
+                if isinstance(section, dict):
+                    val = section.get(path[-1], '')
+                    if val and self._is_sensitive_value(path[-1], val):
+                        section[path[-1]] = ''
+
+    def _is_sensitive_value(self, key: str, value: str) -> bool:
+        """判断配置项是否为敏感值"""
+        key_lower = key.lower()
+        return any(p in key_lower for p in self.SENSITIVE_KEY_PATTERNS)
     
     def _get_default_config(self) -> Dict:
         """获取默认配置"""
@@ -260,6 +292,7 @@ class ConfigManager:
                 "alert_cooldown_seconds": 900,
                 "health_snapshot_interval_seconds": 60,
                 "intraday_industry_confirm_enabled": True,
+                "allow_quote_fallback_when_minute_missing": True,
                 "intraday_industry_min_symbols": 2,
                 "intraday_industry_lookback_bars": 15,
                 "intraday_industry_strong_threshold": 65.0,
@@ -387,6 +420,11 @@ class ConfigManager:
                 "outbox_retry_delay_seconds": 60,
                 "outbox_max_attempts": 5,
                 "request_timeout_seconds": 8,
+                "webhook_min_interval_seconds": 0.7,
+                "webhook_rate_limit_retry_attempts": 2,
+                "webhook_rate_limit_backoff_seconds": 1.2,
+                "webhook_retry_jitter_seconds": 0.2,
+                "retry_batch_pause_seconds": 0.35,
             },
             
             # 定时任务配置

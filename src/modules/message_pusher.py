@@ -5,7 +5,9 @@
 """
 
 import json
+import random
 import requests
+import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -28,7 +30,15 @@ logger = get_logger("push")
 class WeChatWorkPusher:
     """企业微信机器人推送器"""
     
-    def __init__(self, webhook_url: str = None, timeout: int = 10):
+    def __init__(
+        self,
+        webhook_url: str = None,
+        timeout: int = 10,
+        min_interval_seconds: float = 0.7,
+        rate_limit_retry_attempts: int = 2,
+        rate_limit_backoff_seconds: float = 1.2,
+        retry_jitter_seconds: float = 0.2,
+    ):
         """
         初始化企业微信推送器
         
@@ -38,6 +48,28 @@ class WeChatWorkPusher:
         """
         self.webhook_url = webhook_url
         self.timeout = timeout
+        self.min_interval_seconds = max(0.0, float(min_interval_seconds))
+        self.rate_limit_retry_attempts = max(0, int(rate_limit_retry_attempts))
+        self.rate_limit_backoff_seconds = max(0.1, float(rate_limit_backoff_seconds))
+        self.retry_jitter_seconds = max(0.0, float(retry_jitter_seconds))
+        self._next_send_ts = 0.0
+
+    def _wait_for_send_window(self):
+        if self.min_interval_seconds <= 0:
+            return
+        now_ts = time.monotonic()
+        if now_ts < self._next_send_ts:
+            time.sleep(self._next_send_ts - now_ts)
+            now_ts = time.monotonic()
+        self._next_send_ts = now_ts + self.min_interval_seconds
+
+    @staticmethod
+    def _is_rate_limited_response(errcode: Any, errmsg: str) -> bool:
+        text = str(errmsg or "")
+        if int(errcode or 0) in {45009}:
+            return True
+        keywords = ("并发", "每分钟最多", "每小时最多", "rate limit", "too many requests")
+        return any(k in text for k in keywords)
     
     def _send_request(self, data: Dict) -> bool:
         """
@@ -53,27 +85,63 @@ class WeChatWorkPusher:
             logger.warning("企业微信webhook未配置")
             return False
         
-        try:
-            headers = {"Content-Type": "application/json; charset=utf-8"}
-            payload = json.dumps(data, ensure_ascii=False).encode("utf-8")
-            response = requests.post(
-                self.webhook_url,
-                data=payload,
-                headers=headers,
-                timeout=self.timeout
-            )
-            
-            result = response.json()
-            if result.get("errcode") == 0:
-                logger.info("企业微信消息发送成功")
-                return True
-            else:
-                logger.error(f"企业微信消息发送失败: {result.get('errmsg')}")
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+        payload = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        max_attempts = self.rate_limit_retry_attempts + 1
+        last_error = ""
+
+        for attempt in range(max_attempts):
+            try:
+                self._wait_for_send_window()
+                response = requests.post(
+                    self.webhook_url,
+                    data=payload,
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+
+                result = response.json()
+                errcode = int(result.get("errcode", -1))
+                errmsg = str(result.get("errmsg", "") or "")
+                if errcode == 0:
+                    logger.info("企业微信消息发送成功")
+                    return True
+
+                last_error = f"{errcode}:{errmsg}"
+                if self._is_rate_limited_response(errcode, errmsg) and attempt < max_attempts - 1:
+                    sleep_s = self.rate_limit_backoff_seconds * (2 ** attempt)
+                    sleep_s += random.uniform(0.0, self.retry_jitter_seconds)
+                    logger.warning(
+                        "企业微信触发限流/并发限制，%.2fs 后重试 (%d/%d): %s",
+                        sleep_s,
+                        attempt + 1,
+                        max_attempts,
+                        errmsg,
+                    )
+                    time.sleep(sleep_s)
+                    continue
+
+                logger.error("企业微信消息发送失败: %s", last_error)
                 return False
-        
-        except Exception as e:
-            logger.error(f"企业微信消息发送异常: {e}")
-            return False
+            except Exception as e:
+                last_error = str(e)
+                if attempt < max_attempts - 1:
+                    sleep_s = self.rate_limit_backoff_seconds * (2 ** attempt)
+                    sleep_s += random.uniform(0.0, self.retry_jitter_seconds)
+                    logger.warning(
+                        "企业微信发送异常，%.2fs 后重试 (%d/%d): %s",
+                        sleep_s,
+                        attempt + 1,
+                        max_attempts,
+                        e,
+                    )
+                    time.sleep(sleep_s)
+                    continue
+                logger.error("企业微信消息发送异常: %s", e)
+                return False
+
+        logger.error("企业微信消息发送失败(重试后): %s", last_error)
+        return False
     
     def send_text(self, content: str, mentioned_list: List[str] = None) -> bool:
         """
@@ -172,6 +240,16 @@ class MessagePusher:
         self.enabled = config.get("push.enabled", False)
         self.position_push_enabled = config.get("push.position_push_enabled", True)
         push_timeout = int(config.get("push.request_timeout_seconds", 8))
+        webhook_min_interval_seconds = float(config.get("push.webhook_min_interval_seconds", 0.7))
+        webhook_rate_limit_retry_attempts = int(
+            config.get("push.webhook_rate_limit_retry_attempts", 2)
+        )
+        webhook_rate_limit_backoff_seconds = float(
+            config.get("push.webhook_rate_limit_backoff_seconds", 1.2)
+        )
+        webhook_retry_jitter_seconds = float(
+            config.get("push.webhook_retry_jitter_seconds", 0.2)
+        )
         self.outbox_enabled = bool(config.get("push.outbox_enabled", True))
         self.outbox_retry_delay_seconds = int(config.get("push.outbox_retry_delay_seconds", 60))
         self.outbox_max_attempts = int(config.get("push.outbox_max_attempts", 5))
@@ -179,14 +257,35 @@ class MessagePusher:
         
         # 初始化企业微信推送器
         wechat_webhook = config.get("push.wechat_webhook", "")
-        self.wechat_pusher = WeChatWorkPusher(wechat_webhook, timeout=push_timeout) if wechat_webhook else None
+        self.wechat_pusher = (
+            WeChatWorkPusher(
+                wechat_webhook,
+                timeout=push_timeout,
+                min_interval_seconds=webhook_min_interval_seconds,
+                rate_limit_retry_attempts=webhook_rate_limit_retry_attempts,
+                rate_limit_backoff_seconds=webhook_rate_limit_backoff_seconds,
+                retry_jitter_seconds=webhook_retry_jitter_seconds,
+            )
+            if wechat_webhook
+            else None
+        )
         position_webhook = config.get("push.position_wechat_webhook", "")
         self.position_wechat_pusher = (
-            WeChatWorkPusher(position_webhook, timeout=push_timeout) if position_webhook else None
+            WeChatWorkPusher(
+                position_webhook,
+                timeout=push_timeout,
+                min_interval_seconds=webhook_min_interval_seconds,
+                rate_limit_retry_attempts=webhook_rate_limit_retry_attempts,
+                rate_limit_backoff_seconds=webhook_rate_limit_backoff_seconds,
+                retry_jitter_seconds=webhook_retry_jitter_seconds,
+            )
+            if position_webhook
+            else None
         )
         
         if self.enabled and not wechat_webhook:
             logger.error("推送已启用但 wechat_webhook 未配置，推送将静默失败！请设置 WECHAT_WEBHOOK 环境变量")
+            logger.error("push is enabled but wechat webhook is missing")
         
         logger.info(f"消息推送管理器初始化完成，启用状态: {self.enabled}")
 
@@ -216,8 +315,11 @@ class MessagePusher:
         if not self.enabled:
             logger.info("消息推送已禁用")
             return False
-        
-        if channel == "wechat" and self.wechat_pusher:
+
+        if channel == "wechat":
+            if not self.wechat_pusher:
+                logger.error("wechat channel unavailable: webhook not configured")
+                return False
             return self.wechat_pusher.send_text(content)
 
         if channel == "position":
@@ -229,8 +331,10 @@ class MessagePusher:
             if self.wechat_pusher:
                 logger.warning("持仓webhook未配置，降级到主webhook")
                 return self.wechat_pusher.send_text(content)
-        
-        logger.warning(f"不支持的推送渠道: {channel}")
+            logger.error("position channel unavailable: both position/main webhook are missing")
+            return False
+
+        logger.warning("不支持的文本推送渠道: %s", channel)
         return False
     
     def push_markdown(self, content: str, channel: str = "wechat", enqueue_on_fail: bool = True) -> bool:
@@ -247,11 +351,26 @@ class MessagePusher:
         if not self.enabled:
             logger.info("消息推送已禁用")
             return False
-        
-        if channel == "wechat" and self.wechat_pusher:
+
+        if channel == "wechat":
+            if not self.wechat_pusher:
+                logger.error("wechat channel unavailable: webhook not configured")
+                if enqueue_on_fail:
+                    self._enqueue_outbox(
+                        channel="wechat",
+                        msg_type="markdown",
+                        payload={"content": content},
+                        error="wechat_webhook_missing",
+                    )
+                return False
             ok = self.wechat_pusher.send_markdown(content)
             if not ok and enqueue_on_fail:
-                self._enqueue_outbox(channel="wechat", msg_type="markdown", payload={"content": content}, error="wechat_markdown_failed")
+                self._enqueue_outbox(
+                    channel="wechat",
+                    msg_type="markdown",
+                    payload={"content": content},
+                    error="wechat_markdown_failed",
+                )
             return ok
 
         if channel == "position":
@@ -261,16 +380,43 @@ class MessagePusher:
             if self.position_wechat_pusher:
                 ok = self.position_wechat_pusher.send_markdown(content)
                 if not ok and enqueue_on_fail:
-                    self._enqueue_outbox(channel="position", msg_type="markdown", payload={"content": content}, error="position_markdown_failed")
+                    self._enqueue_outbox(
+                        channel="position",
+                        msg_type="markdown",
+                        payload={"content": content},
+                        error="position_markdown_failed",
+                    )
                 return ok
             if self.wechat_pusher:
                 logger.warning("持仓webhook未配置，降级到主webhook")
                 ok = self.wechat_pusher.send_markdown(content)
                 if not ok and enqueue_on_fail:
-                    self._enqueue_outbox(channel="wechat", msg_type="markdown", payload={"content": content}, error="wechat_markdown_failed")
+                    self._enqueue_outbox(
+                        channel="wechat",
+                        msg_type="markdown",
+                        payload={"content": content},
+                        error="wechat_markdown_failed",
+                    )
                 return ok
-        
-        logger.warning(f"不支持的推送渠道: {channel}")
+
+            logger.error("position channel unavailable: both position/main webhook are missing")
+            if enqueue_on_fail:
+                self._enqueue_outbox(
+                    channel="position",
+                    msg_type="markdown",
+                    payload={"content": content},
+                    error="position_webhook_missing",
+                )
+            return False
+
+        logger.warning("不支持的 Markdown 推送渠道: %s", channel)
+        if enqueue_on_fail:
+            self._enqueue_outbox(
+                channel=channel,
+                msg_type="markdown",
+                payload={"content": content},
+                error=f"unsupported_channel:{channel}",
+            )
         return False
     
     def push_risk_signal(self, signal: Dict) -> bool:

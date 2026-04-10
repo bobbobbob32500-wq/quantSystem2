@@ -6,6 +6,7 @@
 
 import hashlib
 import json
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -84,6 +85,9 @@ class AutoPushManager:
         )
         self.outbox_retry_delay_seconds = int(
             config.get("push.outbox_retry_delay_seconds", 60)
+        )
+        self.retry_batch_pause_seconds = float(
+            config.get("push.retry_batch_pause_seconds", 0.35)
         )
         
         # 记录上次推送的市场状态（用于判断是否异常）
@@ -230,7 +234,8 @@ class AutoPushManager:
                 return False
 
             success_count = 0
-            for event in pending_events:
+            total_events = len(pending_events)
+            for idx, event in enumerate(pending_events):
                 event_id = str(event.get("event_id", ""))
                 if not event_id:
                     continue
@@ -245,6 +250,8 @@ class AutoPushManager:
                         error="position push failed",
                         retry_delay_seconds=self.position_retry_delay_seconds,
                     )
+                if idx < total_events - 1 and self.retry_batch_pause_seconds > 0:
+                    time.sleep(self.retry_batch_pause_seconds)
 
             logger.info(
                 "持仓事件推送完成: success=%d, total=%d",
@@ -267,7 +274,8 @@ class AutoPushManager:
                 return False
 
             success = 0
-            for row in pending:
+            total_rows = len(pending)
+            for idx, row in enumerate(pending):
                 row_id = int(row.get("id", 0) or 0)
                 channel = str(row.get("channel", "wechat") or "wechat")
                 msg_type = str(row.get("msg_type", "markdown") or "markdown")
@@ -290,6 +298,8 @@ class AutoPushManager:
                     success += 1
                 else:
                     self.push_outbox.mark_failed(row_id, error="outbox_retry_failed", retry_delay_seconds=self.outbox_retry_delay_seconds)
+                if idx < total_rows - 1 and self.retry_batch_pause_seconds > 0:
+                    time.sleep(self.retry_batch_pause_seconds)
 
             logger.info("push_outbox 重试完成: success=%d total=%d", success, len(pending))
             return success == len(pending)
