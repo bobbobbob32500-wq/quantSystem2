@@ -9,7 +9,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 
 from src.core.logger import get_logger
 from src.core.config import ConfigManager
