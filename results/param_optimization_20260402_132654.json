@@ -1,0 +1,668 @@
+{
+  "generated_at": "2026-04-02 13:26:54",
+  "baseline": {
+    "score": 58.999143493471664,
+    "trigger_count": 55,
+    "positive_triggers": 30,
+    "negative_triggers": 25,
+    "win_rate": 0.5455,
+    "avg_return": 0.020727
+  },
+  "best": {
+    "score": 79.03172820042715,
+    "trigger_count": 55,
+    "positive_triggers": 30,
+    "negative_triggers": 25,
+    "win_rate": 0.5455,
+    "avg_return": 0.027405,
+    "params": {
+      "pullback_confidence_threshold": 0.6,
+      "volume_ratio_low": 0.6,
+      "volume_ratio_high": 1.35,
+      "support_factor": 0.999,
+      "rebound_factor": 1.005,
+      "not_far_factor": 0.98,
+      "breakout_threshold_am": 0.6,
+      "breakout_threshold_pm": 0.68,
+      "required_vol_ratio_am": 1.2,
+      "required_vol_ratio_pm": 1.4,
+      "compact_range_max": 0.02,
+      "monitor_start": "09:35",
+      "monitor_end": "14:20"
+    },
+    "entries": [
+      {
+        "symbol": "600828.SH",
+        "signal_date": "20251204",
+        "name": "茂业商业",
+        "rank": 1,
+        "entry_time": "10:20:00",
+        "entry_price": 6.01,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.019966722129783676
+      },
+      {
+        "symbol": "600734.SH",
+        "signal_date": "20251205",
+        "name": "实达集团",
+        "rank": 1,
+        "entry_time": "10:25:00",
+        "entry_price": 5.97,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.08375209380234505
+      },
+      {
+        "symbol": "600151.SH",
+        "signal_date": "20251212",
+        "name": "航天机电",
+        "rank": 1,
+        "entry_time": "10:15:00",
+        "entry_price": 14.85,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.15690235690235688
+      },
+      {
+        "symbol": "603698.SH",
+        "signal_date": "20251212",
+        "name": "航天工程",
+        "rank": 2,
+        "entry_time": "13:25:00",
+        "entry_price": 25.37,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.09184075679936932
+      },
+      {
+        "symbol": "605136.SH",
+        "signal_date": "20251212",
+        "name": "丽人丽妆",
+        "rank": 3,
+        "entry_time": "11:25:00",
+        "entry_price": 11.89,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.011774600504625754
+      },
+      {
+        "symbol": "601231.SH",
+        "signal_date": "20251215",
+        "name": "环旭电子",
+        "rank": 2,
+        "entry_time": "10:25:00",
+        "entry_price": 25.32,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.11334913112164302
+      },
+      {
+        "symbol": "600875.SH",
+        "signal_date": "20251217",
+        "name": "东方电气",
+        "rank": 1,
+        "entry_time": "11:15:00",
+        "entry_price": 22.77,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.005709266578831862
+      },
+      {
+        "symbol": "600776.SH",
+        "signal_date": "20251218",
+        "name": "东方通信",
+        "rank": 2,
+        "entry_time": "10:55:00",
+        "entry_price": 15.59,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.007055805003207127
+      },
+      {
+        "symbol": "603163.SH",
+        "signal_date": "20251218",
+        "name": "圣晖集成",
+        "rank": 3,
+        "entry_time": "13:05:00",
+        "entry_price": 61.8,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.0444983818770226
+      },
+      {
+        "symbol": "000510.SZ",
+        "signal_date": "20251219",
+        "name": "新金路",
+        "rank": 2,
+        "entry_time": "10:30:00",
+        "entry_price": 10.54,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.0009487666034158071
+      },
+      {
+        "symbol": "601208.SH",
+        "signal_date": "20251222",
+        "name": "东材科技",
+        "rank": 1,
+        "entry_time": "10:30:00",
+        "entry_price": 23.0660118,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.25856174234680673
+      },
+      {
+        "symbol": "603626.SH",
+        "signal_date": "20251224",
+        "name": "科森科技",
+        "rank": 1,
+        "entry_time": "11:25:00",
+        "entry_price": 15.77,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.09004438807863036
+      },
+      {
+        "symbol": "002947.SZ",
+        "signal_date": "20251230",
+        "name": "恒铭达",
+        "rank": 1,
+        "entry_time": "10:25:00",
+        "entry_price": 53.47,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.027492051617729496
+      },
+      {
+        "symbol": "001208.SZ",
+        "signal_date": "20260106",
+        "name": "华菱线缆",
+        "rank": 1,
+        "entry_time": "14:15:00",
+        "entry_price": 23.92,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.18770903010033435
+      },
+      {
+        "symbol": "002342.SZ",
+        "signal_date": "20260106",
+        "name": "巨力索具",
+        "rank": 2,
+        "entry_time": "13:35:00",
+        "entry_price": 9.43,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.058324496288441274
+      },
+      {
+        "symbol": "000703.SZ",
+        "signal_date": "20260106",
+        "name": "恒逸石化",
+        "rank": 3,
+        "entry_time": "10:35:00",
+        "entry_price": 10.79,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.013901760889712511
+      },
+      {
+        "symbol": "603344.SH",
+        "signal_date": "20260107",
+        "name": "星德胜",
+        "rank": 1,
+        "entry_time": "13:55:00",
+        "entry_price": 37.51,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.018395094641429077
+      },
+      {
+        "symbol": "002571.SZ",
+        "signal_date": "20260108",
+        "name": "德力股份",
+        "rank": 1,
+        "entry_time": "10:35:00",
+        "entry_price": 12.95,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.0362934362934364
+      },
+      {
+        "symbol": "600151.SH",
+        "signal_date": "20260108",
+        "name": "航天机电",
+        "rank": 2,
+        "entry_time": "10:45:00",
+        "entry_price": 20.31,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.12210733628754311
+      },
+      {
+        "symbol": "002716.SZ",
+        "signal_date": "20260109",
+        "name": "湖南白银",
+        "rank": 1,
+        "entry_time": "10:20:00",
+        "entry_price": 7.94,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.13602015113350108
+      },
+      {
+        "symbol": "002920.SZ",
+        "signal_date": "20260112",
+        "name": "德赛西威",
+        "rank": 2,
+        "entry_time": "10:55:00",
+        "entry_price": 138.4,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.030708092485549177
+      },
+      {
+        "symbol": "000901.SZ",
+        "signal_date": "20260114",
+        "name": "航天科技",
+        "rank": 1,
+        "entry_time": "10:45:00",
+        "entry_price": 31.09,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.09810228369250562
+      },
+      {
+        "symbol": "002290.SZ",
+        "signal_date": "20260120",
+        "name": "禾盛新材",
+        "rank": 1,
+        "entry_time": "10:55:00",
+        "entry_price": 57.66,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.1122095039889004
+      },
+      {
+        "symbol": "002353.SZ",
+        "signal_date": "20260121",
+        "name": "杰瑞股份",
+        "rank": 3,
+        "entry_time": "10:35:00",
+        "entry_price": 85.06,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.013049612038561031
+      },
+      {
+        "symbol": "603216.SH",
+        "signal_date": "20260123",
+        "name": "梦天家居",
+        "rank": 1,
+        "entry_time": "13:10:00",
+        "entry_price": 53.69,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.08437325386477934
+      },
+      {
+        "symbol": "600312.SH",
+        "signal_date": "20260123",
+        "name": "平高电气",
+        "rank": 2,
+        "entry_time": "10:30:00",
+        "entry_price": 22.52,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.017761989342806372
+      },
+      {
+        "symbol": "600955.SH",
+        "signal_date": "20260126",
+        "name": "维远股份",
+        "rank": 2,
+        "entry_time": "13:05:00",
+        "entry_price": 21.09,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.004741583688952167
+      },
+      {
+        "symbol": "002838.SZ",
+        "signal_date": "20260127",
+        "name": "道恩股份",
+        "rank": 1,
+        "entry_time": "13:35:00",
+        "entry_price": 29.74,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.02219233355749828
+      },
+      {
+        "symbol": "603991.SH",
+        "signal_date": "20260127",
+        "name": "至正股份",
+        "rank": 3,
+        "entry_time": "14:15:00",
+        "entry_price": 87.77972857,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.0373631660000473
+      },
+      {
+        "symbol": "601608.SH",
+        "signal_date": "20260128",
+        "name": "中信重工",
+        "rank": 1,
+        "entry_time": "13:50:00",
+        "entry_price": 7.95,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.044025157232704504
+      },
+      {
+        "symbol": "600714.SH",
+        "signal_date": "20260128",
+        "name": "金瑞矿业",
+        "rank": 2,
+        "entry_time": "11:05:00",
+        "entry_price": 16.27,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.04609711124769511
+      },
+      {
+        "symbol": "002266.SZ",
+        "signal_date": "20260128",
+        "name": "浙富控股",
+        "rank": 3,
+        "entry_time": "11:05:00",
+        "entry_price": 5.08,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.04330708661417315
+      },
+      {
+        "symbol": "601226.SH",
+        "signal_date": "20260130",
+        "name": "华电科工",
+        "rank": 1,
+        "entry_time": "13:15:00",
+        "entry_price": 10.99,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.05277525022747964
+      },
+      {
+        "symbol": "605056.SH",
+        "signal_date": "20260130",
+        "name": "咸亨国际",
+        "rank": 2,
+        "entry_time": "13:55:00",
+        "entry_price": 22.06,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.012239347234814124
+      },
+      {
+        "symbol": "600869.SH",
+        "signal_date": "20260203",
+        "name": "远东股份",
+        "rank": 1,
+        "entry_time": "10:40:00",
+        "entry_price": 12.71,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.025177025963807997
+      },
+      {
+        "symbol": "600871.SH",
+        "signal_date": "20260203",
+        "name": "石化油服",
+        "rank": 2,
+        "entry_time": "13:35:00",
+        "entry_price": 2.86,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.006993006993007089
+      },
+      {
+        "symbol": "605288.SH",
+        "signal_date": "20260203",
+        "name": "凯迪股份",
+        "rank": 3,
+        "entry_time": "14:00:00",
+        "entry_price": 137.3,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.016751638747268816
+      },
+      {
+        "symbol": "002259.SZ",
+        "signal_date": "20260204",
+        "name": "升达林业",
+        "rank": 1,
+        "entry_time": "10:20:00",
+        "entry_price": 5.79,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.08981001727115712
+      },
+      {
+        "symbol": "000031.SZ",
+        "signal_date": "20260204",
+        "name": "大悦城",
+        "rank": 2,
+        "entry_time": "10:35:00",
+        "entry_price": 3.79,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.0158311345646438
+      },
+      {
+        "symbol": "603806.SH",
+        "signal_date": "20260209",
+        "name": "福斯特",
+        "rank": 1,
+        "entry_time": "11:05:00",
+        "entry_price": 19.68,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.044207317073170826
+      },
+      {
+        "symbol": "600841.SH",
+        "signal_date": "20260212",
+        "name": "动力新科",
+        "rank": 2,
+        "entry_time": "11:15:00",
+        "entry_price": 11.23,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.050756901157613554
+      },
+      {
+        "symbol": "002009.SZ",
+        "signal_date": "20260213",
+        "name": "天奇股份",
+        "rank": 3,
+        "entry_time": "10:10:00",
+        "entry_price": 34.27,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.030347242486139625
+      },
+      {
+        "symbol": "600841.SH",
+        "signal_date": "20260224",
+        "name": "动力新科",
+        "rank": 1,
+        "entry_time": "10:25:00",
+        "entry_price": 10.83,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.028624192059095055
+      },
+      {
+        "symbol": "603320.SH",
+        "signal_date": "20260224",
+        "name": "迪贝电气",
+        "rank": 3,
+        "entry_time": "10:45:00",
+        "entry_price": 24.73,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.014961585119288356
+      },
+      {
+        "symbol": "603619.SH",
+        "signal_date": "20260227",
+        "name": "中曼石油",
+        "rank": 1,
+        "entry_time": "13:35:00",
+        "entry_price": 36.84,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.19408251900108575
+      },
+      {
+        "symbol": "600871.SH",
+        "signal_date": "20260227",
+        "name": "石化油服",
+        "rank": 2,
+        "entry_time": "13:55:00",
+        "entry_price": 3.23,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.20123839009287914
+      },
+      {
+        "symbol": "002008.SZ",
+        "signal_date": "20260304",
+        "name": "大族激光",
+        "rank": 1,
+        "entry_time": "11:20:00",
+        "entry_price": 70.05,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.007280513918629383
+      },
+      {
+        "symbol": "002348.SZ",
+        "signal_date": "20260304",
+        "name": "高乐股份",
+        "rank": 3,
+        "entry_time": "10:40:00",
+        "entry_price": 8.5,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.03176470588235292
+      },
+      {
+        "symbol": "605117.SH",
+        "signal_date": "20260309",
+        "name": "德业股份",
+        "rank": 1,
+        "entry_time": "10:45:00",
+        "entry_price": 125.01,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.054955603551715804
+      },
+      {
+        "symbol": "002986.SZ",
+        "signal_date": "20260312",
+        "name": "宇新股份",
+        "rank": 1,
+        "entry_time": "13:45:00",
+        "entry_price": 17.64,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.11394557823129248
+      },
+      {
+        "symbol": "002432.SZ",
+        "signal_date": "20260318",
+        "name": "九安医疗",
+        "rank": 2,
+        "entry_time": "10:45:00",
+        "entry_price": 58.88,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.05910326086956519
+      },
+      {
+        "symbol": "000890.SZ",
+        "signal_date": "20260323",
+        "name": "法尔胜",
+        "rank": 1,
+        "entry_time": "10:35:00",
+        "entry_price": 13.44,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.012648809523809534
+      },
+      {
+        "symbol": "601016.SH",
+        "signal_date": "20260323",
+        "name": "节能风电",
+        "rank": 3,
+        "entry_time": "10:15:00",
+        "entry_price": 4.56,
+        "signal_type": "pullback",
+        "T+2_close_ret": 0.1842105263157896
+      },
+      {
+        "symbol": "605286.SH",
+        "signal_date": "20260325",
+        "name": "同力天启",
+        "rank": 1,
+        "entry_time": "11:05:00",
+        "entry_price": 50.11,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.14627818798642978
+      },
+      {
+        "symbol": "000968.SZ",
+        "signal_date": "20260326",
+        "name": "蓝焰控股",
+        "rank": 1,
+        "entry_time": "11:20:00",
+        "entry_price": 10.36,
+        "signal_type": "pullback",
+        "T+2_close_ret": -0.007722007722007707
+      }
+    ]
+  },
+  "top_10": [
+    {
+      "rank": 1,
+      "score": 79.03172820042715,
+      "trigger_count": 55,
+      "win_rate": 0.5455,
+      "avg_return": 0.027405,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:35-14:20"
+    },
+    {
+      "rank": 2,
+      "score": 79.03172820042715,
+      "trigger_count": 55,
+      "win_rate": 0.5455,
+      "avg_return": 0.027405,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:45-14:20"
+    },
+    {
+      "rank": 3,
+      "score": 79.03172820042715,
+      "trigger_count": 55,
+      "win_rate": 0.5455,
+      "avg_return": 0.027405,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:55-14:20"
+    },
+    {
+      "rank": 4,
+      "score": 79.03172820042715,
+      "trigger_count": 55,
+      "win_rate": 0.5455,
+      "avg_return": 0.027405,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 10:00-14:20"
+    },
+    {
+      "rank": 5,
+      "score": 75.69259356080437,
+      "trigger_count": 53,
+      "win_rate": 0.5472,
+      "avg_return": 0.025602,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:35-14:00"
+    },
+    {
+      "rank": 6,
+      "score": 75.69259356080437,
+      "trigger_count": 53,
+      "win_rate": 0.5472,
+      "avg_return": 0.025602,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:35-14:10"
+    },
+    {
+      "rank": 7,
+      "score": 75.69259356080437,
+      "trigger_count": 53,
+      "win_rate": 0.5472,
+      "avg_return": 0.025602,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:45-14:00"
+    },
+    {
+      "rank": 8,
+      "score": 75.69259356080437,
+      "trigger_count": 53,
+      "win_rate": 0.5472,
+      "avg_return": 0.025602,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:45-14:10"
+    },
+    {
+      "rank": 9,
+      "score": 75.69259356080437,
+      "trigger_count": 53,
+      "win_rate": 0.5472,
+      "avg_return": 0.025602,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:55-14:00"
+    },
+    {
+      "rank": 10,
+      "score": 75.69259356080437,
+      "trigger_count": 53,
+      "win_rate": 0.5472,
+      "avg_return": 0.025602,
+      "label": "PB_cf0.60_vl0.6-1.4_sf0.999_rb1.005_nf0.980 | BO_am0.60_pm0.68_vam1.2_vpm1.4_cr0.020 | W 09:55-14:10"
+    }
+  ]
+}

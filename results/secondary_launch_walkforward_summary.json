@@ -1,0 +1,82 @@
+{
+  "strategy": "mainboard_secondary_launch_walkforward_optimized",
+  "data_range": [
+    "20250901",
+    "20260331"
+  ],
+  "walkforward_folds": [
+    {
+      "train_start": "20250901",
+      "train_end": "20251130",
+      "test_start": "20251201",
+      "test_end": "20251231"
+    },
+    {
+      "train_start": "20250901",
+      "train_end": "20251231",
+      "test_start": "20260101",
+      "test_end": "20260131"
+    },
+    {
+      "train_start": "20250901",
+      "train_end": "20260131",
+      "test_start": "20260201",
+      "test_end": "20260228"
+    },
+    {
+      "train_start": "20250901",
+      "train_end": "20260228",
+      "test_start": "20260301",
+      "test_end": "20260331"
+    }
+  ],
+  "best_params": {
+    "hold_days": 2,
+    "drawdown_min": 0.03,
+    "drawdown_max": 0.08,
+    "vol_shrink_ratio": 0.6,
+    "last_limit_up_days_min": 2,
+    "last_limit_up_days_max": 4,
+    "limit_up_count_10_min": 1,
+    "limit_up_count_10_max": 1,
+    "picks_per_day": 2
+  },
+  "best_candidate_summary": {
+    "hold_days": 2.0,
+    "drawdown_min": 0.03,
+    "drawdown_max": 0.08,
+    "vol_shrink_ratio": 0.6,
+    "last_limit_up_days_min": 2.0,
+    "last_limit_up_days_max": 4.0,
+    "limit_up_count_10_max": 1.0,
+    "picks_per_day": 2.0,
+    "valid_folds": 4.0,
+    "total_test_trades": 21.0,
+    "avg_test_win_rate": 0.6800595238095238,
+    "median_test_win_rate": 0.6458333333333333,
+    "avg_test_day_win_rate": 0.85,
+    "avg_test_return": 0.030929145676406044,
+    "avg_test_max_drawdown": -0.006634364843499552,
+    "avg_test_profit_factor": 3.957183309571397,
+    "win_rate_std": 0.2054380016793719,
+    "score": 0.7359105966104033
+  },
+  "final_full_range_metrics": {
+    "total_trades": 21,
+    "total_signal_days": 14,
+    "win_rate": 0.6190476190476191,
+    "day_win_rate": 0.7857142857142857,
+    "annual_return": 1.4506586069901792,
+    "sharpe_ratio": 9.937474815095795,
+    "max_drawdown": -0.025582715186134086,
+    "total_return": 0.43226071760919327,
+    "avg_return": 0.022652062611696482,
+    "std_return": 0.05225144602987556,
+    "avg_day_return": 0.026800262923925015,
+    "std_day_return": 0.042811779906181416,
+    "profit_factor": 3.6336437823263097,
+    "regime_bull_avg": 0.0,
+    "regime_sideways_avg": 0.12937856251627816,
+    "regime_bear_avg": 0.005178799805386502
+  }
+}

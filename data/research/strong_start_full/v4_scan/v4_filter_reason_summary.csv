@@ -1,0 +1,15 @@
+﻿profile,reason,hit_count,failed_events,hit_ratio_among_failed
+loose,hard:trend_close_ma20_gap:fail,697,925,0.7535135135135135
+loose,hard:strength_rs20_xsec_q:fail,588,925,0.6356756756756756
+loose,hard:industry_rank_pctchg_weak_gate:fail,389,925,0.4205405405405405
+neutral,hard:trend_close_ma20_gap:fail,811,1043,0.7775647171620326
+neutral,hard:strength_rs20_xsec_q:fail,686,1043,0.6577181208053692
+neutral,hard:industry_rank_pctchg_weak_gate:fail,475,1043,0.4554170661553212
+neutral,universe:price_too_high,11,1043,0.010546500479386385
+strict,hard:trend_close_ma20_gap:fail,920,1187,0.7750631844987363
+strict,hard:strength_rs20_xsec_q:fail,792,1187,0.6672283066554339
+strict,hard:industry_rank_pctchg_weak_gate:fail,610,1187,0.5139005897219882
+strict,universe:amount_ma20_too_low,217,1187,0.18281381634372368
+strict,universe:price_too_low,112,1187,0.09435551811288964
+strict,universe:price_too_high,35,1187,0.02948609941027801
+strict,universe:list_days_too_short,4,1187,0.003369839932603201

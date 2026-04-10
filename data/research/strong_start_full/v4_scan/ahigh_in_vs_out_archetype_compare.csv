@@ -1,0 +1,11 @@
+﻿archetype,group,count,share_within_type
+A1_momentum_frontline,IN,8,0.0851063829787234
+A1_momentum_frontline,OUT,86,0.9148936170212766
+A2_structure_chip,IN,32,0.3404255319148936
+A2_structure_chip,OUT,62,0.6595744680851063
+A3_early_structure_low_rs20,IN,2,0.008438818565400843
+A3_early_structure_low_rs20,OUT,235,0.9915611814345991
+A4_balanced_highscore,IN,5,0.25
+A4_balanced_highscore,OUT,15,0.75
+A5_mixed_other,IN,22,0.026993865030674847
+A5_mixed_other,OUT,793,0.9730061349693252

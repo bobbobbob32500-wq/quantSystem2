@@ -1,0 +1,18 @@
+﻿group,factor,kept_n,dropped_n,kept_median,dropped_median,kept_minus_dropped
+Ahigh_keep_vs_drop,score_trend_axis_single,8,9,0.904884246121765,0.8784529830933242,0.026431263028440788
+Ahigh_keep_vs_drop,score_platform_axis_single,8,9,0.33967940087512616,0.5735106024907438,-0.23383120161561766
+Ahigh_keep_vs_drop,score_chip_axis_single,8,9,0.8118551584151679,0.6916845304243303,0.12017062799083755
+Ahigh_keep_vs_drop,score_industry_axis_single,8,9,0.6191062073344975,0.2785561200190506,0.3405500873154469
+Ahigh_keep_vs_drop,f_strength_rs20_xsec_q,8,9,0.9673072984560455,0.9443223443223443,0.022984954133701163
+Ahigh_keep_vs_drop,f_platform_compress_ratio,8,9,0.6095060534271604,0.42968750000000044,0.1798185534271599
+Ahigh_keep_vs_drop,f_chip_winner_rate,8,9,0.9891338403854937,0.9502035424065454,0.038930297978948314
+Ahigh_keep_vs_drop,f_ind_peer_strong_count,8,9,18.5,3.0,15.5
+Ahigh_keep_vs_drop,score_total,8,9,0.8620993416379756,0.757324464348997,0.10477487728897861
+
+
+# subtype_composition
+core_keep,ahigh_subtype,n
+False,high_momentum_frontline_A,3
+False,mixed_Ahigh,5
+False,steady_structure_chip_A,1
+True,high_momentum_frontline_A,8

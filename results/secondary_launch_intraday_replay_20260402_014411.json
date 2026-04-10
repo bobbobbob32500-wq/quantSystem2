@@ -1,0 +1,276 @@
+{
+  "generated_at": "2026-04-02 01:44:11",
+  "report_json": "D:\\HuaweiAI\\quantSystem2\\results\\secondary_launch_recent_tracking_20260402_005557.json",
+  "db_path": "D:\\HuaweiAI\\quantSystem2\\data\\history_recommendation.db",
+  "signal_count": 66,
+  "entry_count": 18,
+  "no_entry_count": 44,
+  "subtype_summary": [
+    {
+      "signal_type": "secondary_launch_pullback",
+      "sample_count": 18,
+      "win_rate": 0.6111111111111112,
+      "avg_return": 0.007777564543214667,
+      "median_return": 0.004049769942306658,
+      "best_return": 0.06024096385542177,
+      "worst_return": -0.017612524461839696
+    }
+  ],
+  "window_summary": [
+    {
+      "signal_type": "secondary_launch_pullback",
+      "window": "15m",
+      "sample_count": 18,
+      "win_rate": 0.5,
+      "avg_return": 0.008855685311388972,
+      "median_return": 0.002437043054427268
+    },
+    {
+      "signal_type": "secondary_launch_pullback",
+      "window": "30m",
+      "sample_count": 18,
+      "win_rate": 0.6111111111111112,
+      "avg_return": 0.007777564543214667,
+      "median_return": 0.004049769942306658
+    },
+    {
+      "signal_type": "secondary_launch_pullback",
+      "window": "5m",
+      "sample_count": 18,
+      "win_rate": 0.5,
+      "avg_return": 0.0011666231003662733,
+      "median_return": 0.0004377006127808114
+    },
+    {
+      "signal_type": "secondary_launch_pullback",
+      "window": "60m",
+      "sample_count": 16,
+      "win_rate": 0.6875,
+      "avg_return": 0.012026123088498195,
+      "median_return": 0.007982031216161034
+    }
+  ],
+  "best_rules": [
+    {
+      "signal_type": "all",
+      "rule_label": "SL -2.0% | TP 5.0% | TR none | HOLD 120m",
+      "sample_count": 18,
+      "win_rate": 0.6111111111111112,
+      "avg_return": 0.012202964941356118,
+      "median_return": 0.005390648470268822
+    },
+    {
+      "rule_label": "SL -2.0% | TP 5.0% | TR none | HOLD 120m",
+      "signal_type": "secondary_launch_pullback",
+      "sample_count": 18,
+      "win_rate": 0.6111111111111112,
+      "avg_return": 0.012202964941356118,
+      "median_return": 0.005390648470268822
+    }
+  ],
+  "entries": [
+    {
+      "symbol": "600058.SH",
+      "signal_date": "20260128",
+      "name": "五矿发展",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-01-28 11:10:00",
+      "entry_price": 15.61,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": 0.01985906470211396
+    },
+    {
+      "symbol": "600868.SH",
+      "signal_date": "20260129",
+      "name": "梅雁吉祥",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-01-29 13:10:00",
+      "entry_price": 5.11,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": -0.017612524461839696
+    },
+    {
+      "symbol": "601226.SH",
+      "signal_date": "20260130",
+      "name": "华电科工",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-01-30 13:15:00",
+      "entry_price": 10.99,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.05004549590536844
+    },
+    {
+      "symbol": "601615.SH",
+      "signal_date": "20260203",
+      "name": "明阳智能",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-03 13:25:00",
+      "entry_price": 24.62,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.017059301380990988
+    },
+    {
+      "symbol": "601226.SH",
+      "signal_date": "20260203",
+      "name": "华电科工",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-03 13:50:00",
+      "entry_price": 11.5,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": 0.0017391304347824654
+    },
+    {
+      "symbol": "002218.SZ",
+      "signal_date": "20260204",
+      "name": "拓日新能",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-04 10:25:00",
+      "entry_price": 6.64,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.06024096385542177
+    },
+    {
+      "symbol": "002259.SZ",
+      "signal_date": "20260204",
+      "name": "升达林业",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-04 10:25:00",
+      "entry_price": 5.83,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": 0.005145797598627766
+    },
+    {
+      "symbol": "601869.SH",
+      "signal_date": "20260206",
+      "name": "长飞光纤",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-06 11:20:00",
+      "entry_price": 177.94,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.0
+    },
+    {
+      "symbol": "603806.SH",
+      "signal_date": "20260209",
+      "name": "福斯特",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-09 11:05:00",
+      "entry_price": 19.68,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": -0.012703252032520318
+    },
+    {
+      "symbol": "002943.SZ",
+      "signal_date": "20260211",
+      "name": "宇晶股份",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-11 14:10:00",
+      "entry_price": 81.59,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": -0.004657433509008602
+    },
+    {
+      "symbol": "002009.SZ",
+      "signal_date": "20260213",
+      "name": "天奇股份",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-13 10:10:00",
+      "entry_price": 34.27,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.010504814706740584
+    },
+    {
+      "symbol": "002440.SZ",
+      "signal_date": "20260224",
+      "name": "闰土股份",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-24 10:40:00",
+      "entry_price": 14.95,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.010033444816053505
+    },
+    {
+      "symbol": "600590.SH",
+      "signal_date": "20260224",
+      "name": "泰豪科技",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-24 10:40:00",
+      "entry_price": 13.64,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": -0.010997067448680342
+    },
+    {
+      "symbol": "600330.SH",
+      "signal_date": "20260227",
+      "name": "天通股份",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-27 14:20:00",
+      "entry_price": 17.15,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": -0.0005830903790086106
+    },
+    {
+      "symbol": "603619.SH",
+      "signal_date": "20260227",
+      "name": "中曼石油",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-02-27 13:35:00",
+      "entry_price": 36.84,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": -0.013029315960912169
+    },
+    {
+      "symbol": "603393.SH",
+      "signal_date": "20260310",
+      "name": "新天然气",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-03-10 11:00:00",
+      "entry_price": 38.22,
+      "confidence": 1.0,
+      "rank": 2,
+      "return_pct": 0.010727367870225102
+    },
+    {
+      "symbol": "600722.SH",
+      "signal_date": "20260311",
+      "name": "金牛化工",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-03-11 11:20:00",
+      "entry_price": 13.31,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.011269722013523609
+    },
+    {
+      "symbol": "603929.SH",
+      "signal_date": "20260330",
+      "name": "亚翔集成",
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "2026-03-30 10:45:00",
+      "entry_price": 189.59,
+      "confidence": 1.0,
+      "rank": 1,
+      "return_pct": 0.00295374228598555
+    }
+  ],
+  "insights": [
+    "当前分钟级回放中，`secondary_launch_pullback` 表现最佳，样本 `18` 条，平均收益 `0.78%`。",
+    "最佳观察窗口为 `secondary_launch_pullback / 60m`，平均收益 `1.20%`。",
+    "当前全样本最优卖点规则为 `SL -2.0% | TP 5.0% | TR none | HOLD 120m`，平均收益 `1.22%`，胜率 `61.11%`。"
+  ]
+}

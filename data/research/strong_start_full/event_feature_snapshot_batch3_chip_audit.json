@@ -1,0 +1,14 @@
+{
+  "chip_align_rate": 1.0,
+  "missing_chip_events": 0,
+  "missing_by_date_file": "data\\research\\strong_start_full\\event_feature_snapshot_batch3_chip_missing_by_date.csv",
+  "missing_by_code_file": "data\\research\\strong_start_full\\event_feature_snapshot_batch3_chip_missing_by_code.csv",
+  "chip_raw_null": {
+    "cost_5pct_null": 0,
+    "cost_95pct_null": 0,
+    "winner_rate_null": 0
+  },
+  "chip_missing_by_label_file": "data\\research\\strong_start_full\\event_feature_snapshot_batch3_chip_missing_by_label.csv",
+  "center_definition": "cost_50pct",
+  "low_position_formula": "(chip_center - range_low_120) / (range_high_120 - range_low_120)"
+}

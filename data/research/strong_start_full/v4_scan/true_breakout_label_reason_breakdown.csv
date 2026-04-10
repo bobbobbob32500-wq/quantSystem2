@@ -1,0 +1,8 @@
+﻿label_true_breakout,label_reason,count
+A,continuation_strong_no_early_break,3817
+C,weak_follow_through,3816
+C,early_structure_break,2849
+C,deep_drawdown_no_recovery,327
+G,mixed_path_non_fail,4463
+G,mixed_path_pullback,2700
+N,incomplete_forward_window,519

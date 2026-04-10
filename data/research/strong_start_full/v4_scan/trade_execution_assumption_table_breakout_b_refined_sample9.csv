@@ -1,0 +1,10 @@
+﻿ts_code,trade_date,execution_ready_flag,execution_reject_reason,execution_risk_tag,key_reason_1,key_reason_2,key_reason_3
+603272.SH,20260325,ready,,none,ready_refined_follow_through,close_ret_t1>=0.012 & close_pos>=0.60,low_break>-0.02
+003010.SZ,20260327,ready,,none,ready_refined_follow_through,close_ret_t1>=0.012 & close_pos>=0.60,low_break>-0.02
+000534.SZ,20260309,ready,,none,ready_intraday_continue_confirmed,t_signal_breakout_ready,gap_within_guard
+002294.SZ,20260310,reject,reject_intraday_confirmation_fail_refined,hard_reject,reject_refined_confirmation_fail,close_ret_t1<=0 OR weak_close_pos<0.25,upper_shadow>=0.60 when weak_close_pos
+002654.SZ,20260311,reject,reject_intraday_confirmation_fail_refined,hard_reject,reject_refined_confirmation_fail,close_ret_t1<=0 OR weak_close_pos<0.25,upper_shadow>=0.60 when weak_close_pos
+000066.SZ,20260309,reject,reject_intraday_breakdown,hard_reject,reject_intraday_breakdown,low_vs_t_close=-0.0220,structure_broken_t1
+601611.SH,20260309,risk,,intraday_confirmation_weak_refined,risk_refined_boundary_unclear,continuation_not_strong_enough_for_ready,not_weak_enough_for_reject
+600603.SH,20260312,risk,,intraday_confirmation_weak_refined,risk_refined_boundary_unclear,continuation_not_strong_enough_for_ready,not_weak_enough_for_reject
+002263.SZ,20260327,risk,,intraday_confirmation_weak_refined,risk_refined_boundary_unclear,continuation_not_strong_enough_for_ready,not_weak_enough_for_reject

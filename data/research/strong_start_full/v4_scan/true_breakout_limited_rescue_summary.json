@@ -1,0 +1,17 @@
+{
+  "round1_winner": "R1_ind55_rs30",
+  "round2_winner": "R2_base_R1_ind55_rs30",
+  "checks": {
+    "cond_freq_2_to_3d": true,
+    "cond_quality": true,
+    "cond_win_t2_ge_55": false,
+    "cond_window_no_reverse": true,
+    "passed": false
+  },
+  "final": "FAIL",
+  "files": {
+    "round1_compare": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_limited_rescue_round1_compare.csv",
+    "round2_compare": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_limited_rescue_round2_compare.csv",
+    "decision": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_limited_rescue_decision.md"
+  }
+}

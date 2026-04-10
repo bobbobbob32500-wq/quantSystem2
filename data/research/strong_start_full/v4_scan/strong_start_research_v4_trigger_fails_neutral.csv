@@ -1,0 +1,7 @@
+﻿trigger_rule,count
+quality:k_body_to_atr,17
+breakout:breakout_volume_ratio20,6
+quality:k_upper_shadow_ratio,5
+quality:industry_rank_trigger_assist,3
+momentum:up_down_vol_ratio20,3
+momentum:k_pct_chg,2

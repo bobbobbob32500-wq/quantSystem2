@@ -1,0 +1,23 @@
+{
+  "window": {
+    "start_date": "20260206",
+    "end_date": "20260327",
+    "days": 30
+  },
+  "profiles": [
+    "loose",
+    "neutral",
+    "strict"
+  ],
+  "outputs": {
+    "loose": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_scan_multiday_loose.parquet",
+    "neutral": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_scan_multiday_neutral.parquet",
+    "strict": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_scan_multiday_strict.parquet",
+    "funnel": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_scan_funnel_summary.csv",
+    "filter_reason": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_filter_reason_summary.csv",
+    "trigger_fail": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_trigger_fail_summary.csv",
+    "score_distribution": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_score_distribution_summary.csv",
+    "sample_review": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_explain_sample_review.csv",
+    "report": "data\\research\\strong_start_full\\v4_scan_tune1\\v4_structure_scan_review_report.md"
+  }
+}

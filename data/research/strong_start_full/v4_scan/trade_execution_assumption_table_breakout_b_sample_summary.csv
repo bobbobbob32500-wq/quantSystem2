@@ -1,0 +1,8 @@
+﻿metric,key,value
+state_count,reject,91
+state_count,ready,25
+state_count,risk,8
+reject_top,reject_intraday_breakdown,81
+reject_top,reject_gap_too_large,8
+reject_top,reject_intraday_confirm_fail,2
+risk_top,intraday_confirmation_weak,8

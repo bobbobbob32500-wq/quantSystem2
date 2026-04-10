@@ -1,0 +1,101 @@
+{
+  "full_universe": {
+    "total_events": 18491,
+    "total_A": 3817,
+    "total_A_high": 1260,
+    "recall": [
+      {
+        "layer": "core_pool",
+        "total_A": 3817,
+        "recall_count_A": 102,
+        "recall_rate_A": 0.026722556981922975,
+        "total_A_high": 1260,
+        "recall_count_A_high": 45,
+        "recall_rate_A_high": 0.03571428571428571,
+        "miss_count_A_high": 1215,
+        "miss_rate_A_high": 0.9642857142857143
+      },
+      {
+        "layer": "priority_tag",
+        "total_A": 3817,
+        "recall_count_A": 5,
+        "recall_rate_A": 0.0013099292638197536,
+        "total_A_high": 1260,
+        "recall_count_A_high": 2,
+        "recall_rate_A_high": 0.0015873015873015873,
+        "miss_count_A_high": 1258,
+        "miss_rate_A_high": 0.9984126984126984
+      },
+      {
+        "layer": "strict_pool",
+        "total_A": 3817,
+        "recall_count_A": 4,
+        "recall_rate_A": 0.001047943411055803,
+        "total_A_high": 1260,
+        "recall_count_A_high": 2,
+        "recall_rate_A_high": 0.0015873015873015873,
+        "miss_count_A_high": 1258,
+        "miss_rate_A_high": 0.9984126984126984
+      },
+      {
+        "layer": "F3",
+        "total_A": 3817,
+        "recall_count_A": 3,
+        "recall_rate_A": 0.0007859575582918522,
+        "total_A_high": 1260,
+        "recall_count_A_high": 2,
+        "recall_rate_A_high": 0.0015873015873015873,
+        "miss_count_A_high": 1258,
+        "miss_rate_A_high": 0.9984126984126984
+      }
+    ],
+    "ahigh_miss_reasons": [
+      {
+        "miss_reason": "not_in_path_A",
+        "miss_count": 546,
+        "miss_ratio_in_missed_A_high": 0.43402225755166934,
+        "miss_ratio_in_total_A_high": 0.43333333333333335
+      },
+      {
+        "miss_reason": "not_in_core_pool",
+        "miss_count": 677,
+        "miss_ratio_in_missed_A_high": 0.5381558028616852,
+        "miss_ratio_in_total_A_high": 0.5373015873015873
+      },
+      {
+        "miss_reason": "no_priority_tag",
+        "miss_count": 35,
+        "miss_ratio_in_missed_A_high": 0.02782193958664547,
+        "miss_ratio_in_total_A_high": 0.027777777777777776
+      },
+      {
+        "miss_reason": "excluded_by_strict_pool",
+        "miss_count": 0,
+        "miss_ratio_in_missed_A_high": 0.0,
+        "miss_ratio_in_total_A_high": 0.0
+      },
+      {
+        "miss_reason": "failed_F3_gate",
+        "miss_count": 0,
+        "miss_ratio_in_missed_A_high": 0.0,
+        "miss_ratio_in_total_A_high": 0.0
+      }
+    ]
+  },
+  "eval210": {
+    "rows": 210,
+    "total_A": 68,
+    "total_A_high": 24,
+    "f3_recall_rate_A_high_all": 0.2083333333333333
+  },
+  "decision": {
+    "must_prioritize_recall": true,
+    "should_continue_buypoint_dev": false
+  },
+  "files": {
+    "mapping": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_full_universe_mapping.csv",
+    "recall": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_full_universe_recall_audit.csv",
+    "miss": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_full_universe_ahigh_miss_reason.csv",
+    "compare": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_full_universe_vs_eval210_compare.md"
+  }
+}

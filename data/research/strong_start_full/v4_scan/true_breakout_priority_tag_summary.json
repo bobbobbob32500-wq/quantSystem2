@@ -1,0 +1,13 @@
+{
+  "scheme": "B",
+  "core_pool_n": 210,
+  "priority_tag_n": 14,
+  "non_priority_n": 196,
+  "outputs": [
+    "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_v32_with_priority_tag.csv",
+    "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_quality_review.csv",
+    "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_return_review.csv",
+    "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_schemeB_review.md",
+    "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_summary.json"
+  ]
+}

@@ -1,0 +1,16 @@
+﻿table_type,group,count,label_A_high_share,label_A_mid_share,label_A_low_share,label_C_share,label_G_share,mean_ret_t1,median_ret_t1,win_t1,mean_ret_t2,median_ret_t2,win_t2,mean_ret_t3,median_ret_t3,win_t3,field,mean,median,p25,p75
+increment_summary,ECH2_increment_only,199,0.07035175879396985,0.08542713567839195,0.10552763819095477,0.35678391959798994,0.37185929648241206,-0.00013610902810256615,-0.002390376683426676,0.4371859296482412,0.0016167086207356932,-0.0024709108844161998,0.4623115577889447,0.006240751289229614,0.001706816675100642,0.5025125628140703,,,,,
+good_bad_field_stats,increment_good_t2_pos,92,,,,,,,,,,,,,,,score_platform_axis_single,0.6978314128013944,0.6900723830734967,0.6533741648106904,0.7264170378619152
+good_bad_field_stats,increment_good_t2_pos,92,,,,,,,,,,,,,,,score_industry_axis_single,0.7464362069208758,0.7272186469093072,0.6518694905629766,0.8526918500892327
+good_bad_field_stats,increment_good_t2_pos,92,,,,,,,,,,,,,,,f_chip_winner_rate,0.850118914499487,0.8323781579546903,0.7816787092951634,0.899599187273961
+good_bad_field_stats,increment_good_t2_pos,92,,,,,,,,,,,,,,,f_platform_compress_ratio,0.3865515181034534,0.4065949435180207,0.31707780401096386,0.46535103270986633
+good_bad_field_stats,increment_good_t2_pos,4,,,,,,,,,,,,,,,score_total,0.7274883242043512,0.74948247818075,0.7160144935686176,0.7609563088164835
+good_bad_field_stats,increment_good_t2_pos,4,,,,,,,,,,,,,,,rank_global_after_merge,3.0,3.0,3.0,3.0
+good_bad_field_stats,increment_good_t2_pos,92,,,,,,,,,,,,,,,f_strength_rs20_xsec_q,0.6548431804221404,0.6544958376562023,0.6187611713599199,0.6992843429350375
+good_bad_field_stats,increment_bad_t2_nonpos,106,,,,,,,,,,,,,,,score_platform_axis_single,0.7064694604361894,0.6964337416481068,0.6531932071269487,0.7490798997772828
+good_bad_field_stats,increment_bad_t2_nonpos,106,,,,,,,,,,,,,,,score_industry_axis_single,0.7500929187376214,0.7446967443621221,0.6647575171705153,0.8331215185766048
+good_bad_field_stats,increment_bad_t2_nonpos,106,,,,,,,,,,,,,,,f_chip_winner_rate,0.8581490331843625,0.8510440560031388,0.7911635664628551,0.9214773177593927
+good_bad_field_stats,increment_bad_t2_nonpos,106,,,,,,,,,,,,,,,f_platform_compress_ratio,0.3855570117804066,0.4019502933714899,0.32653243050605824,0.4694602272727263
+good_bad_field_stats,increment_bad_t2_nonpos,3,,,,,,,,,,,,,,,score_total,0.7193934531327034,0.7400773905198004,0.6913776933485662,0.757751181610389
+good_bad_field_stats,increment_bad_t2_nonpos,3,,,,,,,,,,,,,,,rank_global_after_merge,3.6666666666666665,4.0,3.5,4.0
+good_bad_field_stats,increment_bad_t2_nonpos,106,,,,,,,,,,,,,,,f_strength_rs20_xsec_q,0.6501812853963351,0.6467750126968004,0.6188357905439756,0.6836619713575108

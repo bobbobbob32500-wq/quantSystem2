@@ -1,0 +1,74 @@
+{
+  "strategy": "mainboard_secondary_launch_no_auction_filter",
+  "in_sample_period": [
+    "20251201",
+    "20260327"
+  ],
+  "oos_period": [
+    "20260301",
+    "20260327"
+  ],
+  "hold_days": 3,
+  "in_sample_metrics": {
+    "total_trades": 167,
+    "total_signal_days": 72,
+    "win_rate": 0.562874251497006,
+    "day_win_rate": 0.6527777777777778,
+    "annual_return": 95.63376635677838,
+    "sharpe_ratio": 6.235944299729855,
+    "max_drawdown": -0.30104440101460894,
+    "total_return": 6.625696457747667,
+    "avg_return": 0.02979067213330705,
+    "std_return": 0.10112597635050305,
+    "avg_day_return": 0.03158550687715038,
+    "std_day_return": 0.08040552533589544,
+    "profit_factor": 2.280949246037658,
+    "regime_bull_avg": 0.0,
+    "regime_sideways_avg": -0.01703905577654082,
+    "regime_bear_avg": 0.03262130836697537
+  },
+  "oos_metrics": {
+    "total_trades": 40,
+    "total_signal_days": 18,
+    "win_rate": 0.5,
+    "day_win_rate": 0.4444444444444444,
+    "annual_return": 0.2485679562913805,
+    "sharpe_ratio": 0.7888216812497546,
+    "max_drawdown": -0.28915560091594184,
+    "total_return": 0.02046831537396132,
+    "avg_return": 0.006167613942528011,
+    "std_return": 0.09603883401002375,
+    "avg_day_return": 0.003584317175535197,
+    "std_day_return": 0.07213198185490312,
+    "profit_factor": 1.167254054824914,
+    "regime_bull_avg": 0.0,
+    "regime_sideways_avg": -0.012949247269472863,
+    "regime_bear_avg": 0.021958915176545756
+  },
+  "best_params": {
+    "hold_days": 3,
+    "drawdown_min": 0.02,
+    "drawdown_max": 0.1,
+    "vol_shrink_ratio": 0.85,
+    "last_limit_up_days_min": 1,
+    "last_limit_up_days_max": 6,
+    "limit_up_count_10_min": 1,
+    "limit_up_count_10_max": 1,
+    "picks_per_day": 3
+  },
+  "sensitivity": {
+    "score_std_top10": 0.02014437786815889,
+    "annual_return_std_top10": 48.305335691435616,
+    "max_drawdown_std_top10": 0.04291879761777535
+  },
+  "benchmark_return": -0.04946924265889652,
+  "alpha": 6.675165700406564,
+  "validation": {
+    "oos_trade_count_ok": true,
+    "oos_win_rate_ok": true,
+    "oos_annual_return_ok": true,
+    "oos_max_drawdown_ok": false,
+    "passed": false
+  },
+  "removed_feature": "auction_open_filter"
+}

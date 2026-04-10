@@ -1,0 +1,86 @@
+﻿sample_n,mean,median,p25,p75,min,max,window,group,field,section,bucket,share
+5.0,0.8607725777725778,0.8608152958152958,0.8468278018278019,0.8682053157053157,0.8375060125060126,0.890508463008463,all,A_high,score_total,numeric_summary,,
+5.0,0.8553586606086607,0.8663503113503114,0.8365632515632517,0.8689951802451803,0.8350986050986051,0.8697859547859549,all,C,score_total,numeric_summary,,
+,,-0.005535015535015564,,,,,all,H_minus_C,score_total,median_gap,,
+,,,,,,,all,A_high,score_total,bucket_share,"(0.84, 0.864]",0.4
+,,,,,,,all,A_high,score_total,bucket_share,"(0.834, 0.84]",0.2
+,,,,,,,all,A_high,score_total,bucket_share,"(0.864, 0.869]",0.2
+,,,,,,,all,A_high,score_total,bucket_share,"(0.869, 0.891]",0.2
+,,,,,,,all,C,score_total,bucket_share,"(0.834, 0.84]",0.4
+,,,,,,,all,C,score_total,bucket_share,"(0.864, 0.869]",0.4
+,,,,,,,all,C,score_total,bucket_share,"(0.869, 0.891]",0.2
+5.0,0.5891058394160583,0.5898925385239254,0.5837793998377939,0.6101378751013787,0.5247668288726682,0.6369525547445254,all,A_high,score_platform_axis_single,numeric_summary,,
+5.0,0.6347161394971614,0.6245640713706406,0.6094383617193836,0.6677514193025141,0.5678223844282237,0.7040044606650445,all,C,score_platform_axis_single,numeric_summary,,
+,,-0.0346715328467152,,,,,all,H_minus_C,score_platform_axis_single,median_gap,,
+,,,,,,,all,A_high,score_platform_axis_single,bucket_share,"(0.524, 0.585]",0.4
+,,,,,,,all,A_high,score_platform_axis_single,bucket_share,"(0.585, 0.61]",0.2
+,,,,,,,all,A_high,score_platform_axis_single,bucket_share,"(0.61, 0.634]",0.2
+,,,,,,,all,A_high,score_platform_axis_single,bucket_share,"(0.634, 0.704]",0.2
+,,,,,,,all,C,score_platform_axis_single,bucket_share,"(0.61, 0.634]",0.2
+,,,,,,,all,C,score_platform_axis_single,bucket_share,"(0.634, 0.704]",0.2
+,,,,,,,all,C,score_platform_axis_single,bucket_share,nan,0.2
+,,,,,,,all,C,score_platform_axis_single,bucket_share,"(0.585, 0.61]",0.2
+,,,,,,,all,C,score_platform_axis_single,bucket_share,"(0.524, 0.585]",0.2
+5.0,0.5960485810485812,0.5727633477633478,0.5268278018278018,0.618867243867244,0.4821669071669071,0.7796176046176047,all,A_high,score_industry_axis_single,numeric_summary,,
+5.0,0.632902837902838,0.5697691197691197,0.5549182299182299,0.6438191438191437,0.4290163540163541,0.966991341991342,all,C,score_industry_axis_single,numeric_summary,,
+,,0.0029942279942281047,,,,,all,H_minus_C,score_industry_axis_single,median_gap,,
+,,,,,,,all,A_high,score_industry_axis_single,bucket_share,"(0.571, 0.638]",0.4
+,,,,,,,all,A_high,score_industry_axis_single,bucket_share,"(0.428, 0.534]",0.4
+,,,,,,,all,A_high,score_industry_axis_single,bucket_share,"(0.638, 0.967]",0.2
+,,,,,,,all,C,score_industry_axis_single,bucket_share,"(0.534, 0.571]",0.4
+,,,,,,,all,C,score_industry_axis_single,bucket_share,"(0.638, 0.967]",0.4
+,,,,,,,all,C,score_industry_axis_single,bucket_share,"(0.428, 0.534]",0.2
+5.0,1.0,1.0,1.0,1.0,1.0,1.0,all,A_high,rank_global_after_merge,numeric_summary,,
+5.0,1.0,1.0,1.0,1.0,1.0,1.0,all,C,rank_global_after_merge,numeric_summary,,
+,,0.0,,,,,all,H_minus_C,rank_global_after_merge,median_gap,,
+3.0,0.8731763581763582,0.8682053157053157,0.8645103057603057,0.8793568893568893,0.8608152958152958,0.890508463008463,main,A_high,score_total,numeric_summary,,
+2.0,0.8520468926718927,0.8520468926718927,0.8435727488852489,0.8605210364585365,0.8350986050986051,0.8689951802451803,main,C,score_total,numeric_summary,,
+,,0.016158423033422964,,,,,main,H_minus_C,score_total,median_gap,,
+,,,,,,,main,A_high,score_total,bucket_share,"(0.868, 0.869]",0.3333333333333333
+,,,,,,,main,A_high,score_total,bucket_share,"(0.869, 0.891]",0.3333333333333333
+,,,,,,,main,A_high,score_total,bucket_share,"(0.834, 0.861]",0.3333333333333333
+,,,,,,,main,C,score_total,bucket_share,"(0.868, 0.869]",0.5
+,,,,,,,main,C,score_total,bucket_share,"(0.834, 0.861]",0.5
+3.0,0.6102899432278993,0.6101378751013787,0.5969586374695863,0.6235452149229521,0.5837793998377939,0.6369525547445254,main,A_high,score_platform_axis_single,numeric_summary,,
+2.0,0.5886303730738036,0.5886303730738036,0.5782263787510137,0.5990343673965937,0.5678223844282237,0.6094383617193836,main,C,score_platform_axis_single,numeric_summary,,
+,,0.02150750202757512,,,,,main,H_minus_C,score_platform_axis_single,median_gap,,
+,,,,,,,main,A_high,score_platform_axis_single,bucket_share,"(0.61, 0.637]",0.6666666666666666
+,,,,,,,main,A_high,score_platform_axis_single,bucket_share,"(0.567, 0.584]",0.3333333333333333
+,,,,,,,main,C,score_platform_axis_single,bucket_share,"(0.609, 0.61]",0.5
+,,,,,,,main,C,score_platform_axis_single,bucket_share,"(0.567, 0.584]",0.5
+3.0,0.6417708834375501,0.618867243867244,0.5728475228475229,0.6992424242424243,0.5268278018278018,0.7796176046176047,main,A_high,score_industry_axis_single,numeric_summary,,
+2.0,0.698003848003848,0.698003848003848,0.563510101010101,0.832497594997595,0.4290163540163541,0.966991341991342,main,C,score_industry_axis_single,numeric_summary,,
+,,-0.07913660413660395,,,,,main,H_minus_C,score_industry_axis_single,median_gap,,
+,,,,,,,main,A_high,score_industry_axis_single,bucket_share,"(0.619, 0.78]",0.3333333333333333
+,,,,,,,main,A_high,score_industry_axis_single,bucket_share,"(0.527, 0.619]",0.3333333333333333
+,,,,,,,main,A_high,score_industry_axis_single,bucket_share,"(0.428, 0.527]",0.3333333333333333
+,,,,,,,main,C,score_industry_axis_single,bucket_share,"(0.78, 0.967]",0.5
+,,,,,,,main,C,score_industry_axis_single,bucket_share,"(0.428, 0.527]",0.5
+3.0,1.0,1.0,1.0,1.0,1.0,1.0,main,A_high,rank_global_after_merge,numeric_summary,,
+2.0,1.0,1.0,1.0,1.0,1.0,1.0,main,C,rank_global_after_merge,numeric_summary,,
+,,0.0,,,,,main,H_minus_C,rank_global_after_merge,median_gap,,
+2.0,0.8421669071669073,0.8421669071669073,0.8398364598364599,0.8444973544973546,0.8375060125060126,0.8468278018278019,confirm,A_high,score_total,numeric_summary,,
+3.0,0.8575665058998393,0.8663503113503114,0.8514567814567815,0.8680681330681331,0.8365632515632517,0.8697859547859549,confirm,C,score_total,numeric_summary,,
+,,-0.024183404183404034,,,,,confirm,H_minus_C,score_total,median_gap,,
+,,,,,,,confirm,A_high,score_total,bucket_share,"(0.836, 0.838]",0.5
+,,,,,,,confirm,A_high,score_total,bucket_share,"(0.838, 0.847]",0.5
+,,,,,,,confirm,C,score_total,bucket_share,"(0.866, 0.87]",0.6666666666666666
+,,,,,,,confirm,C,score_total,bucket_share,"(0.836, 0.838]",0.3333333333333333
+2.0,0.5573296836982968,0.5573296836982968,0.5410482562854826,0.5736111111111111,0.5247668288726682,0.5898925385239254,confirm,A_high,score_platform_axis_single,numeric_summary,,
+3.0,0.6654399837793998,0.6677514193025141,0.6461577453365774,0.6858779399837793,0.6245640713706406,0.7040044606650445,confirm,C,score_platform_axis_single,numeric_summary,,
+,,-0.11042173560421731,,,,,confirm,H_minus_C,score_platform_axis_single,median_gap,,
+,,,,,,,confirm,A_high,score_platform_axis_single,bucket_share,"(0.524, 0.59]",1.0
+,,,,,,,confirm,C,score_platform_axis_single,bucket_share,"(0.59, 0.625]",0.3333333333333333
+,,,,,,,confirm,C,score_platform_axis_single,bucket_share,"(0.625, 0.668]",0.3333333333333333
+,,,,,,,confirm,C,score_platform_axis_single,bucket_share,nan,0.3333333333333333
+2.0,0.5274651274651274,0.5274651274651274,0.5048160173160172,0.5501142376142376,0.4821669071669071,0.5727633477633478,confirm,A_high,score_industry_axis_single,numeric_summary,,
+3.0,0.5895021645021644,0.5697691197691197,0.5623436748436748,0.6067941317941317,0.5549182299182299,0.6438191438191437,confirm,C,score_industry_axis_single,numeric_summary,,
+,,-0.04230399230399229,,,,,confirm,H_minus_C,score_industry_axis_single,median_gap,,
+,,,,,,,confirm,A_high,score_industry_axis_single,bucket_share,"(0.57, 0.573]",0.5
+,,,,,,,confirm,A_high,score_industry_axis_single,bucket_share,"(0.481, 0.555]",0.5
+,,,,,,,confirm,C,score_industry_axis_single,bucket_share,"(0.481, 0.555]",0.3333333333333333
+,,,,,,,confirm,C,score_industry_axis_single,bucket_share,"(0.573, 0.644]",0.3333333333333333
+,,,,,,,confirm,C,score_industry_axis_single,bucket_share,"(0.555, 0.57]",0.3333333333333333
+2.0,1.0,1.0,1.0,1.0,1.0,1.0,confirm,A_high,rank_global_after_merge,numeric_summary,,
+3.0,1.0,1.0,1.0,1.0,1.0,1.0,confirm,C,rank_global_after_merge,numeric_summary,,
+,,0.0,,,,,confirm,H_minus_C,rank_global_after_merge,median_gap,,

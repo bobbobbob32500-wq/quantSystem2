@@ -1,0 +1,82 @@
+{
+  "summary": {
+    "total_trading_days": 115.0,
+    "days_with_f3_candidates": 7.0,
+    "days_with_f2_only_candidates": 4.0,
+    "selected_days": 9.0,
+    "blank_days": 106.0,
+    "blank_day_ratio": 0.9217391304347826,
+    "avg_days_per_selected": 12.777777777777779,
+    "f3_selected_days": 7.0,
+    "f2_selected_days": 2.0,
+    "f3_selected_share": 0.7777777777777778,
+    "f2_selected_share": 0.2222222222222222,
+    "pace_target_days": 3.0
+  },
+  "quality": [
+    {
+      "group": "controller_selected_all",
+      "sample_n": 9,
+      "share_label_A_high": 0.5555555555555556,
+      "share_label_A_mid": 0.0,
+      "share_label_A_low": 0.2222222222222222,
+      "share_label_C": 0.2222222222222222,
+      "share_label_G": 0.0,
+      "Ahigh_C_ratio": 2.5,
+      "mean_ret_t1": 0.021921529272880103,
+      "median_ret_t1": 0.0221238938053098,
+      "win_t1": 0.7777777777777778,
+      "mean_ret_t2": 0.04996120196025411,
+      "median_ret_t2": 0.0554272517321017,
+      "win_t2": 0.7777777777777778,
+      "mean_ret_t3": 0.10104024551535076,
+      "median_ret_t3": 0.0780487804878049,
+      "win_t3": 0.7777777777777778
+    },
+    {
+      "group": "controller_selected_f3",
+      "sample_n": 7,
+      "share_label_A_high": 0.7142857142857143,
+      "share_label_A_mid": 0.0,
+      "share_label_A_low": 0.0,
+      "share_label_C": 0.2857142857142857,
+      "share_label_G": 0.0,
+      "Ahigh_C_ratio": 2.5,
+      "mean_ret_t1": 0.023241841732964588,
+      "median_ret_t1": 0.0221238938053098,
+      "win_t1": 0.7142857142857143,
+      "mean_ret_t2": 0.06136540763164366,
+      "median_ret_t2": 0.05832832230908,
+      "win_t2": 0.8571428571428571,
+      "mean_ret_t3": 0.11835721280407882,
+      "median_ret_t3": 0.161662817551963,
+      "win_t3": 0.7142857142857143
+    },
+    {
+      "group": "controller_selected_f2_only",
+      "sample_n": 2,
+      "share_label_A_high": 0.0,
+      "share_label_A_mid": 0.0,
+      "share_label_A_low": 1.0,
+      "share_label_C": 0.0,
+      "share_label_G": 0.0,
+      "Ahigh_C_ratio": NaN,
+      "mean_ret_t1": 0.0173004356625844,
+      "median_ret_t1": 0.0173004356625844,
+      "win_t1": 1.0,
+      "mean_ret_t2": 0.0100464821103907,
+      "median_ret_t2": 0.0100464821103907,
+      "win_t2": 0.5,
+      "mean_ret_t3": 0.040430860004802505,
+      "median_ret_t3": 0.040430860004802505,
+      "win_t3": 1.0
+    }
+  ],
+  "files": {
+    "tier_pool": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_tiered_input_pool.csv",
+    "daily": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_3day_pace_controller_daily.csv",
+    "summary": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_3day_pace_controller_summary.csv",
+    "quality": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_3day_pace_controller_quality_review.csv",
+    "review": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_3day_pace_controller_review.md"
+  }
+}

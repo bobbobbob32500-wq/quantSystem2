@@ -1,0 +1,3 @@
+﻿model,hard_filter_elimination_rate,candidate_rate,score_total_unique,score_continuous,implicit_hard_filter_risk,axis_dominance_proxy,axis_dominance_share,axis_imbalance_risk
+v2_draft,0.636137999503599,0.10275502606105734,4029,True,moderate,score_trend_axis,0.3106482440422737,low
+v2.1_draft,0.48746587242491934,0.11839166046165302,3173,True,moderate,score_trend_axis,0.29150932767654747,low

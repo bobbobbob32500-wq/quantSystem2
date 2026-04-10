@@ -1,0 +1,69 @@
+preset_name: tradeable_v3_research
+generated_at: '2026-04-08 17:27:51'
+sample_window:
+  labels_total: 14767
+  label_counts:
+    A: 1487
+    B: 1146
+    C: 11936
+    N: 198
+event_type_stats:
+- event_type_candidate: breakout_strong
+  A: 616
+  B: 499
+  C: 3313
+  total: 4428
+  A_rate: 0.13911472448057813
+  AB_rate: 0.251806684733514
+- event_type_candidate: breakout_like
+  A: 183
+  B: 130
+  C: 975
+  total: 1288
+  A_rate: 0.1420807453416149
+  AB_rate: 0.24301242236024845
+- event_type_candidate: trend_high_like
+  A: 688
+  B: 517
+  C: 7648
+  total: 8853
+  A_rate: 0.07771376934372529
+  AB_rate: 0.1361120524116119
+research_filters:
+  candidate_condition_count_min: 4
+  candidate_pct_chg_min: 2.5067
+  candidate_vol_ratio20_min: 1.6
+  allowed_event_types:
+  - breakout_strong
+  - breakout_like
+strategy_params:
+  min_amt_ma20: 50000.0
+  rs_quantile_min: 0.6918
+  rs_quantile_soft_ref_60: 0.5297
+  platform_max_range: 0.24
+  vol_contraction_ratio: 1.1
+  low_vol_days_required: 2
+  atr_squeeze_quantile_max: 0.85
+  breakout_volume_ratio: 1.2
+  breakout_close_pos_min: 0.585
+  pullback_volume_shrink_ratio: 0.95
+  chip_concentration_max: 0.24
+  chip_stability_std_max: 0.05
+  chip_low_position_max: 0.88
+  winner_rate_min: 0.7
+  winner_rate_max: 0.985
+  chip_peak_count_max: 8
+  chip_peak_secondary_ratio_max: 1.0
+  chip_peak_dominance_min: 0.0
+  chip_single_peak_score_min: 0.1
+  min_signal_score: 42.0
+  top_k: 12
+  allow_breakout_setup: true
+  allow_pullback_setup: true
+  chip_factor_profile_key: tradeable_v3_research
+notes:
+- Parameters are derived from sample-mining distributions and should be validated
+  with train/valid/holdout runs.
+- Breakout and pullback are both enabled by design because breakout-like events show
+  stronger AB rates than trend-high events.
+- Chip constraints are intentionally relaxed for v3_research to avoid v2-style over-filtering.

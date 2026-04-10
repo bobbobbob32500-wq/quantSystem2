@@ -1,0 +1,527 @@
+{
+  "generated_at": "2026-03-31 23:37:36",
+  "latest_trade_date": "20260331",
+  "lookback_trade_days": 40,
+  "hold_days": 3,
+  "trade_dates": [
+    "20260127",
+    "20260128",
+    "20260129",
+    "20260130",
+    "20260202",
+    "20260203",
+    "20260204",
+    "20260205",
+    "20260206",
+    "20260209",
+    "20260210",
+    "20260211",
+    "20260212",
+    "20260213",
+    "20260224",
+    "20260225",
+    "20260226",
+    "20260227",
+    "20260302",
+    "20260303",
+    "20260304",
+    "20260305",
+    "20260306",
+    "20260309",
+    "20260310",
+    "20260311",
+    "20260312",
+    "20260313",
+    "20260316",
+    "20260317",
+    "20260318",
+    "20260319",
+    "20260320",
+    "20260323",
+    "20260324",
+    "20260325",
+    "20260326",
+    "20260327",
+    "20260330",
+    "20260331"
+  ],
+  "signal_days": 1,
+  "signal_count": 1,
+  "completed_count": 1,
+  "pending_count": 0,
+  "completed_win_rate": 0.0,
+  "completed_avg_return": -0.0013359852342776264,
+  "weekly_summary": [
+    {
+      "week_label": "2026-W05",
+      "start_date": "20260127",
+      "end_date": "20260130",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W06",
+      "start_date": "20260202",
+      "end_date": "20260206",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W07",
+      "start_date": "20260209",
+      "end_date": "20260213",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W09",
+      "start_date": "20260224",
+      "end_date": "20260227",
+      "signal_days": 1,
+      "signal_count": 1,
+      "completed_count": 1,
+      "pending_count": 0,
+      "avg_return": -0.0013359852342776264,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W10",
+      "start_date": "20260302",
+      "end_date": "20260306",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W11",
+      "start_date": "20260309",
+      "end_date": "20260313",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W12",
+      "start_date": "20260316",
+      "end_date": "20260320",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W13",
+      "start_date": "20260323",
+      "end_date": "20260327",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W14",
+      "start_date": "20260330",
+      "end_date": "20260331",
+      "signal_days": 0,
+      "signal_count": 0,
+      "completed_count": 0,
+      "pending_count": 0,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "signal_gap_stats": {
+    "gap_count": 0,
+    "avg_gap_trade_days": 0.0,
+    "max_gap_trade_days": 0,
+    "gaps": []
+  },
+  "empty_streak_stats": {
+    "max_empty_trade_days": 25,
+    "latest_empty_trade_days": 25
+  },
+  "details": [
+    {
+      "signal_date": "20260127",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260128",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260129",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260130",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260202",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260203",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260204",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260205",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260206",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260209",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260210",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260211",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260212",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260213",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260224",
+      "ts_code": "603058.SH",
+      "name": "永吉股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.0013359852342776264,
+      "exit_date": "20260227"
+    },
+    {
+      "signal_date": "20260225",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260226",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260227",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260302",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260303",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260304",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260305",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260306",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260309",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260310",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260311",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260312",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260313",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260316",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260317",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260318",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260319",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260320",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260323",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260324",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260325",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260326",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260327",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260330",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260331",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    }
+  ]
+}

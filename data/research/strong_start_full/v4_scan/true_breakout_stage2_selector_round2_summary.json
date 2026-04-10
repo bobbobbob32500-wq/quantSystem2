@@ -1,0 +1,22 @@
+{
+  "best_candidate": "R2_ind55_rs20q30",
+  "full_year_best": {
+    "scope": "full_year",
+    "scenario": "R2_ind55_rs20q30",
+    "selected_n": 82,
+    "signal_days": 82,
+    "avg_days_per_signal": 2.7195121951219514,
+    "A_recall_rate": 0.007597589730154571,
+    "A_high_recall_rate": 0.013492063492063493,
+    "A_high_over_C": 0.5666666666666667,
+    "A_low_plus_C_share": 0.43902439024390244,
+    "mean_ret_t2": 0.011498844622047078,
+    "median_ret_t2": 0.0038880248833592,
+    "win_t2": 0.5365853658536586
+  },
+  "files": {
+    "compare": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_selector_round2_compare.csv",
+    "best": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_selector_round2_best.csv",
+    "review": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_selector_round2_review.md"
+  }
+}

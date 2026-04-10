@@ -1,0 +1,2107 @@
+{
+  "generated_at": "2026-04-02 01:45:09",
+  "latest_trade_date": "20260401",
+  "lookback_trade_days": 40,
+  "hold_days": 3,
+  "trade_dates": [
+    "20260128",
+    "20260129",
+    "20260130",
+    "20260202",
+    "20260203",
+    "20260204",
+    "20260205",
+    "20260206",
+    "20260209",
+    "20260210",
+    "20260211",
+    "20260212",
+    "20260213",
+    "20260224",
+    "20260225",
+    "20260226",
+    "20260227",
+    "20260302",
+    "20260303",
+    "20260304",
+    "20260305",
+    "20260306",
+    "20260309",
+    "20260310",
+    "20260311",
+    "20260312",
+    "20260313",
+    "20260316",
+    "20260317",
+    "20260318",
+    "20260319",
+    "20260320",
+    "20260323",
+    "20260324",
+    "20260325",
+    "20260326",
+    "20260327",
+    "20260330",
+    "20260331",
+    "20260401"
+  ],
+  "signal_days": 37,
+  "signal_count": 82,
+  "completed_count": 77,
+  "pending_count": 5,
+  "completed_win_rate": 0.5584415584415584,
+  "completed_avg_return": 0.01989842425953824,
+  "weekly_summary": [
+    {
+      "week_label": "2026-W05",
+      "start_date": "20260128",
+      "end_date": "20260130",
+      "signal_days": 3,
+      "signal_count": 8,
+      "completed_count": 8,
+      "pending_count": 0,
+      "avg_return": 0.024211289764334076,
+      "win_rate": 0.5
+    },
+    {
+      "week_label": "2026-W06",
+      "start_date": "20260202",
+      "end_date": "20260206",
+      "signal_days": 5,
+      "signal_count": 11,
+      "completed_count": 11,
+      "pending_count": 0,
+      "avg_return": 0.023873921789388634,
+      "win_rate": 0.8181818181818182
+    },
+    {
+      "week_label": "2026-W07",
+      "start_date": "20260209",
+      "end_date": "20260213",
+      "signal_days": 5,
+      "signal_count": 11,
+      "completed_count": 11,
+      "pending_count": 0,
+      "avg_return": -0.021522919563485027,
+      "win_rate": 0.36363636363636365
+    },
+    {
+      "week_label": "2026-W09",
+      "start_date": "20260224",
+      "end_date": "20260227",
+      "signal_days": 3,
+      "signal_count": 6,
+      "completed_count": 6,
+      "pending_count": 0,
+      "avg_return": 0.16951525354439526,
+      "win_rate": 1.0
+    },
+    {
+      "week_label": "2026-W10",
+      "start_date": "20260302",
+      "end_date": "20260306",
+      "signal_days": 5,
+      "signal_count": 11,
+      "completed_count": 11,
+      "pending_count": 0,
+      "avg_return": 0.041437131939232714,
+      "win_rate": 0.6363636363636364
+    },
+    {
+      "week_label": "2026-W11",
+      "start_date": "20260309",
+      "end_date": "20260313",
+      "signal_days": 5,
+      "signal_count": 11,
+      "completed_count": 11,
+      "pending_count": 0,
+      "avg_return": -0.005733688175445047,
+      "win_rate": 0.45454545454545453
+    },
+    {
+      "week_label": "2026-W12",
+      "start_date": "20260316",
+      "end_date": "20260320",
+      "signal_days": 5,
+      "signal_count": 12,
+      "completed_count": 12,
+      "pending_count": 0,
+      "avg_return": -0.03481997206486436,
+      "win_rate": 0.25
+    },
+    {
+      "week_label": "2026-W13",
+      "start_date": "20260323",
+      "end_date": "20260327",
+      "signal_days": 4,
+      "signal_count": 9,
+      "completed_count": 7,
+      "pending_count": 2,
+      "avg_return": 0.045805369642166936,
+      "win_rate": 0.7142857142857143
+    },
+    {
+      "week_label": "2026-W14",
+      "start_date": "20260330",
+      "end_date": "20260401",
+      "signal_days": 2,
+      "signal_count": 3,
+      "completed_count": 0,
+      "pending_count": 3,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "monthly_summary": [
+    {
+      "month_label": "2026-01",
+      "start_date": "20260128",
+      "end_date": "20260130",
+      "signal_days": 3,
+      "signal_count": 8,
+      "completed_count": 8,
+      "pending_count": 0,
+      "avg_return": 0.024211289764334076,
+      "win_rate": 0.5
+    },
+    {
+      "month_label": "2026-02",
+      "start_date": "20260202",
+      "end_date": "20260227",
+      "signal_days": 13,
+      "signal_count": 28,
+      "completed_count": 28,
+      "pending_count": 0,
+      "avg_return": 0.03724830520540397,
+      "win_rate": 0.6785714285714286
+    },
+    {
+      "month_label": "2026-03",
+      "start_date": "20260302",
+      "end_date": "20260331",
+      "signal_days": 20,
+      "signal_count": 45,
+      "completed_count": 41,
+      "pending_count": 4,
+      "avg_return": 0.007208190344352699,
+      "win_rate": 0.4878048780487805
+    },
+    {
+      "month_label": "2026-04",
+      "start_date": "20260401",
+      "end_date": "20260401",
+      "signal_days": 1,
+      "signal_count": 1,
+      "completed_count": 0,
+      "pending_count": 1,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "signal_gap_stats": {
+    "gap_count": 36,
+    "avg_gap_trade_days": 0.08333333333333333,
+    "max_gap_trade_days": 1,
+    "gaps": [
+      {
+        "from_date": "20260128",
+        "to_date": "20260129",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260129",
+        "to_date": "20260130",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260130",
+        "to_date": "20260202",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260202",
+        "to_date": "20260203",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260203",
+        "to_date": "20260204",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260204",
+        "to_date": "20260205",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260205",
+        "to_date": "20260206",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260206",
+        "to_date": "20260209",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260209",
+        "to_date": "20260210",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260210",
+        "to_date": "20260211",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260211",
+        "to_date": "20260212",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260212",
+        "to_date": "20260213",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260213",
+        "to_date": "20260224",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260224",
+        "to_date": "20260226",
+        "gap_trade_days": 1
+      },
+      {
+        "from_date": "20260226",
+        "to_date": "20260227",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260227",
+        "to_date": "20260302",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260302",
+        "to_date": "20260303",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260303",
+        "to_date": "20260304",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260304",
+        "to_date": "20260305",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260305",
+        "to_date": "20260306",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260306",
+        "to_date": "20260309",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260309",
+        "to_date": "20260310",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260310",
+        "to_date": "20260311",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260311",
+        "to_date": "20260312",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260312",
+        "to_date": "20260313",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260313",
+        "to_date": "20260316",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260316",
+        "to_date": "20260317",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260317",
+        "to_date": "20260318",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260318",
+        "to_date": "20260319",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260319",
+        "to_date": "20260320",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260320",
+        "to_date": "20260323",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260323",
+        "to_date": "20260324",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260324",
+        "to_date": "20260325",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260325",
+        "to_date": "20260326",
+        "gap_trade_days": 0
+      },
+      {
+        "from_date": "20260326",
+        "to_date": "20260330",
+        "gap_trade_days": 1
+      },
+      {
+        "from_date": "20260330",
+        "to_date": "20260401",
+        "gap_trade_days": 1
+      }
+    ]
+  },
+  "empty_streak_stats": {
+    "max_empty_trade_days": 1,
+    "latest_empty_trade_days": 0
+  },
+  "horizon_distribution": {
+    "T+1": {
+      "sample_count": 81,
+      "win_rate": 0.4691358024691358,
+      "avg_return": 0.004611276121897746,
+      "min_return": -0.16248073534505691,
+      "max_return": 0.21145282106077268
+    },
+    "T+2": {
+      "sample_count": 79,
+      "win_rate": 0.46835443037974683,
+      "avg_return": 0.014473248261217342,
+      "min_return": -0.1602489582029223,
+      "max_return": 0.2503969348516917
+    },
+    "T+3": {
+      "sample_count": 77,
+      "win_rate": 0.5584415584415584,
+      "avg_return": 0.02151842425953824,
+      "min_return": -0.18577330597790953,
+      "max_return": 0.32756029017711263
+    }
+  },
+  "intraday_review_summary": {
+    "reviewed_signal_count": 82,
+    "buy_signal_count": 16,
+    "buy_signal_ratio": 0.1951219512195122,
+    "not_pushed_count": 66,
+    "top_not_pushed_reasons": [
+      {
+        "reason": "缺少当日分钟数据",
+        "count": 39
+      },
+      {
+        "reason": "非二次启动监控窗口",
+        "count": 27
+      }
+    ],
+    "top_blocker_tags": [
+      {
+        "tag": "unclassified",
+        "label": "未分类阻断",
+        "count": 66
+      }
+    ]
+  },
+  "details": [
+    {
+      "signal_date": "20260128",
+      "ts_code": "601608.SH",
+      "name": "中信重工",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.07824679525797378,
+      "exit_date": "20260202",
+      "horizon_returns": {
+        "T+1": -0.005792686401051239,
+        "T+2": -0.03867995122747958,
+        "T+3": -0.07662679525797378
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260128",
+      "ts_code": "600714.SH",
+      "name": "金瑞矿业",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.05920292340570814,
+      "exit_date": "20260202",
+      "horizon_returns": {
+        "T+1": 0.08895914212369904,
+        "T+2": -0.019684113354999422,
+        "T+3": -0.05758292340570814
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260128",
+      "ts_code": "002266.SZ",
+      "name": "浙富控股",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": -0.05635794498184736,
+      "exit_date": "20260202",
+      "horizon_returns": {
+        "T+1": 0.046685022294778555,
+        "T+2": -0.014168758071196885,
+        "T+3": -0.054737944981847364
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260129",
+      "ts_code": "600552.SH",
+      "name": "凯盛科技",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.0016378393035533685,
+      "exit_date": "20260203",
+      "horizon_returns": {
+        "T+1": -0.04028114742400446,
+        "T+2": -0.06008277436848841,
+        "T+3": -1.7839303553368602e-05
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260129",
+      "ts_code": "002785.SZ",
+      "name": "万里石",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.05719049183374776,
+      "exit_date": "20260203",
+      "horizon_returns": {
+        "T+1": 0.008678298445740529,
+        "T+2": -0.037508305647840356,
+        "T+3": 0.05881049183374776
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260129",
+      "ts_code": "603806.SH",
+      "name": "福斯特",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.05695273752906234,
+      "exit_date": "20260203",
+      "horizon_returns": {
+        "T+1": -0.037095066023029366,
+        "T+2": -0.03766114770085249,
+        "T+3": 0.058572737529062335
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260130",
+      "ts_code": "601226.SH",
+      "name": "华电科工",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.24392563083974877,
+      "exit_date": "20260204",
+      "horizon_returns": {
+        "T+1": 0.04692366457072339,
+        "T+2": 0.13204736440030573,
+        "T+3": 0.24554563083974879
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "13:15:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260130",
+      "ts_code": "605056.SH",
+      "name": "咸亨国际",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.03106696086119638,
+      "exit_date": "20260204",
+      "horizon_returns": {
+        "T+1": -0.002922934340913841,
+        "T+2": 0.03268696086119638,
+        "T+3": 0.03268696086119638
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260202",
+      "ts_code": "603988.SH",
+      "name": "中电电机",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.10397060142809227,
+      "exit_date": "20260205",
+      "horizon_returns": {
+        "T+1": -0.030538649542339646,
+        "T+2": -0.06276196128594658,
+        "T+3": -0.10235060142809227
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260202",
+      "ts_code": "001311.SZ",
+      "name": "多利科技",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.016196277743251785,
+      "exit_date": "20260205",
+      "horizon_returns": {
+        "T+1": -0.025684037550764982,
+        "T+2": -0.007008509518778627,
+        "T+3": 0.017816277743251785
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260203",
+      "ts_code": "600869.SH",
+      "name": "远东股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.03844654502522289,
+      "exit_date": "20260206",
+      "horizon_returns": {
+        "T+1": 0.10769973827825097,
+        "T+2": 0.07470793669140785,
+        "T+3": 0.04006654502522289
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260203",
+      "ts_code": "600871.SH",
+      "name": "石化油服",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.07954883116883145,
+      "exit_date": "20260206",
+      "horizon_returns": {
+        "T+1": 0.08478478043695437,
+        "T+2": 0.04139338921947622,
+        "T+3": 0.08116883116883145
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "13:35:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260203",
+      "ts_code": "605288.SH",
+      "name": "凯迪股份",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.009497549931730864,
+      "exit_date": "20260206",
+      "horizon_returns": {
+        "T+1": 0.04154258028035529,
+        "T+2": 0.0294183200662419,
+        "T+3": 0.011117549931730863
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260204",
+      "ts_code": "002259.SZ",
+      "name": "升达林业",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.008834785855855464,
+      "exit_date": "20260209",
+      "horizon_returns": {
+        "T+1": 0.04959211911083594,
+        "T+2": 0.12252987654057179,
+        "T+3": 0.010454785855855464
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:25:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260204",
+      "ts_code": "000031.SZ",
+      "name": "大悦城",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.018136809947545806,
+      "exit_date": "20260209",
+      "horizon_returns": {
+        "T+1": 0.014318106961158872,
+        "T+2": 0.014318106961158872,
+        "T+3": 0.019756809947545806
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:35:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260205",
+      "ts_code": "002181.SZ",
+      "name": "粤传媒",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.12592623685452037,
+      "exit_date": "20260210",
+      "horizon_returns": {
+        "T+1": -0.011372914020224001,
+        "T+2": 0.025274469339371164,
+        "T+3": 0.12754623685452038
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260205",
+      "ts_code": "603599.SH",
+      "name": "广信股份",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.0009780598349020224,
+      "exit_date": "20260210",
+      "horizon_returns": {
+        "T+1": 0.006537541405962521,
+        "T+2": 0.04067971502182033,
+        "T+3": 0.0025980598349020223
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260206",
+      "ts_code": "000534.SZ",
+      "name": "万泽股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.07089948051948065,
+      "exit_date": "20260211",
+      "horizon_returns": {
+        "T+1": 0.053890109890109894,
+        "T+2": 0.10778221778221786,
+        "T+3": 0.07251948051948065
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260206",
+      "ts_code": "002606.SZ",
+      "name": "大连电瓷",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.0018808357699740437,
+      "exit_date": "20260211",
+      "horizon_returns": {
+        "T+1": 0.021453742080373983,
+        "T+2": 0.007556412256151335,
+        "T+3": -0.0002608357699740438
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260209",
+      "ts_code": "603806.SH",
+      "name": "福斯特",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.014695191193584246,
+      "exit_date": "20260212",
+      "horizon_returns": {
+        "T+1": 0.014354039195476842,
+        "T+2": -0.007800339195688011,
+        "T+3": -0.013075191193584246
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "11:05:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260209",
+      "ts_code": "002606.SZ",
+      "name": "大连电瓷",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.016732081223789174,
+      "exit_date": "20260212",
+      "horizon_returns": {
+        "T+1": -0.016412644280103805,
+        "T+2": -0.024043925488275386,
+        "T+3": 0.018352081223789174
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260210",
+      "ts_code": "601096.SH",
+      "name": "宏盛华源",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.021614759339021395,
+      "exit_date": "20260213",
+      "horizon_returns": {
+        "T+1": -0.04617186092595915,
+        "T+2": -0.026539034735755918,
+        "T+3": -0.019994759339021395
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260210",
+      "ts_code": "002853.SZ",
+      "name": "皮阿诺",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.04038149255634797,
+      "exit_date": "20260213",
+      "horizon_returns": {
+        "T+1": -0.007068828281911799,
+        "T+2": -0.01911204070619754,
+        "T+3": -0.038761492556347976
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260210",
+      "ts_code": "603612.SH",
+      "name": "索通发展",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.011150195933629047,
+      "exit_date": "20260213",
+      "horizon_returns": {
+        "T+1": 0.007519281113493648,
+        "T+2": 0.05018296402709432,
+        "T+3": 0.012770195933629047
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260211",
+      "ts_code": "002985.SZ",
+      "name": "北摩高科",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.016355813006869235,
+      "exit_date": "20260224",
+      "horizon_returns": {
+        "T+1": 0.009022033866754597,
+        "T+2": 0.015220804040680047,
+        "T+3": 0.017975813006869235
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260212",
+      "ts_code": "600185.SH",
+      "name": "珠免集团",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.07959492829750874,
+      "exit_date": "20260225",
+      "horizon_returns": {
+        "T+1": -0.0470690599722855,
+        "T+2": -0.07539943927040693,
+        "T+3": -0.07797492829750874
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260212",
+      "ts_code": "600841.SH",
+      "name": "动力新科",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.05942426470081634,
+      "exit_date": "20260225",
+      "horizon_returns": {
+        "T+1": -0.023390402700747548,
+        "T+2": -0.00850873264666352,
+        "T+3": -0.057804264700816343
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "11:15:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260213",
+      "ts_code": "603188.SH",
+      "name": "亚邦股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.013819044567017259,
+      "exit_date": "20260226",
+      "horizon_returns": {
+        "T+1": -0.010498870805514482,
+        "T+2": 0.006502866809511065,
+        "T+3": -0.012199044567017259
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260213",
+      "ts_code": "002079.SZ",
+      "name": "苏州固锝",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.0016300365541561217,
+      "exit_date": "20260226",
+      "horizon_returns": {
+        "T+1": -0.009870059826238342,
+        "T+2": -0.010744732918264721,
+        "T+3": 0.0032500365541561216
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260213",
+      "ts_code": "002009.SZ",
+      "name": "天奇股份",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": -0.053090561262482946,
+      "exit_date": "20260226",
+      "horizon_returns": {
+        "T+1": 0.09542018568946342,
+        "T+2": 0.014798237258457414,
+        "T+3": -0.05147056126248295
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:10:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260224",
+      "ts_code": "600841.SH",
+      "name": "动力新科",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.035925473394530186,
+      "exit_date": "20260227",
+      "horizon_returns": {
+        "T+1": -0.04624903398488278,
+        "T+2": 0.04884360922096809,
+        "T+3": 0.03754547339453018
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:25:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260224",
+      "ts_code": "002597.SZ",
+      "name": "金禾实业",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.08002625271399096,
+      "exit_date": "20260227",
+      "horizon_returns": {
+        "T+1": -0.002761876470257496,
+        "T+2": 0.07706300588045711,
+        "T+3": 0.08164625271399095
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260224",
+      "ts_code": "603320.SH",
+      "name": "迪贝电气",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.004502437367352296,
+      "exit_date": "20260227",
+      "horizon_returns": {
+        "T+1": -0.008088331522017156,
+        "T+2": -0.010930485299891157,
+        "T+3": 0.006122437367352296
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260225",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260226",
+      "ts_code": "002491.SZ",
+      "name": "通鼎互联",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.26979296203796216,
+      "exit_date": "20260303",
+      "horizon_returns": {
+        "T+1": 0.10092095404595414,
+        "T+2": 0.15601898101898115,
+        "T+3": 0.27141296203796217
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260227",
+      "ts_code": "603619.SH",
+      "name": "中曼石油",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.3009041055754233,
+      "exit_date": "20260304",
+      "horizon_returns": {
+        "T+1": 0.1070762801692069,
+        "T+2": 0.21781159201408884,
+        "T+3": 0.3025241055754233
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "13:35:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260227",
+      "ts_code": "600871.SH",
+      "name": "石化油服",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.3259402901771126,
+      "exit_date": "20260304",
+      "horizon_returns": {
+        "T+1": 0.09749129375297594,
+        "T+2": 0.20630771098060818,
+        "T+3": 0.32756029017711263
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "13:45:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260302",
+      "ts_code": "600871.SH",
+      "name": "石化油服",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.12643324986628118,
+      "exit_date": "20260305",
+      "horizon_returns": {
+        "T+1": 0.09695403746395259,
+        "T+2": 0.20721488143584477,
+        "T+3": 0.1280532498662812
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260302",
+      "ts_code": "603619.SH",
+      "name": "中曼石油",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.08872026738452861,
+      "exit_date": "20260305",
+      "horizon_returns": {
+        "T+1": 0.09782715409122011,
+        "T+2": 0.17419339849947502,
+        "T+3": 0.0903402673845286
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260303",
+      "ts_code": "600550.SH",
+      "name": "保变电气",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.06721900301187107,
+      "exit_date": "20260306",
+      "horizon_returns": {
+        "T+1": -0.0059968651840430764,
+        "T+2": 0.08711952043377358,
+        "T+3": 0.06883900301187107
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260303",
+      "ts_code": "002283.SZ",
+      "name": "天润工业",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.03851977319466919,
+      "exit_date": "20260306",
+      "horizon_returns": {
+        "T+1": -0.08406432886584103,
+        "T+2": -0.05293572212286768,
+        "T+3": -0.036899773194669194
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260303",
+      "ts_code": "002457.SZ",
+      "name": "青龙管业",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": -0.03837429048563361,
+      "exit_date": "20260306",
+      "horizon_returns": {
+        "T+1": -0.01973080224679369,
+        "T+2": -0.032498418425923714,
+        "T+3": -0.03675429048563361
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260304",
+      "ts_code": "002008.SZ",
+      "name": "大族激光",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.03264298847284501,
+      "exit_date": "20260309",
+      "horizon_returns": {
+        "T+1": 0.02202267646393752,
+        "T+2": -0.005715487950444742,
+        "T+3": -0.031022988472845014
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "11:20:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260304",
+      "ts_code": "600522.SH",
+      "name": "中天科技",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.033860486785941266,
+      "exit_date": "20260309",
+      "horizon_returns": {
+        "T+1": 0.025398131280484293,
+        "T+2": -0.025836195889671787,
+        "T+3": -0.03224048678594127
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260304",
+      "ts_code": "002348.SZ",
+      "name": "高乐股份",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.10999671446276867,
+      "exit_date": "20260309",
+      "horizon_returns": {
+        "T+1": 0.05222720358554778,
+        "T+2": 0.06255581417289058,
+        "T+3": 0.11161671446276866
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:40:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260305",
+      "ts_code": "002655.SZ",
+      "name": "共达电声",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.0246273375680925,
+      "exit_date": "20260310",
+      "horizon_returns": {
+        "T+1": -0.00788244774093827,
+        "T+2": 0.01742066895368799,
+        "T+3": 0.0262473375680925
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260305",
+      "ts_code": "002756.SZ",
+      "name": "永兴材料",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.08114423452784832,
+      "exit_date": "20260310",
+      "horizon_returns": {
+        "T+1": 0.0634650003461883,
+        "T+2": 0.06840560429669362,
+        "T+3": 0.08276423452784831
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260306",
+      "ts_code": "605117.SH",
+      "name": "德业股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.10106518344925859,
+      "exit_date": "20260311",
+      "horizon_returns": {
+        "T+1": 0.04097896071756679,
+        "T+2": 0.0024334747022416447,
+        "T+3": 0.10268518344925859
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260309",
+      "ts_code": "605117.SH",
+      "name": "德业股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.1684661428424154,
+      "exit_date": "20260312",
+      "horizon_returns": {
+        "T+1": 0.03155840624587958,
+        "T+2": 0.13472285107770943,
+        "T+3": 0.1700861428424154
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:45:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260309",
+      "ts_code": "603738.SH",
+      "name": "泰晶科技",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.02948470882770322,
+      "exit_date": "20260312",
+      "horizon_returns": {
+        "T+1": 0.004712006953154768,
+        "T+2": 0.024394699876546744,
+        "T+3": 0.03110470882770322
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260309",
+      "ts_code": "603393.SH",
+      "name": "新天然气",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.06649163836163847,
+      "exit_date": "20260312",
+      "horizon_returns": {
+        "T+1": -0.03692807192807179,
+        "T+2": -0.0007504995004994353,
+        "T+3": 0.06811163836163847
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260310",
+      "ts_code": "600149.SH",
+      "name": "廊坊发展",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.0947399235547061,
+      "exit_date": "20260313",
+      "horizon_returns": {
+        "T+1": -0.046835772922729446,
+        "T+2": -0.042496633800981454,
+        "T+3": -0.09311992355470611
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260310",
+      "ts_code": "002357.SZ",
+      "name": "富临运业",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.016790875635991843,
+      "exit_date": "20260313",
+      "horizon_returns": {
+        "T+1": -0.04590758079130153,
+        "T+2": -0.03148014775921748,
+        "T+3": -0.015170875635991843
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260310",
+      "ts_code": "603530.SH",
+      "name": "神马电力",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": -0.051836879894299234,
+      "exit_date": "20260313",
+      "horizon_returns": {
+        "T+1": -0.011155296316586516,
+        "T+2": -0.030328381296123252,
+        "T+3": -0.05021687989429924
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260311",
+      "ts_code": "603067.SH",
+      "name": "振华股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.17690743983289442,
+      "exit_date": "20260316",
+      "horizon_returns": {
+        "T+1": -0.11540731995277442,
+        "T+2": -0.148976478067387,
+        "T+3": -0.1752874398328944
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260311",
+      "ts_code": "002800.SZ",
+      "name": "天顺股份",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.02895277450582907,
+      "exit_date": "20260316",
+      "horizon_returns": {
+        "T+1": 0.008858923503275218,
+        "T+2": -0.004921020402191889,
+        "T+3": 0.03057277450582907
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260311",
+      "ts_code": "000833.SZ",
+      "name": "粤桂股份",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.09937580419580412,
+      "exit_date": "20260316",
+      "horizon_returns": {
+        "T+1": 0.10059660339660348,
+        "T+2": 0.11856063936063932,
+        "T+3": 0.10099580419580412
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260312",
+      "ts_code": "002986.SZ",
+      "name": "宇新股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.10283114179937695,
+      "exit_date": "20260317",
+      "horizon_returns": {
+        "T+1": -0.03839572192513385,
+        "T+2": -0.08242522183698642,
+        "T+3": -0.10121114179937696
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260313",
+      "ts_code": "001339.SZ",
+      "name": "智微智能",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.012735377946017246,
+      "exit_date": "20260318",
+      "horizon_returns": {
+        "T+1": 0.0037529582153617014,
+        "T+2": -0.038888307756895335,
+        "T+3": -0.011115377946017246
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260316",
+      "ts_code": "001339.SZ",
+      "name": "智微智能",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.013467618603248233,
+      "exit_date": "20260319",
+      "horizon_returns": {
+        "T+1": -0.049442634096512394,
+        "T+2": -0.021974689197374664,
+        "T+3": -0.011847618603248233
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260316",
+      "ts_code": "601869.SH",
+      "name": "长飞光纤",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.11113003541912618,
+      "exit_date": "20260319",
+      "horizon_returns": {
+        "T+1": -0.11000491244292887,
+        "T+2": -0.08064220903063857,
+        "T+3": -0.10951003541912618
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260317",
+      "ts_code": "605117.SH",
+      "name": "德业股份",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.06215940241576608,
+      "exit_date": "20260320",
+      "horizon_returns": {
+        "T+1": -0.03314776132957942,
+        "T+2": -0.03216488057397138,
+        "T+3": 0.06377940241576607
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260317",
+      "ts_code": "603629.SH",
+      "name": "利通电子",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.02824629521409965,
+      "exit_date": "20260320",
+      "horizon_returns": {
+        "T+1": -0.016774977927660473,
+        "T+2": 0.08157930272243274,
+        "T+3": -0.02662629521409965
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260318",
+      "ts_code": "000545.SZ",
+      "name": "金浦钛业",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.18739330597790954,
+      "exit_date": "20260323",
+      "horizon_returns": {
+        "T+1": -0.09388565398795579,
+        "T+2": -0.1602489582029223,
+        "T+3": -0.18577330597790953
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260318",
+      "ts_code": "002432.SZ",
+      "name": "九安医疗",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.11008772904621629,
+      "exit_date": "20260323",
+      "horizon_returns": {
+        "T+1": 0.21145282106077268,
+        "T+2": 0.14550717090750243,
+        "T+3": 0.11170772904621629
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:45:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260318",
+      "ts_code": "002903.SZ",
+      "name": "宇环数控",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": -0.15408908900367585,
+      "exit_date": "20260323",
+      "horizon_returns": {
+        "T+1": -0.056288238289581294,
+        "T+2": -0.09080610457373373,
+        "T+3": -0.15246908900367584
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260319",
+      "ts_code": "000010.SZ",
+      "name": "美丽生态",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.029823743739848686,
+      "exit_date": "20260324",
+      "horizon_returns": {
+        "T+1": 0.0067372452492804324,
+        "T+2": -0.05877710910533673,
+        "T+3": -0.028203743739848686
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260319",
+      "ts_code": "600956.SH",
+      "name": "新天绿能",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": -0.011302329220346508,
+      "exit_date": "20260324",
+      "horizon_returns": {
+        "T+1": -0.08460451963820592,
+        "T+2": -0.06635424248513744,
+        "T+3": -0.009682329220346508
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260319",
+      "ts_code": "000600.SZ",
+      "name": "建投能源",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": -0.027860965512220438,
+      "exit_date": "20260324",
+      "horizon_returns": {
+        "T+1": -0.021190348113425128,
+        "T+2": -0.0727066455811396,
+        "T+3": -0.026240965512220438
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260320",
+      "ts_code": "603175.SH",
+      "name": "超颖电子",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.05942416525631959,
+      "exit_date": "20260325",
+      "horizon_returns": {
+        "T+1": -0.16248073534505691,
+        "T+2": -0.14348743312712087,
+        "T+3": -0.057804165256319595
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260320",
+      "ts_code": "603738.SH",
+      "name": "泰晶科技",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.03265075170644001,
+      "exit_date": "20260325",
+      "horizon_returns": {
+        "T+1": -0.030931502144241785,
+        "T+2": 0.04527363204374257,
+        "T+3": 0.034270751706440006
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260323",
+      "ts_code": "000890.SZ",
+      "name": "法尔胜",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": 0.07290611286477118,
+      "exit_date": "20260327",
+      "horizon_returns": {
+        "T+1": 0.019524405307153048,
+        "T+2": 0.08488875341910496,
+        "T+3": 0.07452611286477118
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "10:35:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260323",
+      "ts_code": "600791.SH",
+      "name": "京能置业",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.0938300045409139,
+      "exit_date": "20260327",
+      "horizon_returns": {
+        "T+1": -0.04232131504858749,
+        "T+2": -0.0019980019980018193,
+        "T+3": 0.0954500045409139
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260323",
+      "ts_code": "601016.SH",
+      "name": "节能风电",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.1399460905220073,
+      "exit_date": "20260327",
+      "horizon_returns": {
+        "T+1": 0.1369349907632973,
+        "T+2": 0.2503969348516917,
+        "T+3": 0.1415660905220073
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260324",
+      "ts_code": "600643.SH",
+      "name": "爱建集团",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.08759860065570428,
+      "exit_date": "20260331",
+      "horizon_returns": {
+        "T+1": 0.01948540696094514,
+        "T+2": -4.4964819915782606e-05,
+        "T+3": -0.08597860065570428
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260324",
+      "ts_code": "002432.SZ",
+      "name": "九安医疗",
+      "rank": 2,
+      "status": "已完成",
+      "observed_return": 0.20062274742938796,
+      "exit_date": "20260331",
+      "horizon_returns": {
+        "T+1": 0.04081085908197912,
+        "T+2": 0.12152680325568355,
+        "T+3": 0.20224274742938797
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260324",
+      "ts_code": "603098.SH",
+      "name": "森特股份",
+      "rank": 3,
+      "status": "已完成",
+      "observed_return": 0.01755351946815704,
+      "exit_date": "20260331",
+      "horizon_returns": {
+        "T+1": 0.0873928664146697,
+        "T+2": 0.058576073307953225,
+        "T+3": 0.01917351946815704
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260325",
+      "ts_code": "605286.SH",
+      "name": "同力天启",
+      "rank": 1,
+      "status": "已完成",
+      "observed_return": -0.11662228667436451,
+      "exit_date": "20260401",
+      "horizon_returns": {
+        "T+1": -0.049791928850370315,
+        "T+2": -0.13363381748122005,
+        "T+3": -0.11500228667436452
+      },
+      "has_buy_signal": true,
+      "signal_type": "secondary_launch_pullback",
+      "trigger_time": "11:05:00",
+      "push_reason": "回踩不破VWAP/开盘价后回拉",
+      "not_pushed_reason": "",
+      "confidence": 1.0
+    },
+    {
+      "signal_date": "20260326",
+      "ts_code": "000968.SZ",
+      "name": "蓝焰控股",
+      "rank": 1,
+      "status": "跟踪中",
+      "observed_return": -0.11605537319823012,
+      "exit_date": "20260401",
+      "horizon_returns": {
+        "T+1": -0.08397673754816604,
+        "T+2": -0.11605537319823012,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260326",
+      "ts_code": "605389.SH",
+      "name": "长龄液压",
+      "rank": 2,
+      "status": "跟踪中",
+      "observed_return": -0.0257469554515507,
+      "exit_date": "20260401",
+      "horizon_returns": {
+        "T+1": -0.021242843589670657,
+        "T+2": -0.0257469554515507,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260327",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260330",
+      "ts_code": "000791.SZ",
+      "name": "甘肃能源",
+      "rank": 1,
+      "status": "跟踪中",
+      "observed_return": -0.04666561060422936,
+      "exit_date": "20260401",
+      "horizon_returns": {
+        "T+1": -0.04666561060422936,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "非二次启动监控窗口",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260330",
+      "ts_code": "600744.SH",
+      "name": "华银电力",
+      "rank": 2,
+      "status": "跟踪中",
+      "observed_return": -0.013723874037189887,
+      "exit_date": "20260401",
+      "horizon_returns": {
+        "T+1": -0.013723874037189887,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260331",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260401",
+      "ts_code": "600815.SH",
+      "name": "厦工股份",
+      "rank": 1,
+      "status": "跟踪中",
+      "observed_return": -0.07065661611116147,
+      "exit_date": "20260401",
+      "horizon_returns": {
+        "T+1": null,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    }
+  ]
+}

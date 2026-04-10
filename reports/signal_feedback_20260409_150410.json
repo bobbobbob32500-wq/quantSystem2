@@ -1,0 +1,820 @@
+{
+  "run_id": "20260409_150410",
+  "generated_time": "2026-04-09 15:04:10",
+  "start_date": "20260108",
+  "end_date": "20260408",
+  "stats": [
+    {
+      "source_type": "pre_market_recommendation",
+      "direction": "buy",
+      "horizon": 2,
+      "sample_count": 297,
+      "win_rate": 0.45791245791245794,
+      "mean_gross_return": 0.0074485032231911994,
+      "mean_net_return": 0.0038263973492240447,
+      "median_net_return": -0.004398878232491188,
+      "p25_net_return": -0.052974672748435814,
+      "p75_net_return": 0.06087791753073968,
+      "mean_mfe": 0.06857053051896102,
+      "mean_mae": -0.056890694015545286
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "direction": "buy",
+      "horizon": 3,
+      "sample_count": 297,
+      "win_rate": 0.3838383838383838,
+      "mean_gross_return": -0.0006080352481606908,
+      "mean_net_return": -0.0042011752392786825,
+      "median_net_return": -0.0182278422665918,
+      "p25_net_return": -0.07012049647111851,
+      "p75_net_return": 0.048414808002344545,
+      "mean_mfe": 0.08633018194738402,
+      "mean_mae": -0.07244980479717698
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "direction": "buy",
+      "horizon": 4,
+      "sample_count": 297,
+      "win_rate": 0.4006734006734007,
+      "mean_gross_return": -0.0033927630800620395,
+      "mean_net_return": -0.006975891066591159,
+      "median_net_return": -0.022574462722270372,
+      "p25_net_return": -0.0798701556352217,
+      "p75_net_return": 0.04091135489224107,
+      "mean_mfe": 0.099302248904104,
+      "mean_mae": -0.08403087822725695
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "direction": "buy",
+      "horizon": 5,
+      "sample_count": 295,
+      "win_rate": 0.3694915254237288,
+      "mean_gross_return": -0.006503373110366195,
+      "mean_net_return": -0.01007531743954079,
+      "median_net_return": -0.030096903638650363,
+      "p25_net_return": -0.09483687194164603,
+      "p75_net_return": 0.042868673115388334,
+      "mean_mfe": 0.1109226446646878,
+      "mean_mae": -0.09298905615289917
+    },
+    {
+      "source_type": "intraday_signal",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 89,
+      "win_rate": 0.24719101123595505,
+      "mean_gross_return": -0.012936479710149986,
+      "mean_net_return": -0.014707832191288902,
+      "median_net_return": -0.029932013492591558,
+      "p25_net_return": -0.0446657696249354,
+      "p75_net_return": -0.003445962461361751,
+      "mean_mfe": 0.03292510725184127,
+      "mean_mae": -0.05259570595811149
+    },
+    {
+      "source_type": "intraday_signal",
+      "direction": "sell",
+      "horizon": 2,
+      "sample_count": 73,
+      "win_rate": 0.1506849315068493,
+      "mean_gross_return": -0.03570096431518226,
+      "mean_net_return": -0.03728810927505857,
+      "median_net_return": -0.04391745766474786,
+      "p25_net_return": -0.05899999903038666,
+      "p75_net_return": -0.008055508143799406,
+      "mean_mfe": 0.026063551591922137,
+      "mean_mae": -0.05594532834310528
+    },
+    {
+      "source_type": "intraday_signal",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 89,
+      "win_rate": 0.1797752808988764,
+      "mean_gross_return": -0.020799077413483632,
+      "mean_net_return": -0.02318603539446548,
+      "median_net_return": -0.03515565511441443,
+      "p25_net_return": -0.03515565511441443,
+      "p75_net_return": -0.009761196583055853,
+      "mean_mfe": 0.03448567272883778,
+      "mean_mae": -0.06143948310211541
+    }
+  ],
+  "regime_stats": [
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "NEUTRAL",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 16,
+      "win_rate": 0.0,
+      "mean_gross_return": -0.013499720585522457,
+      "mean_net_return": -0.016688987976976655,
+      "median_net_return": -0.016688987976976655,
+      "mean_mfe": 0.02120430352550534,
+      "mean_mae": -0.042538548346842786
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "NEUTRAL",
+      "direction": "sell",
+      "horizon": 2,
+      "sample_count": 16,
+      "win_rate": 0.0,
+      "mean_gross_return": -0.01763281682346418,
+      "mean_net_return": -0.020697128661053055,
+      "median_net_return": -0.020697128661053055,
+      "mean_mfe": 0.021803823909198494,
+      "mean_mae": -0.043443525722408394
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "NEUTRAL",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 16,
+      "win_rate": 0.5,
+      "mean_gross_return": -0.0006972476317588239,
+      "mean_net_return": -0.004247018736981856,
+      "median_net_return": -0.004247018736981856,
+      "mean_mfe": 0.021803823909198494,
+      "mean_mae": -0.043443525722408394
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "WEAK_BEAR",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 57,
+      "win_rate": 0.10526315789473684,
+      "mean_gross_return": -0.0328668157572771,
+      "mean_net_return": -0.03493971296744848,
+      "median_net_return": -0.0446657696249354,
+      "mean_mfe": 0.0265160119662182,
+      "mean_mae": -0.05113929613664813
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "WEAK_BEAR",
+      "direction": "sell",
+      "horizon": 2,
+      "sample_count": 57,
+      "win_rate": 0.19298245614035087,
+      "mean_gross_return": -0.04077272501461189,
+      "mean_net_return": -0.04194522664039344,
+      "median_net_return": -0.05899999903038666,
+      "mean_mfe": 0.02725926462566912,
+      "mean_mae": -0.05945460627172195
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "WEAK_BEAR",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 57,
+      "win_rate": 0.0,
+      "mean_gross_return": -0.028810217742284077,
+      "mean_net_return": -0.0313774458204937,
+      "median_net_return": -0.03515565511441443,
+      "mean_mfe": 0.02725926462566912,
+      "mean_mae": -0.06459407820032115
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "WEAK_BULL",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 16,
+      "win_rate": 1.0,
+      "mean_gross_return": 0.05862858333311283,
+      "mean_net_return": 0.05934939885946733,
+      "median_net_return": 0.06300377666996693,
+      "mean_mfe": 0.06747831293320936,
+      "mean_mae": -0.06784132355834349
+    },
+    {
+      "source_type": "intraday_signal",
+      "market_regime": "WEAK_BULL",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 16,
+      "win_rate": 0.5,
+      "mean_gross_return": -0.012361219773856846,
+      "mean_net_return": -0.012943152409223585,
+      "median_net_return": -0.0010130842537568463,
+      "mean_mfe": 0.07291160041601541,
+      "mean_mae": -0.06819719544446445
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "BULL",
+      "direction": "buy",
+      "horizon": 2,
+      "sample_count": 21,
+      "win_rate": 0.38095238095238093,
+      "mean_gross_return": 0.007183575651059785,
+      "mean_net_return": 0.0035624222781010175,
+      "median_net_return": -0.008172989202856917,
+      "mean_mfe": 0.05792249604064607,
+      "mean_mae": -0.04936520654293653
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "BULL",
+      "direction": "buy",
+      "horizon": 3,
+      "sample_count": 21,
+      "win_rate": 0.3333333333333333,
+      "mean_gross_return": 0.0072216213203875265,
+      "mean_net_return": 0.0036003311608417596,
+      "median_net_return": -0.011206973231357331,
+      "mean_mfe": 0.07241227301573713,
+      "mean_mae": -0.06178469487823016
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "BULL",
+      "direction": "buy",
+      "horizon": 4,
+      "sample_count": 21,
+      "win_rate": 0.38095238095238093,
+      "mean_gross_return": -0.007387627087711214,
+      "mean_net_return": -0.010956392235503138,
+      "median_net_return": -0.022352516172785775,
+      "mean_mfe": 0.08246648925664261,
+      "mean_mae": -0.07172797147821951
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "BULL",
+      "direction": "buy",
+      "horizon": 5,
+      "sample_count": 21,
+      "win_rate": 0.42857142857142855,
+      "mean_gross_return": -0.0013362806110833842,
+      "mean_net_return": -0.004926802322658281,
+      "median_net_return": -0.0322575944159621,
+      "mean_mfe": 0.09062272381176585,
+      "mean_mae": -0.08268955986717426
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "NEUTRAL",
+      "direction": "buy",
+      "horizon": 2,
+      "sample_count": 80,
+      "win_rate": 0.45,
+      "mean_gross_return": 0.0022905701697493565,
+      "mean_net_return": -0.0013129912530119817,
+      "median_net_return": -0.0037946867551572616,
+      "mean_mfe": 0.060243056832560135,
+      "mean_mae": -0.0669144516975461
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "NEUTRAL",
+      "direction": "buy",
+      "horizon": 3,
+      "sample_count": 80,
+      "win_rate": 0.425,
+      "mean_gross_return": -0.007333492267992452,
+      "mean_net_return": -0.01090245204811335,
+      "median_net_return": -0.017776756883361167,
+      "mean_mfe": 0.07673343901812289,
+      "mean_mae": -0.07804665863432463
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "NEUTRAL",
+      "direction": "buy",
+      "horizon": 4,
+      "sample_count": 80,
+      "win_rate": 0.3625,
+      "mean_gross_return": -0.01343690239877821,
+      "mean_net_return": -0.01698391842930277,
+      "median_net_return": -0.03886438435703127,
+      "mean_mfe": 0.08795704941776782,
+      "mean_mae": -0.08879446802225835
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "NEUTRAL",
+      "direction": "buy",
+      "horizon": 5,
+      "sample_count": 80,
+      "win_rate": 0.2875,
+      "mean_gross_return": -0.022096774470736248,
+      "mean_net_return": -0.02561265543738479,
+      "median_net_return": -0.04899532050641836,
+      "mean_mfe": 0.09780349358669127,
+      "mean_mae": -0.09881541653584984
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "STRONG_BULL",
+      "direction": "buy",
+      "horizon": 2,
+      "sample_count": 6,
+      "win_rate": 0.6666666666666666,
+      "mean_gross_return": 0.019650660544538068,
+      "mean_net_return": 0.015984683936168826,
+      "median_net_return": 0.020794026682735,
+      "mean_mfe": 0.054896698808307866,
+      "mean_mae": -0.033709213145431925
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "STRONG_BULL",
+      "direction": "buy",
+      "horizon": 3,
+      "sample_count": 6,
+      "win_rate": 0.3333333333333333,
+      "mean_gross_return": 0.010266989923637837,
+      "mean_net_return": 0.006634750670941418,
+      "median_net_return": -0.03461850240541836,
+      "mean_mfe": 0.06903044308775115,
+      "mean_mae": -0.03997911181641665
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "STRONG_BULL",
+      "direction": "buy",
+      "horizon": 4,
+      "sample_count": 6,
+      "win_rate": 0.3333333333333333,
+      "mean_gross_return": 0.007517598474793978,
+      "mean_net_return": 0.0038952441808669525,
+      "median_net_return": -0.033925761857261094,
+      "mean_mfe": 0.08870915794718892,
+      "mean_mae": -0.057482940481439516
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "STRONG_BULL",
+      "direction": "buy",
+      "horizon": 5,
+      "sample_count": 6,
+      "win_rate": 0.3333333333333333,
+      "mean_gross_return": 0.028370966387850565,
+      "mean_net_return": 0.024673637436491314,
+      "median_net_return": -0.03867691358886849,
+      "mean_mfe": 0.10075735071827326,
+      "mean_mae": -0.06251167052135483
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BEAR",
+      "direction": "buy",
+      "horizon": 2,
+      "sample_count": 30,
+      "win_rate": 0.6,
+      "mean_gross_return": 0.0416896772845145,
+      "mean_net_return": 0.037944463224568355,
+      "median_net_return": 0.0345029362160888,
+      "mean_mfe": 0.09960497036079796,
+      "mean_mae": -0.05499082774961332
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BEAR",
+      "direction": "buy",
+      "horizon": 3,
+      "sample_count": 30,
+      "win_rate": 0.43333333333333335,
+      "mean_gross_return": 0.02817600404739669,
+      "mean_net_return": 0.024479376049223865,
+      "median_net_return": -0.00893777597755313,
+      "mean_mfe": 0.12818077677781134,
+      "mean_mae": -0.06953588414859725
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BEAR",
+      "direction": "buy",
+      "horizon": 4,
+      "sample_count": 30,
+      "win_rate": 0.43333333333333335,
+      "mean_gross_return": 0.010615494835217405,
+      "mean_net_return": 0.006982002593724746,
+      "median_net_return": -0.022688207910759373,
+      "mean_mfe": 0.14040275269611796,
+      "mean_mae": -0.08655442352333038
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BEAR",
+      "direction": "buy",
+      "horizon": 5,
+      "sample_count": 30,
+      "win_rate": 0.36666666666666664,
+      "mean_gross_return": -0.013223907257769089,
+      "mean_net_return": -0.016771689075278186,
+      "median_net_return": -0.05068476962183016,
+      "mean_mfe": 0.15242462717135297,
+      "mean_mae": -0.1034698712142894
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BULL",
+      "direction": "buy",
+      "horizon": 2,
+      "sample_count": 160,
+      "win_rate": 0.4375,
+      "mean_gross_return": 0.003184440457705743,
+      "mean_net_return": -0.0004223347202105314,
+      "median_net_return": -0.01379752689534347,
+      "mean_mfe": 0.06882563310624534,
+      "mean_mae": -0.05409206586281627
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BULL",
+      "direction": "buy",
+      "horizon": 3,
+      "sample_count": 160,
+      "win_rate": 0.3625,
+      "mean_gross_return": -0.004077769974726217,
+      "mean_net_return": -0.007658435138104639,
+      "median_net_return": -0.020404591916686976,
+      "mean_mfe": 0.08575703263582436,
+      "mean_mae": -0.07281518466385213
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BULL",
+      "direction": "buy",
+      "horizon": 4,
+      "sample_count": 160,
+      "win_rate": 0.41875,
+      "mean_gross_return": -0.0008820544371219971,
+      "mean_net_return": -0.004474209239904567,
+      "median_net_return": -0.015920530958422996,
+      "mean_mfe": 0.0998754385508831,
+      "mean_mae": -0.08378622276302182
+    },
+    {
+      "source_type": "pre_market_recommendation",
+      "market_regime": "WEAK_BULL",
+      "direction": "buy",
+      "horizon": 5,
+      "sample_count": 158,
+      "win_rate": 0.4050632911392405,
+      "mean_gross_return": 0.0006569633059467896,
+      "mean_net_return": -0.0029407247674590326,
+      "median_net_return": -0.01664771169421364,
+      "mean_mfe": 0.11276924411171073,
+      "mean_mae": -0.0905752615536063
+    }
+  ],
+  "intraday_type_stats": [
+    {
+      "signal_type": "天量卖出",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 4,
+      "win_rate": 1.0,
+      "mean_net_return": 0.09456494672641003,
+      "median_net_return": 0.09456494672641003,
+      "mean_mfe": 0.0946619217081851,
+      "mean_mae": -0.10035587188612105
+    },
+    {
+      "signal_type": "天量卖出",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 4,
+      "win_rate": 0.0,
+      "mean_net_return": -0.09564046068276588,
+      "median_net_return": -0.09564046068276588,
+      "mean_mfe": 0.0946619217081851,
+      "mean_mae": -0.1017793594306049
+    },
+    {
+      "signal_type": "极差市场清仓",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 48,
+      "win_rate": 0.375,
+      "mean_net_return": -0.001742001487952285,
+      "median_net_return": -0.003445962461361751,
+      "mean_mfe": 0.03822996402766956,
+      "mean_mae": -0.045212569601593235
+    },
+    {
+      "signal_type": "极差市场清仓",
+      "direction": "sell",
+      "horizon": 2,
+      "sample_count": 36,
+      "win_rate": 0.25,
+      "mean_net_return": -0.01902116170386044,
+      "median_net_return": -0.008055508143799406,
+      "mean_mfe": 0.03294418558214783,
+      "mean_mae": -0.04755772075596249
+    },
+    {
+      "signal_type": "极差市场清仓",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 48,
+      "win_rate": 0.3333333333333333,
+      "mean_net_return": -0.008362050809006054,
+      "median_net_return": -0.009761196583055853,
+      "mean_mfe": 0.04112351251626726,
+      "mean_mae": -0.05072624852202453
+    },
+    {
+      "signal_type": "闪崩预警",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 37,
+      "win_rate": 0.0,
+      "mean_net_return": -0.04334164271644981,
+      "median_net_return": -0.0446657696249354,
+      "mean_mfe": 0.019368880682513342,
+      "mean_mae": -0.05701056761759363
+    },
+    {
+      "signal_type": "闪崩预警",
+      "direction": "sell",
+      "horizon": 2,
+      "sample_count": 37,
+      "win_rate": 0.05405405405405406,
+      "mean_net_return": -0.05506135556054863,
+      "median_net_return": -0.05899999903038666,
+      "mean_mfe": 0.019368880682513342,
+      "mean_mae": -0.06410624383329828
+    },
+    {
+      "signal_type": "闪崩预警",
+      "direction": "sell",
+      "horizon": 3,
+      "sample_count": 37,
+      "win_rate": 0.0,
+      "mean_net_return": -0.03458423969038036,
+      "median_net_return": -0.03515565511441443,
+      "mean_mfe": 0.019368880682513342,
+      "mean_mae": -0.07097666565699122
+    }
+  ],
+  "intraday_window_stats": [],
+  "intraday_insights": {
+    "best_signal_type": {
+      "signal_type": "天量卖出",
+      "direction": "sell",
+      "horizon": 1,
+      "sample_count": 4,
+      "win_rate": 1.0,
+      "mean_net_return": 0.09456494672641003,
+      "median_net_return": 0.09456494672641003,
+      "mean_mfe": 0.0946619217081851,
+      "mean_mae": -0.10035587188612105
+    },
+    "best_window": null,
+    "subtype_ranking": [
+      {
+        "signal_type": "天量卖出",
+        "direction": "sell",
+        "horizon": 1,
+        "sample_count": 4,
+        "win_rate": 1.0,
+        "mean_net_return": 0.09456494672641003
+      },
+      {
+        "signal_type": "极差市场清仓",
+        "direction": "sell",
+        "horizon": 1,
+        "sample_count": 48,
+        "win_rate": 0.375,
+        "mean_net_return": -0.001742001487952285
+      },
+      {
+        "signal_type": "极差市场清仓",
+        "direction": "sell",
+        "horizon": 3,
+        "sample_count": 48,
+        "win_rate": 0.3333333333333333,
+        "mean_net_return": -0.008362050809006054
+      },
+      {
+        "signal_type": "极差市场清仓",
+        "direction": "sell",
+        "horizon": 2,
+        "sample_count": 36,
+        "win_rate": 0.25,
+        "mean_net_return": -0.01902116170386044
+      },
+      {
+        "signal_type": "闪崩预警",
+        "direction": "sell",
+        "horizon": 3,
+        "sample_count": 37,
+        "win_rate": 0.0,
+        "mean_net_return": -0.03458423969038036
+      }
+    ],
+    "window_ranking": [],
+    "conclusions": [
+      "当前盘中最优子类型为 `天量卖出`，样本 `4` 条，胜率 `100.00%`，平均净收益 `9.46%`。"
+    ],
+    "action_items": [
+      "优先保留并加权 `天量卖出`，可作为二次启动主推送形态。"
+    ]
+  },
+  "meta": {
+    "recommendation": {
+      "recommendation_db": "D:/HuaweiAI/quantSystem2/data/history_recommendation.db",
+      "recommendation_count": 306,
+      "detail_count": 1186,
+      "date_range_rec": [
+        "20260108",
+        "20260330"
+      ],
+      "top_n_per_day": 10,
+      "horizons": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "intraday_signal": {
+      "signal_count": 89,
+      "detail_count": 251,
+      "horizons": [
+        1,
+        2,
+        3
+      ],
+      "date_range_signal": [
+        "20260323",
+        "20260402"
+      ],
+      "signal_type_stats": [
+        {
+          "signal_type": "天量卖出",
+          "direction": "sell",
+          "horizon": 1,
+          "sample_count": 4,
+          "win_rate": 1.0,
+          "mean_net_return": 0.09456494672641003,
+          "median_net_return": 0.09456494672641003,
+          "mean_mfe": 0.0946619217081851,
+          "mean_mae": -0.10035587188612105
+        },
+        {
+          "signal_type": "天量卖出",
+          "direction": "sell",
+          "horizon": 3,
+          "sample_count": 4,
+          "win_rate": 0.0,
+          "mean_net_return": -0.09564046068276588,
+          "median_net_return": -0.09564046068276588,
+          "mean_mfe": 0.0946619217081851,
+          "mean_mae": -0.1017793594306049
+        },
+        {
+          "signal_type": "极差市场清仓",
+          "direction": "sell",
+          "horizon": 1,
+          "sample_count": 48,
+          "win_rate": 0.375,
+          "mean_net_return": -0.001742001487952285,
+          "median_net_return": -0.003445962461361751,
+          "mean_mfe": 0.03822996402766956,
+          "mean_mae": -0.045212569601593235
+        },
+        {
+          "signal_type": "极差市场清仓",
+          "direction": "sell",
+          "horizon": 2,
+          "sample_count": 36,
+          "win_rate": 0.25,
+          "mean_net_return": -0.01902116170386044,
+          "median_net_return": -0.008055508143799406,
+          "mean_mfe": 0.03294418558214783,
+          "mean_mae": -0.04755772075596249
+        },
+        {
+          "signal_type": "极差市场清仓",
+          "direction": "sell",
+          "horizon": 3,
+          "sample_count": 48,
+          "win_rate": 0.3333333333333333,
+          "mean_net_return": -0.008362050809006054,
+          "median_net_return": -0.009761196583055853,
+          "mean_mfe": 0.04112351251626726,
+          "mean_mae": -0.05072624852202453
+        },
+        {
+          "signal_type": "闪崩预警",
+          "direction": "sell",
+          "horizon": 1,
+          "sample_count": 37,
+          "win_rate": 0.0,
+          "mean_net_return": -0.04334164271644981,
+          "median_net_return": -0.0446657696249354,
+          "mean_mfe": 0.019368880682513342,
+          "mean_mae": -0.05701056761759363
+        },
+        {
+          "signal_type": "闪崩预警",
+          "direction": "sell",
+          "horizon": 2,
+          "sample_count": 37,
+          "win_rate": 0.05405405405405406,
+          "mean_net_return": -0.05506135556054863,
+          "median_net_return": -0.05899999903038666,
+          "mean_mfe": 0.019368880682513342,
+          "mean_mae": -0.06410624383329828
+        },
+        {
+          "signal_type": "闪崩预警",
+          "direction": "sell",
+          "horizon": 3,
+          "sample_count": 37,
+          "win_rate": 0.0,
+          "mean_net_return": -0.03458423969038036,
+          "median_net_return": -0.03515565511441443,
+          "mean_mfe": 0.019368880682513342,
+          "mean_mae": -0.07097666565699122
+        }
+      ],
+      "window_stats": [],
+      "window_meta": {
+        "error": "no_intraday_bars"
+      },
+      "insights": {
+        "best_signal_type": {
+          "signal_type": "天量卖出",
+          "direction": "sell",
+          "horizon": 1,
+          "sample_count": 4,
+          "win_rate": 1.0,
+          "mean_net_return": 0.09456494672641003,
+          "median_net_return": 0.09456494672641003,
+          "mean_mfe": 0.0946619217081851,
+          "mean_mae": -0.10035587188612105
+        },
+        "best_window": null,
+        "subtype_ranking": [
+          {
+            "signal_type": "天量卖出",
+            "direction": "sell",
+            "horizon": 1,
+            "sample_count": 4,
+            "win_rate": 1.0,
+            "mean_net_return": 0.09456494672641003
+          },
+          {
+            "signal_type": "极差市场清仓",
+            "direction": "sell",
+            "horizon": 1,
+            "sample_count": 48,
+            "win_rate": 0.375,
+            "mean_net_return": -0.001742001487952285
+          },
+          {
+            "signal_type": "极差市场清仓",
+            "direction": "sell",
+            "horizon": 3,
+            "sample_count": 48,
+            "win_rate": 0.3333333333333333,
+            "mean_net_return": -0.008362050809006054
+          },
+          {
+            "signal_type": "极差市场清仓",
+            "direction": "sell",
+            "horizon": 2,
+            "sample_count": 36,
+            "win_rate": 0.25,
+            "mean_net_return": -0.01902116170386044
+          },
+          {
+            "signal_type": "闪崩预警",
+            "direction": "sell",
+            "horizon": 3,
+            "sample_count": 37,
+            "win_rate": 0.0,
+            "mean_net_return": -0.03458423969038036
+          }
+        ],
+        "window_ranking": [],
+        "conclusions": [
+          "当前盘中最优子类型为 `天量卖出`，样本 `4` 条，胜率 `100.00%`，平均净收益 `9.46%`。"
+        ],
+        "action_items": [
+          "优先保留并加权 `天量卖出`，可作为二次启动主推送形态。"
+        ]
+      }
+    },
+    "regime_split_enabled": true
+  },
+  "files": {
+    "markdown": "D:/HuaweiAI/quantSystem2/reports/signal_feedback_20260409_150410.md",
+    "json": "D:/HuaweiAI/quantSystem2/reports/signal_feedback_20260409_150410.json",
+    "csv": "D:/HuaweiAI/quantSystem2/reports/signal_feedback_20260409_150410.csv"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "return_unit_freeze": "all return/pct features in decimal",
+  "affected_feature": "f_k_pct_chg",
+  "source_pct_chg_unit_detected": "percent_point",
+  "f_k_pct_chg_formula_after_patch": "pct_chg/100 if source in percent-point else pct_chg; fallback to close(T)/close(T-1)-1 when source missing"
+}

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 背景圆形 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="chartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#81c784;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4caf50;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 主背景 -->
+  <circle cx="512" cy="512" r="480" fill="url(#bgGradient)"/>
+  
+  <!-- 内发光圆环 -->
+  <circle cx="512" cy="512" r="420" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+  <circle cx="512" cy="512" r="360" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  
+  <!-- 网格背景装饰 -->
+  <g opacity="0.15" stroke="white" stroke-width="2">
+    <line x1="200" y1="300" x2="824" y2="300"/>
+    <line x1="200" y1="450" x2="824" y2="450"/>
+    <line x1="200" y1="600" x2="824" y2="600"/>
+    <line x1="200" y1="750" x2="824" y2="750"/>
+    <line x1="300" y1="200" x2="300" y2="824"/>
+    <line x1="450" y1="200" x2="450" y2="824"/>
+    <line x1="600" y1="200" x2="600" y2="824"/>
+    <line x1="750" y1="200" x2="750" y2="824"/>
+  </g>
+  
+  <!-- 抽象Q字母（Quant量化） -->
+  <g filter="url(#glow)">
+    <circle cx="512" cy="460" r="180" fill="none" stroke="white" stroke-width="40" stroke-linecap="round"/>
+    <path d="M 620 570 L 700 660" stroke="white" stroke-width="40" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- K线图元素（3根蜡烛） -->
+  <g>
+    <!-- 第一根K线（下跌） -->
+    <rect x="320" y="580" width="40" height="100" fill="#e57373" rx="4"/>
+    <line x1="340" y1="540" x2="340" y2="720" stroke="#e57373" stroke-width="6"/>
+    
+    <!-- 第二根K线（小十字） -->
+    <rect x="420" y="540" width="40" height="80" fill="url(#chartGradient)" rx="4"/>
+    <line x1="440" y1="480" x2="440" y2="660" stroke="#4caf50" stroke-width="6"/>
+    
+    <!-- 第三根K线（上涨，长阳线） -->
+    <rect x="520" y="440" width="40" height="160" fill="url(#chartGradient)" rx="4"/>
+    <line x1="540" y1="380" x2="540" y2="680" stroke="#4caf50" stroke-width="6"/>
+  </g>
+  
+  <!-- 底部发光装饰 -->
+  <ellipse cx="512" cy="580" rx="280" ry="80" fill="rgba(255,255,255,0.05)"/>
+</svg>

@@ -1,0 +1,116 @@
+api:
+  debug: false
+  host: 0.0.0.0
+  port: 5000
+buy_signal:
+  max_position: 0.1
+  min_position: 0.05
+  momentum:
+    atr_ratio_range:
+    - 0.02
+    - 0.08
+    pct_chg_threshold: 8.0
+    rank_threshold: 0.2
+  pullback:
+    atr_normalized_range:
+    - 0.5
+    - 2.0
+    momentum_rank_threshold: 0.5
+    pullback_range:
+    - -0.15
+    - -0.03
+capacity:
+  max_positions: 10
+  min_position: 0.05
+database:
+  path: data/quant_system.db
+  type: sqlite
+logging:
+  backup_count: 5
+  file: logs/trading_signal.log
+  level: INFO
+  max_bytes: 10485760
+market_regime:
+  amount_ma_days: 20
+  limit_down_threshold: 30
+  ma20_slope_threshold: 0.0
+  ma60_slope_threshold: 0.0
+  position_adjust_steps:
+  - 1.0
+  - 0.7
+  - 0.4
+  state_hold_days: 2
+  up_ratio_threshold: 0.5
+monitoring:
+  alert_webhook_url: ''
+  enabled: true
+  health_check_interval: 60
+parameter_bounds:
+  atr_window:
+  - 10
+  - 60
+  industry_concentration:
+  - 0.0
+  - 0.3
+  max_positions:
+  - 5
+  - 10
+  momentum_rank_period:
+  - 5
+  - 30
+  money_factor_quantile:
+  - 0.3
+  - 0.7
+  pullback_atr_normalized:
+  - 0.5
+  - 2.0
+  single_stock_position:
+  - 0.05
+  - 0.1
+  trend_ma_period:
+  - 20
+  - 120
+push:
+  retry_times: 3
+  timeout: 10
+  webhook_url: ''
+reduce_signal:
+  consecutive_drop_threshold: -0.08
+  cooldown_days: 1
+  momentum_decay_rank: 0.5
+  single_day_drop_threshold: -5.0
+scheduler:
+  plan_expiry_check:
+    enabled: true
+    interval: 60
+  signal_generation:
+    enabled: true
+    interval: 300
+    trading_hours:
+      afternoon:
+      - '14:30'
+      - '14:50'
+      morning:
+      - 09:45
+      - '10:30'
+  stock_selection:
+    enabled: true
+    time: 08:00
+sell_signal:
+  cooldown_days: 1
+  dynamic_stop:
+    enabled: true
+    use_ma10: true
+  flash_crash_threshold: -0.07
+  stop_loss_threshold: -0.05
+  trailing_stop:
+    enabled: true
+    retracement_ratio: 0.03
+stock_selection:
+  legacy_fundamental_factor_weight: 0.0
+  legacy_momentum_factor_weight: 0.5
+  legacy_pullback_factor_weight: 0.05
+  legacy_trend_factor_weight: 0.45
+  legacy_volume_factor_weight: 0.0
+style:
+  max_ratio: 0.7

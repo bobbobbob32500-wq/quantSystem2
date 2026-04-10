@@ -1,0 +1,4 @@
+﻿scenario,quality_ok,frequency_ok_avg_days_le_3,utility_score
+G0_no_extra_gate,True,True,1.0365305384915082
+G1_industry_cap,True,True,1.0413353584085292
+G2_industry_cap_rs20_floor,True,True,1.0280891435848456

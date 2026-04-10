@@ -1,0 +1,5 @@
+﻿scenario,quota_a,quota_b,cutoff_a,cutoff_b,path_a_rs20_min,path_a_trend_min,path_b_rs20_min,path_b_trend_min,note
+C2,2,3,0.1,0.2,0.72,0.02,0.6,0.0,"frozen stage1 recall version (quota A=2, B=3)"
+C2A_rank_relax,2,3,0.2,0.2,0.72,0.02,0.6,0.0,only relax PathA cutoff (A: top10% -> top20%)
+C2B_eligibility_relax,2,3,0.1,0.2,0.68,0.0,0.58,-0.005,"only relax dual eligibility (A rs20/trend, B rs20/trend)"
+C2AB_combo,2,3,0.2,0.2,0.68,0.0,0.58,-0.005,relax PathA cutoff + relax dual eligibility

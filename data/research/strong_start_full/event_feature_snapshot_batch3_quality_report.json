@@ -1,0 +1,16 @@
+{
+  "row_count": 13028,
+  "pk_duplicate_count": 0,
+  "join_coverage_rate": 1.0,
+  "forbidden_column_count": 0,
+  "forbidden_columns": [],
+  "feature_ready_rate": 0.8899293828676696,
+  "chip_align_rate": 1.0,
+  "chip_missing_events": 0,
+  "chip_raw_null": {
+    "cost_5pct_null": 0,
+    "cost_95pct_null": 0,
+    "winner_rate_null": 0
+  },
+  "chip_value_out_of_range_count": 87
+}

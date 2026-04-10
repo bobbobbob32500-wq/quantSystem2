@@ -1,0 +1,13 @@
+{
+  "total_samples": 210,
+  "triggered_samples": 94,
+  "priority_tag_1_samples": 14,
+  "priority_tag_1_triggered": 8,
+  "path_A_triggered": 9,
+  "path_B_triggered": 85,
+  "outputs": {
+    "signal": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_1.csv",
+    "summary": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_1_summary.csv",
+    "readme": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_1_readme.md"
+  }
+}

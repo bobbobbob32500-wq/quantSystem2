@@ -1,0 +1,29 @@
+{
+  "c_pollution_from_path_a_share": 0.8333333333333334,
+  "stable_same_sign_fields": [
+    "score_industry_axis_single"
+  ],
+  "unstable_or_flip_fields": [
+    "rank_global_after_merge",
+    "score_platform_axis_single",
+    "score_total"
+  ],
+  "main_driver_category": "platform_industry",
+  "pollution_type": "structure_not_separated",
+  "answers": {
+    "q1_C_from_pathA": true,
+    "q2_Ahigh_vs_C_visible_separation": false,
+    "q3_main_driver": "platform_industry",
+    "q4_pollution_type": "structure_not_separated",
+    "q5_stable_clues_found": false,
+    "q6_ready_for_minimal_tag_purify_research": false,
+    "q7_ready_for_entry_research": "NOT_READY",
+    "q7_reason": "C contamination inside priority_tag=1 is still high and cross-window separation is not stable enough."
+  },
+  "files": {
+    "audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_c_pollution_audit.csv",
+    "compare": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_ahigh_vs_c_compare.csv",
+    "reason": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_reason_audit.csv",
+    "report": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_c_pollution_review.md"
+  }
+}

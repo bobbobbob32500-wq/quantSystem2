@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>量化交易移动端 - 玻璃态风格演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* 玻璃态背景 - 漂亮的渐变 */
+        .glass-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            z-index: -3;
+        }
+
+        /* 装饰性模糊圆形 */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.6;
+            z-index: -2;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: #ff6b6b;
+            top: -50px;
+            left: -50px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .blob-2 {
+            width: 350px;
+            height: 350px;
+            background: #4ecdc4;
+            bottom: -50px;
+            right: -50px;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: #ffe66d;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        .mobile-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        }
+
+        /* 玻璃态卡片通用样式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+                        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15),
+                        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        .glass-card-light {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .mobile-header {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-icons span {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .header-icons span:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-content {
+            height: calc(100% - 120px);
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .mobile-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .mobile-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title span {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            padding: 16px;
+        }
+
+        .stat-card h3 {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .trend {
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .trend.up {
+            color: #81c784;
+        }
+
+        .trend.down {
+            color: #e57373;
+        }
+
+        .stock-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stock-item {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .stock-info {
+            flex: 1;
+        }
+
+        .stock-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-code {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stock-price {
+            text-align: right;
+        }
+
+        .stock-price .price {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-price .change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .change.up {
+            color: #81c784;
+        }
+
+        .change.down {
+            color: #e57373;
+        }
+
+        .signal-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .signal-badge.buy {
+            background: rgba(129, 199, 132, 0.3);
+            color: #81c784;
+            border: 1px solid rgba(129, 199, 132, 0.4);
+        }
+
+        .signal-badge.sell {
+            background: rgba(229, 115, 115, 0.3);
+            color: #e57373;
+            border: 1px solid rgba(229, 115, 115, 0.4);
+        }
+
+        .signal-badge.hold {
+            background: rgba(255, 202, 40, 0.3);
+            color: #ffca28;
+            border: 1px solid rgba(255, 202, 40, 0.4);
+        }
+
+        .signal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .signal-item {
+            padding: 14px 16px;
+            border-left: 4px solid;
+        }
+
+        .signal-item.buy {
+            border-left-color: rgba(129, 199, 132, 0.8);
+        }
+
+        .signal-item.sell {
+            border-left-color: rgba(229, 115, 115, 0.8);
+        }
+
+        .signal-item.reduce {
+            border-left-color: rgba(255, 202, 40, 0.8);
+        }
+
+        .signal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .signal-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .signal-time {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .signal-message {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+        }
+
+        .mobile-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.3s;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item span {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item label {
+            font-size: 9px;
+            font-weight: 500;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .health-status {
+            padding: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .health-info h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .health-info p {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .health-indicator {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(129, 199, 132, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(129, 199, 132, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #81c784;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(129, 199, 132, 0.3);
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.8) 0%, rgba(67, 160, 71, 0.8) 100%);
+        }
+
+        .action-btn.warning {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.8) 0%, rgba(245, 124, 0, 0.8) 100%);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .action-grid .action-btn {
+            padding: 18px 12px;
+            font-size: 12px;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .action-grid .action-btn span {
+            font-size: 28px;
+        }
+
+        .history-item {
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-date {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .history-detail {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+        }
+
+        .history-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .history-status.success {
+            background: rgba(129, 199, 132, 0.3);
+            color: #81c784;
+            border: 1px solid rgba(129, 199, 132, 0.4);
+        }
+
+        .history-status.failed {
+            background: rgba(229, 115, 115, 0.3);
+            color: #e57373;
+            border: 1px solid rgba(229, 115, 115, 0.4);
+        }
+
+        .history-status.pending {
+            background: rgba(255, 202, 40, 0.3);
+            color: #ffca28;
+            border: 1px solid rgba(255, 202, 40, 0.4);
+        }
+
+        .demo-notice {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 11px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            background: transparent;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        select, input {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        select option {
+            background: #333;
+            color: white;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            width: 18px;
+            height: 18px;
+            accent-color: rgba(102, 126, 234, 0.8);
+        }
+
+        label {
+            color: white;
+            font-size: 14px;
+        }
+
+        .style-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .style-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <button class="style-toggle" onclick="window.location.href='mobile_demo.html'">🎨 切换样式</button>
+
+    <div class="glass-background"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="mobile-frame" id="singleView">
+        <div class="mobile-header">
+            <h1>📊 量化交易</h1>
+            <div class="header-icons">
+                <span>🔔</span>
+                <span>⚙️</span>
+            </div>
+        </div>
+
+        <div class="mobile-content">
+            <div class="demo-notice">
+                ✨ 玻璃态效果 · 半透明 + 模糊背景 · 点击底部导航切换页面
+            </div>
+
+            <div id="page-overview" class="page active">
+                <div class="glass-card health-status">
+                    <div class="health-info">
+                        <h3>系统状态</h3>
+                        <p>运行正常 · 最后更新: 14:30</p>
+                    </div>
+                    <div class="health-indicator">✓</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="glass-card stat-card">
+                        <h3>监控股票</h3>
+                        <div class="value">28</div>
+                        <div class="trend up">▲ 3 只</div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <h3>活跃信号</h3>
+                        <div class="value">5</div>
+                        <div class="trend up">▲ 2 个</div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <h3>虚拟交易</h3>
+                        <div class="value">6</div>
+                        <div class="trend up">▲ 12.5%</div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <h3>今日收益</h3>
+                        <div class="value">+2,350</div>
+                        <div class="trend up">▲ +3.2%</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span>⚡ 快捷操作</span>
+                </div>
+
+                <div class="action-grid">
+                    <button class="action-btn success" onclick="showActionAlert('开始选股')">
+                        <span>🎯</span>
+                        <div>开始选股</div>
+                    </button>
+                    <button class="action-btn" onclick="showActionAlert('一键推送')">
+                        <span>📤</span>
+                        <div>一键推送</div>
+                    </button>
+                    <button class="action-btn warning" onclick="showActionAlert('生成计划')">
+                        <span>📋</span>
+                        <div>生成计划</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="showActionAlert('数据更新')">
+                        <span>🔄</span>
+                        <div>数据更新</div>
+                    </button>
+                </div>
+
+                <div class="section-title">
+                    <span>📱 快速跳转</span>
+                </div>
+
+                <div class="action-grid">
+                    <button class="action-btn secondary" onclick="switchPage('stocks')">
+                        <span>🎯</span>
+                        <div>选股设置</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="switchPage('actions')">
+                        <span>⚡</span>
+                        <div>更多操作</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="switchPage('history')">
+                        <span>📋</span>
+                        <div>历史记录</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="switchPage('settings')">
+                        <span>⚙️</span>
+                        <div>系统设置</div>
+                    </button>
+                </div>
+
+                <div class="section-title">
+                    <span>📈 最新信号</span>
+                    <span>查看全部</span>
+                </div>
+
+                <div class="signal-list">
+                    <div class="glass-card signal-item buy">
+                        <div class="signal-header">
+                            <span class="signal-title">买入信号 - 贵州茅台</span>
+                            <span class="signal-time">14:28</span>
+                        </div>
+                        <div class="signal-message">突破60日线压力位，建议关注买入机会</div>
+                    </div>
+                    <div class="glass-card signal-item sell">
+                        <div class="signal-header">
+                            <span class="signal-title">卖出信号 - 招商银行</span>
+                            <span class="signal-time">14:15</span>
+                        </div>
+                        <div class="signal-message">达到止盈目标，建议获利了结</div>
+                    </div>
+                    <div class="glass-card signal-item reduce">
+                        <div class="signal-header">
+                            <span class="signal-title">减仓信号 - 平安银行</span>
+                            <span class="signal-time">13:52</span>
+                        </div>
+                        <div class="signal-message">放量下跌，建议减仓控制风险</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-stocks" class="page">
+                <div class="section-title">
+                    <span>🎯 选股设置</span>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>📊</span> 选股策略
+                        </span>
+                    </div>
+                    <div class="history-detail">
+                        <select style="margin-top: 8px;">
+                            <option>二次启动策略 (推荐)</option>
+                            <option>原策略</option>
+                            <option>双策略对比</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🔢</span> 候选数量
+                        </span>
+                    </div>
+                    <div class="history-detail">
+                        <select style="margin-top: 8px;">
+                            <option>10 只</option>
+                            <option selected>20 只</option>
+                            <option>30 只</option>
+                            <option>50 只</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>⚙️</span> 风险控制
+                        </span>
+                    </div>
+                    <div class="history-detail" style="display: flex; gap: 16px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" checked> 排除ST
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" checked> 排除新股
+                        </label>
+                    </div>
+                </div>
+
+                <button class="action-btn success" onclick="showActionAlert('运行选股')">
+                    <span>🎯</span> 运行选股
+                </button>
+
+                <button class="action-btn" onclick="showActionAlert('推送选股')">
+                    <span>📤</span> 一键推送
+                </button>
+
+                <div class="section-title">
+                    <span>🎯 候选股票池</span>
+                    <span>28 只</span>
+                </div>
+
+                <div class="stock-list">
+                    <div class="glass-card stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                贵州茅台
+                                <span class="signal-badge buy">买入</span>
+                            </div>
+                            <div class="stock-code">600519</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">1,856.00</div>
+                            <div class="change up">+2.35%</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                招商银行
+                                <span class="signal-badge sell">卖出</span>
+                            </div>
+                            <div class="stock-code">600036</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">32.56</div>
+                            <div class="change down">-0.85%</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                宁德时代
+                                <span class="signal-badge buy">买入</span>
+                            </div>
+                            <div class="stock-code">300750</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">198.50</div>
+                            <div class="change up">+3.12%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-signals" class="page">
+                <div class="section-title">
+                    <span>📡 信号列表</span>
+                    <span>今日 12 个</span>
+                </div>
+
+                <div class="signal-list">
+                    <div class="glass-card signal-item buy">
+                        <div class="signal-header">
+                            <span class="signal-title">买入信号 - 贵州茅台</span>
+                            <span class="signal-time">14:28</span>
+                        </div>
+                        <div class="signal-message">突破60日线压力位，成交量放大2倍，MACD金叉确认</div>
+                    </div>
+
+                    <div class="glass-card signal-item sell">
+                        <div class="signal-header">
+                            <span class="signal-title">卖出信号 - 招商银行</span>
+                            <span class="signal-time">14:15</span>
+                        </div>
+                        <div class="signal-message">达到止盈目标15%，RSI超买</div>
+                    </div>
+
+                    <div class="glass-card signal-item reduce">
+                        <div class="signal-header">
+                            <span class="signal-title">减仓信号 - 平安银行</span>
+                            <span class="signal-time">13:52</span>
+                        </div>
+                        <div class="signal-message">放量下跌，跌破20日线支撑</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-trades" class="page">
+                <div class="section-title">
+                    <span>💰 虚拟交易</span>
+                    <span>6 笔持仓</span>
+                </div>
+
+                <div class="stock-list">
+                    <div class="glass-card stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">贵州茅台</div>
+                            <div class="stock-code">600519 · 持有 100股</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">+12,500</div>
+                            <div class="change up">+8.5%</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">宁德时代</div>
+                            <div class="stock-code">300750 · 持有 200股</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">+3,200</div>
+                            <div class="change up">+4.2%</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">比亚迪</div>
+                            <div class="stock-code">002594 · 持有 150股</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">-850</div>
+                            <div class="change down">-1.2%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-actions" class="page">
+                <div class="section-title">
+                    <span>⚡ 选股与推送</span>
+                </div>
+
+                <button class="action-btn success" onclick="showActionAlert('运行选股')">
+                    <span>🎯</span> 运行选股
+                </button>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>📤</span> 推送目标
+                        </span>
+                    </div>
+                    <div class="history-detail" style="display: flex; gap: 16px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" checked> 企业微信
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox"> 钉钉
+                        </label>
+                    </div>
+                </div>
+
+                <button class="action-btn" onclick="showActionAlert('推送选股')">
+                    <span>📤</span> 一键推送
+                </button>
+
+                <button class="action-btn warning" onclick="showActionAlert('推送复盘')">
+                    <span>📝</span> 推送盘后回顾
+                </button>
+
+                <div class="section-title">
+                    <span>👁️ 盘中监控</span>
+                </div>
+
+                <button class="action-btn success" onclick="showActionAlert('开始监控')">
+                    <span>👁️</span> 开始盘中监控
+                </button>
+
+                <button class="action-btn" onclick="showActionAlert('开始运行')">
+                    <span>▶️</span> 启动监控服务
+                </button>
+
+                <button class="action-btn warning" onclick="showActionAlert('停止运行')">
+                    <span>⏹️</span> 停止监控服务
+                </button>
+            </div>
+
+            <div id="page-history" class="page">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('operations')">操作记录</button>
+                    <button class="tab-btn" onclick="switchTab('signals')">信号历史</button>
+                    <button class="tab-btn" onclick="switchTab('recommendations')">推荐历史</button>
+                </div>
+
+                <div id="tab-operations" class="tab-content active">
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>🎯</span> 运行选股
+                            </span>
+                            <span class="history-status success">成功</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:15:30</div>
+                        <div class="history-detail">筛选出28只候选股票，其中5只有买入信号</div>
+                    </div>
+
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📤</span> 推送选股
+                            </span>
+                            <span class="history-status success">成功</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:20:15</div>
+                        <div class="history-detail">已推送到企业微信群</div>
+                    </div>
+
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>👁️</span> 开始监控
+                            </span>
+                            <span class="history-status pending">进行中</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:30:00</div>
+                        <div class="history-detail">盘中监控已启动</div>
+                    </div>
+                </div>
+
+                <div id="tab-signals" class="tab-content">
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📈</span> 买入信号 - 贵州茅台
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-03 14:28:00</div>
+                        <div class="history-detail">突破60日线压力位</div>
+                    </div>
+
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📉</span> 卖出信号 - 招商银行
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-03 14:15:00</div>
+                        <div class="history-detail">达到止盈目标</div>
+                    </div>
+                </div>
+
+                <div id="tab-recommendations" class="tab-content">
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📋</span> 盘前推荐
+                            </span>
+                            <span class="history-status success">已生成</span>
+                        </div>
+                        <div class="history-date">2026-04-03 08:30:00</div>
+                        <div class="history-detail">推荐12只股票</div>
+                    </div>
+
+                    <div class="glass-card history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📝</span> 盘后回顾
+                            </span>
+                            <span class="history-status success">已生成</span>
+                        </div>
+                        <div class="history-date">2026-04-02 15:30:00</div>
+                        <div class="history-detail">昨日回顾：8个信号触发</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-settings" class="page">
+                <div class="section-title">
+                    <span>⚙️ 系统设置</span>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🌐</span> 服务器地址
+                        </span>
+                    </div>
+                    <div class="history-detail">
+                        <input type="text" value="http://192.168.1.100:8000" style="margin-top: 8px;">
+                    </div>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🔄</span> 刷新间隔
+                        </span>
+                    </div>
+                    <div class="history-detail">
+                        <select style="margin-top: 8px;">
+                            <option>1 分钟</option>
+                            <option>3 分钟</option>
+                            <option selected>5 分钟</option>
+                            <option>10 分钟</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🔔</span> 推送通知
+                        </span>
+                    </div>
+                    <div class="history-detail" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                        <span style="color: white;">开启推送通知</span>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" checked style="transform: scale(1.3);">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span>📊 系统信息</span>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: white;">应用版本</span>
+                        <span style="color: rgba(255,255,255,0.7);">1.0.0</span>
+                    </div>
+                </div>
+
+                <div class="glass-card history-item">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: white;">最后更新</span>
+                        <span style="color: rgba(255,255,255,0.7);">2026-04-03 14:30</span>
+                    </div>
+                </div>
+
+                <button class="action-btn" onclick="showActionAlert('保存设置')" style="margin-top: 10px;">
+                    <span>💾</span> 保存设置
+                </button>
+            </div>
+        </div>
+
+        <div class="mobile-nav">
+            <div class="nav-item active" onclick="switchPage('overview')">
+                <span>🏠</span>
+                <label>概览</label>
+            </div>
+            <div class="nav-item" onclick="switchPage('stocks')">
+                <span>🎯</span>
+                <label>选股</label>
+            </div>
+            <div class="nav-item" onclick="switchPage('signals')">
+                <span>📡</span>
+                <label>信号</label>
+            </div>
+            <div class="nav-item" onclick="switchPage('trades')">
+                <span>💰</span>
+                <label>交易</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                item.classList.remove('active');
+                const pages = ['overview', 'stocks', 'signals', 'trades'];
+                if (pages[index] === page) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function showActionAlert(action) {
+            alert('执行操作: ' + action + '\n\n(这是演示，实际功能需要连接后端)');
+        }
+    </script>
+</body>
+
+</html>

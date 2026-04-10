@@ -1,0 +1,11 @@
+{
+  "row_count": 13028,
+  "pk_duplicate_count": 0,
+  "join_coverage_rate": 1.0,
+  "forbidden_column_count": 0,
+  "forbidden_columns": [],
+  "feature_ready_rate": 0.8899293828676696,
+  "industry_unknown_count": 0,
+  "industry_missing_feature_rows": 0,
+  "small_industry_rows_le2_members": 405
+}

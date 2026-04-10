@@ -1,0 +1,35 @@
+{
+  "window": {
+    "start": "20260309",
+    "end": "20260327",
+    "days": 15
+  },
+  "counts": {
+    "signal": 124,
+    "execution_candidate": 124,
+    "entry_event": 124,
+    "exit_event": 23,
+    "backtest_trade_record": 124,
+    "entry_allow": 23,
+    "entry_abandon": 101,
+    "reject_or_risk_not_entered": 97
+  },
+  "checks": {
+    "each_allow_has_one_exit": true,
+    "no_exit_before_entry": true,
+    "forbidden_field_hits": [],
+    "missing_key_rows": 0,
+    "daily_cap_effective": true,
+    "industry_cap_effective": true,
+    "reject_risk_mis_entered_count": 0
+  },
+  "top_not_entry_reasons": {
+    "not_ready_state": 97,
+    "risk_cap_daily_limit": 4
+  },
+  "top_exit_reasons": {
+    "structural_stop": 17,
+    "time_stop": 5,
+    "max_hold_or_momentum_decay": 1
+  }
+}

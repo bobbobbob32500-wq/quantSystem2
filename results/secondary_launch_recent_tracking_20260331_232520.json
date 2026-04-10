@@ -1,0 +1,216 @@
+{
+  "generated_at": "2026-03-31 23:25:20",
+  "latest_trade_date": "20260331",
+  "lookback_trade_days": 20,
+  "hold_days": 3,
+  "trade_dates": [
+    "20260304",
+    "20260305",
+    "20260306",
+    "20260309",
+    "20260310",
+    "20260311",
+    "20260312",
+    "20260313",
+    "20260316",
+    "20260317",
+    "20260318",
+    "20260319",
+    "20260320",
+    "20260323",
+    "20260324",
+    "20260325",
+    "20260326",
+    "20260327",
+    "20260330",
+    "20260331"
+  ],
+  "signal_days": 0,
+  "signal_count": 0,
+  "completed_count": 0,
+  "pending_count": 0,
+  "completed_win_rate": 0.0,
+  "completed_avg_return": 0.0,
+  "details": [
+    {
+      "signal_date": "20260304",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260305",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260306",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260309",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260310",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260311",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260312",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260313",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260316",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260317",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260318",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260319",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260320",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260323",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260324",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260325",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260326",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260327",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260330",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    },
+    {
+      "signal_date": "20260331",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    }
+  ]
+}

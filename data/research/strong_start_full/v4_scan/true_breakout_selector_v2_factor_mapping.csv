@@ -1,0 +1,44 @@
+﻿feature,family,abs_effect,miss_max,stable_direction,sign_consistency,layer,axis,reason
+f_platform_range20,platform_structure,0.0776635644027636,0.0034324942791762,True,0.8181818181818182,continuous_scoring_candidate,platform_structure,"useful ranking signal, better for soft scoring"
+f_chip_winner_rate,chip_quality,0.0665629164720758,0.0,True,0.8181818181818182,continuous_scoring_candidate,chip_quality,"useful ranking signal, better for soft scoring"
+f_ind_peer_strong_count,industry_leadership,0.0657595356555551,0.0,True,0.8888888888888888,continuous_scoring_candidate,industry_leadership,"useful ranking signal, better for soft scoring"
+f_chip_low_position120,chip_quality,0.0569432310990842,0.1045323552528163,True,0.9090909090909091,continuous_scoring_candidate,chip_quality,"useful ranking signal, better for soft scoring"
+f_trend_close_ma60_gap,trend_strength,0.0545887036955086,0.1045323552528163,True,0.8181818181818182,continuous_scoring_candidate,trend_strength,"useful ranking signal, better for soft scoring"
+f_strength_rs60_xsec_q,trend_strength,0.0540230596579607,0.106366256222164,True,0.9090909090909091,continuous_scoring_candidate,trend_strength,"useful ranking signal, better for soft scoring"
+f_trend_close_ma20_gap,trend_strength,0.0531119363032657,0.0,True,0.9090909090909091,continuous_scoring_candidate,trend_strength,"useful ranking signal, better for soft scoring"
+f_k_lower_shadow_ratio,kline_research,0.0475939909375778,0.0047157453497511,True,0.9090909090909091,continuous_scoring_candidate,kline_research,"useful ranking signal, better for soft scoring"
+f_ind_strength_5d,industry_leadership,0.0461190273070791,0.0,True,0.7272727272727273,continuous_scoring_candidate,industry_leadership,"useful ranking signal, better for soft scoring"
+f_platform_len,platform_structure,0.0441103317148562,0.0,True,1.0,continuous_scoring_candidate,platform_structure,"useful ranking signal, better for soft scoring"
+f_chip_secondary_peak_ratio,chip_quality,0.043524835299626,0.0,True,0.8181818181818182,continuous_scoring_candidate,chip_quality,"useful ranking signal, better for soft scoring"
+f_chip_peak_count_sig,chip_quality,0.0430206474227966,0.0,True,1.0,continuous_scoring_candidate,chip_quality,"useful ranking signal, better for soft scoring"
+f_strength_ret20,trend_strength,0.0851545546491352,0.0034324942791762,True,1.0,downgraded_observation,trend_strength,high redundancy with stronger representative
+f_platform_range_best,platform_structure,0.0795567670652463,0.0453235525281634,True,0.8181818181818182,downgraded_observation,platform_structure,high redundancy with stronger representative
+f_strength_vs_index20,trend_strength,0.0746770745919376,0.0034324942791762,True,1.0,downgraded_observation,trend_strength,high redundancy with stronger representative
+f_platform_range30,platform_structure,0.0659578368572066,0.0453235525281634,True,0.7272727272727273,downgraded_observation,platform_structure,high redundancy with stronger representative
+f_breakout_vol_ratio20,volume_rhythm,0.0504857829210403,0.0,True,0.9090909090909091,downgraded_observation,kline_research,research-only kline/trigger-like feature
+f_trend_ma20_slope5,trend_strength,0.0473031560327541,0.0303903589206182,False,0.6363636363636364,downgraded_observation,trend_strength,high redundancy with stronger representative
+f_strength_ret60,trend_strength,0.0437274901825766,0.106366256222164,True,0.8181818181818182,downgraded_observation,trend_strength,high redundancy with stronger representative
+f_chip_peak_dominance,chip_quality,0.043524760360881,0.0,True,0.8181818181818182,downgraded_observation,chip_quality,high redundancy with stronger representative
+f_strength_vs_index60,trend_strength,0.0424736465030013,0.106366256222164,True,0.8181818181818182,downgraded_observation,trend_strength,high redundancy with stronger representative
+f_trend_ma20_ma60_gap,trend_strength,0.0348977247748458,0.1045323552528163,True,0.7272727272727273,downgraded_observation,trend_strength,high redundancy with stronger representative
+f_chip_single_peak_score,chip_quality,0.031273961663736,0.0,False,0.6363636363636364,downgraded_observation,chip_quality,high redundancy with stronger representative
+f_k_pct_chg,kline_research,0.030525885641077,0.0,True,0.7272727272727273,downgraded_observation,kline_research,research-only kline/trigger-like feature
+f_atr_ratio,platform_structure,0.0290589629255724,0.0434896515588158,True,0.8181818181818182,downgraded_observation,platform_structure,weak/unstable/high-missing or low practical contribution
+f_chip_concentration,chip_quality,0.0282463239547994,0.0,True,0.7272727272727273,downgraded_observation,chip_quality,weak/unstable/high-missing or low practical contribution
+f_up_down_vol_ratio20,volume_rhythm,0.0208823073432449,0.0001430205949656,False,0.6363636363636364,downgraded_observation,kline_research,research-only kline/trigger-like feature
+f_near_pivot20,other,0.0198683547703593,0.0034324942791762,True,0.8181818181818182,downgraded_observation,other,weak/unstable/high-missing or low practical contribution
+f_k_break_pivot20_pct,kline_research,0.0198683547703593,0.0034324942791762,True,0.8181818181818182,downgraded_observation,kline_research,weak/unstable/high-missing or low practical contribution
+f_low_vol_days10,other,0.018899663914716,0.0,False,0.6666666666666666,downgraded_observation,other,weak/unstable/high-missing or low practical contribution
+f_ind_strength_today,industry_leadership,0.0175901468139942,0.0,False,0.5454545454545454,downgraded_observation,industry_leadership,weak/unstable/high-missing or low practical contribution
+f_ind_strength_3d,industry_leadership,0.01628621264978,0.0,False,0.5454545454545454,downgraded_observation,industry_leadership,weak/unstable/high-missing or low practical contribution
+f_ind_breadth,industry_leadership,0.0144384480125945,0.0,False,0.6363636363636364,downgraded_observation,industry_leadership,weak/unstable/high-missing or low practical contribution
+f_ind_rank_pctchg,industry_leadership,0.0134824544417393,0.0,True,0.7272727272727273,downgraded_observation,industry_leadership,weak/unstable/high-missing or low practical contribution
+f_k_upper_shadow_ratio,kline_research,0.012997138295645,0.0047157453497511,False,0.5454545454545454,downgraded_observation,kline_research,research-only kline/trigger-like feature
+f_vol20_vol60,volume_rhythm,0.0070392242457089,0.1045323552528163,False,0.6363636363636364,downgraded_observation,volume_rhythm,weak/unstable/high-missing or low practical contribution
+f_k_close_pos,kline_research,0.006245789600592,0.0047157453497511,False,0.5454545454545454,downgraded_observation,kline_research,weak/unstable/high-missing or low practical contribution
+f_platform_compress_ratio,platform_structure,0.0034838556527279,0.0453235525281634,True,0.7272727272727273,downgraded_observation,platform_structure,weak/unstable/high-missing or low practical contribution
+f_ind_rank_amount,industry_leadership,0.0030443490490872,0.0,False,0.5454545454545454,downgraded_observation,industry_leadership,weak/unstable/high-missing or low practical contribution
+f_vol_stability20,volume_rhythm,0.0008055915095002,0.0,False,0.6363636363636364,downgraded_observation,volume_rhythm,weak/unstable/high-missing or low practical contribution
+f_k_body_to_atr,kline_research,0.0004145611377259,0.0,False,0.6363636363636364,downgraded_observation,kline_research,research-only kline/trigger-like feature
+f_strength_rs20_xsec_q,trend_strength,0.0866121188525688,0.0034324942791762,True,1.0,hard_filter_candidate,trend_strength,strong effect + low missing + stable monthly direction
+f_chip_stability_std10,chip_quality,0.0712865303900591,0.0,True,0.9090909090909091,hard_filter_candidate,chip_quality,strong effect + low missing + stable monthly direction

@@ -1,0 +1,937 @@
+[
+  {
+    "symbol": "600868.SH",
+    "signal_date": "20251203",
+    "name": "梅雁吉祥",
+    "rank": 1,
+    "T+2_ret": 3.81,
+    "best_time": "13:35:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.96345,
+    "low_vs_support": 0.94517,
+    "price_vs_prior_high": 0.98663,
+    "volume_ratio": 0.715,
+    "rebound_ratio": 1.01653
+  },
+  {
+    "symbol": "603778.SH",
+    "signal_date": "20251204",
+    "name": "国晟科技",
+    "rank": 2,
+    "T+2_ret": 7.8,
+    "best_time": "10:10:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 1.01641,
+    "low_vs_support": 0.98424,
+    "price_vs_prior_high": 0.98519,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.02265
+  },
+  {
+    "symbol": "603068.SH",
+    "signal_date": "20251204",
+    "name": "博通集成",
+    "rank": 3,
+    "T+2_ret": 0.33,
+    "best_time": "11:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99452,
+    "low_vs_support": 0.97981,
+    "price_vs_prior_high": 1.00707,
+    "volume_ratio": 0.825,
+    "rebound_ratio": 1.01398
+  },
+  {
+    "symbol": "603122.SH",
+    "signal_date": "20251205",
+    "name": "合富中国",
+    "rank": 2,
+    "T+2_ret": 2.45,
+    "best_time": "10:15:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.01645,
+    "low_vs_support": 1.01645,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "603216.SH",
+    "signal_date": "20251208",
+    "name": "梦天家居",
+    "rank": 2,
+    "T+2_ret": 14.18,
+    "best_time": "11:30:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.97238,
+    "low_vs_support": 0.95776,
+    "price_vs_prior_high": 0.99501,
+    "volume_ratio": 0.893,
+    "rebound_ratio": 1.01115
+  },
+  {
+    "symbol": "600828.SH",
+    "signal_date": "20251208",
+    "name": "茂业商业",
+    "rank": 3,
+    "T+2_ret": 21.05,
+    "best_time": "13:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99155,
+    "low_vs_support": 0.97804,
+    "price_vs_prior_high": 0.99323,
+    "volume_ratio": 1.213,
+    "rebound_ratio": 1.01207
+  },
+  {
+    "symbol": "000510.SZ",
+    "signal_date": "20251210",
+    "name": "新金路",
+    "rank": 1,
+    "T+2_ret": 6.89,
+    "best_time": "10:10:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 1.00543,
+    "low_vs_support": 0.96522,
+    "price_vs_prior_high": 0.98614,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.037
+  },
+  {
+    "symbol": "600734.SH",
+    "signal_date": "20251211",
+    "name": "实达集团",
+    "rank": 2,
+    "T+2_ret": 2.81,
+    "best_time": "11:30:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.92926,
+    "low_vs_support": 0.91801,
+    "price_vs_prior_high": 0.98299,
+    "volume_ratio": 0.718,
+    "rebound_ratio": 1.00522
+  },
+  {
+    "symbol": "603829.SH",
+    "signal_date": "20251216",
+    "name": "洛凯股份",
+    "rank": 1,
+    "T+2_ret": 3.64,
+    "best_time": "13:35:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.95717,
+    "low_vs_support": 0.94944,
+    "price_vs_prior_high": 0.98345,
+    "volume_ratio": 1.164,
+    "rebound_ratio": 1.00643
+  },
+  {
+    "symbol": "601869.SH",
+    "signal_date": "20251216",
+    "name": "长飞光纤",
+    "rank": 2,
+    "T+2_ret": 21.0,
+    "best_time": "13:45:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.94975,
+    "low_vs_support": 0.93628,
+    "price_vs_prior_high": 0.98733,
+    "volume_ratio": 0.855,
+    "rebound_ratio": 1.00912
+  },
+  {
+    "symbol": "605123.SH",
+    "signal_date": "20251217",
+    "name": "派克新材",
+    "rank": 2,
+    "T+2_ret": 1.97,
+    "best_time": "11:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98595,
+    "low_vs_support": 0.97658,
+    "price_vs_prior_high": 0.98261,
+    "volume_ratio": 0.802,
+    "rebound_ratio": 1.0073
+  },
+  {
+    "symbol": "600990.SH",
+    "signal_date": "20251217",
+    "name": "四创电子",
+    "rank": 3,
+    "T+2_ret": 9.86,
+    "best_time": "13:50:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.95222,
+    "low_vs_support": 0.94573,
+    "price_vs_prior_high": 0.99006,
+    "volume_ratio": 0.817,
+    "rebound_ratio": 1.00577
+  },
+  {
+    "symbol": "000534.SZ",
+    "signal_date": "20251218",
+    "name": "万泽股份",
+    "rank": 1,
+    "T+2_ret": 3.43,
+    "best_time": "11:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.9849,
+    "low_vs_support": 0.97824,
+    "price_vs_prior_high": 0.99239,
+    "volume_ratio": 0.664,
+    "rebound_ratio": 1.00544
+  },
+  {
+    "symbol": "603127.SH",
+    "signal_date": "20251219",
+    "name": "昭衍新药",
+    "rank": 1,
+    "T+2_ret": 1.21,
+    "best_time": "10:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99776,
+    "low_vs_support": 0.97564,
+    "price_vs_prior_high": 0.98835,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.01974
+  },
+  {
+    "symbol": "000007.SZ",
+    "signal_date": "20251222",
+    "name": "全新好",
+    "rank": 2,
+    "T+2_ret": 0.25,
+    "best_time": "11:20:00",
+    "best_conf": 0.8,
+    "failed": [
+      "volume_ok"
+    ],
+    "support_ratio": 1.00588,
+    "low_vs_support": 1.00084,
+    "price_vs_prior_high": 0.9975,
+    "volume_ratio": 0.447,
+    "rebound_ratio": 1.00504
+  },
+  {
+    "symbol": "600693.SH",
+    "signal_date": "20251222",
+    "name": "东百集团",
+    "rank": 3,
+    "T+2_ret": 14.46,
+    "best_time": "14:50:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.04381,
+    "low_vs_support": 1.04381,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 0.637,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "603212.SH",
+    "signal_date": "20251223",
+    "name": "赛伍技术",
+    "rank": 1,
+    "T+2_ret": 7.14,
+    "best_time": "11:00:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98117,
+    "low_vs_support": 0.96932,
+    "price_vs_prior_high": 0.98117,
+    "volume_ratio": 0.677,
+    "rebound_ratio": 1.01005
+  },
+  {
+    "symbol": "600501.SH",
+    "signal_date": "20251223",
+    "name": "航天晨光",
+    "rank": 2,
+    "T+2_ret": 11.84,
+    "best_time": "14:55:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.91481,
+    "low_vs_support": 0.90191,
+    "price_vs_prior_high": 0.98651,
+    "volume_ratio": 1.089,
+    "rebound_ratio": 1.01342
+  },
+  {
+    "symbol": "603344.SH",
+    "signal_date": "20251226",
+    "name": "星德胜",
+    "rank": 2,
+    "T+2_ret": 4.62,
+    "best_time": "10:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98148,
+    "low_vs_support": 0.97388,
+    "price_vs_prior_high": 0.98148,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.00529
+  },
+  {
+    "symbol": "603344.SH",
+    "signal_date": "20251229",
+    "name": "星德胜",
+    "rank": 1,
+    "T+2_ret": 15.95,
+    "best_time": "10:40:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.0046,
+    "low_vs_support": 0.99754,
+    "price_vs_prior_high": 0.99574,
+    "volume_ratio": 0.745,
+    "rebound_ratio": 1.00553
+  },
+  {
+    "symbol": "601208.SH",
+    "signal_date": "20251230",
+    "name": "东材科技",
+    "rank": 3,
+    "T+2_ret": 1.81,
+    "best_time": "10:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99064,
+    "low_vs_support": 0.98201,
+    "price_vs_prior_high": 0.98111,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.00621
+  },
+  {
+    "symbol": "600577.SH",
+    "signal_date": "20251231",
+    "name": "精达股份",
+    "rank": 1,
+    "T+2_ret": 6.68,
+    "best_time": "14:05:00",
+    "best_conf": 0.8,
+    "failed": [
+      "volume_ok"
+    ],
+    "support_ratio": 1.0204,
+    "low_vs_support": 1.009,
+    "price_vs_prior_high": 0.98896,
+    "volume_ratio": 0.432,
+    "rebound_ratio": 1.01048
+  },
+  {
+    "symbol": "603680.SH",
+    "signal_date": "20251231",
+    "name": "今创集团",
+    "rank": 2,
+    "T+2_ret": 3.57,
+    "best_time": "13:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98044,
+    "low_vs_support": 0.96719,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 1.057,
+    "rebound_ratio": 1.01106
+  },
+  {
+    "symbol": "603680.SH",
+    "signal_date": "20260105",
+    "name": "今创集团",
+    "rank": 1,
+    "T+2_ret": 10.39,
+    "best_time": "10:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.9948,
+    "low_vs_support": 0.98244,
+    "price_vs_prior_high": 0.9948,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.00923
+  },
+  {
+    "symbol": "603305.SH",
+    "signal_date": "20260105",
+    "name": "旭升集团",
+    "rank": 2,
+    "T+2_ret": 0.24,
+    "best_time": "13:05:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 1.00014,
+    "low_vs_support": 0.9874,
+    "price_vs_prior_high": 0.98212,
+    "volume_ratio": 1.04,
+    "rebound_ratio": 1.01229
+  },
+  {
+    "symbol": "001376.SZ",
+    "signal_date": "20260105",
+    "name": "百通能源",
+    "rank": 3,
+    "T+2_ret": 2.4,
+    "best_time": "14:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.9725,
+    "low_vs_support": 0.96107,
+    "price_vs_prior_high": 0.9861,
+    "volume_ratio": 1.286,
+    "rebound_ratio": 1.01069
+  },
+  {
+    "symbol": "603331.SH",
+    "signal_date": "20260107",
+    "name": "百达精工",
+    "rank": 2,
+    "T+2_ret": 6.14,
+    "best_time": "10:10:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98811,
+    "low_vs_support": 0.9792,
+    "price_vs_prior_high": 0.98811,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.0091
+  },
+  {
+    "symbol": "000792.SZ",
+    "signal_date": "20260112",
+    "name": "盐湖股份",
+    "rank": 1,
+    "T+2_ret": 3.94,
+    "best_time": "11:30:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98037,
+    "low_vs_support": 0.97209,
+    "price_vs_prior_high": 0.98067,
+    "volume_ratio": 0.636,
+    "rebound_ratio": 1.0082
+  },
+  {
+    "symbol": "000612.SZ",
+    "signal_date": "20260116",
+    "name": "焦作万方",
+    "rank": 3,
+    "T+2_ret": 5.93,
+    "best_time": "13:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98927,
+    "low_vs_support": 0.98001,
+    "price_vs_prior_high": 0.98464,
+    "volume_ratio": 0.964,
+    "rebound_ratio": 1.00865
+  },
+  {
+    "symbol": "002879.SZ",
+    "signal_date": "20260121",
+    "name": "长缆科技",
+    "rank": 1,
+    "T+2_ret": 5.92,
+    "best_time": "10:30:00",
+    "best_conf": 0.8,
+    "failed": [
+      "volume_ok"
+    ],
+    "support_ratio": 1.02288,
+    "low_vs_support": 1.00544,
+    "price_vs_prior_high": 0.99022,
+    "volume_ratio": 0.347,
+    "rebound_ratio": 1.0086
+  },
+  {
+    "symbol": "002943.SZ",
+    "signal_date": "20260121",
+    "name": "宇晶股份",
+    "rank": 2,
+    "T+2_ret": 21.0,
+    "best_time": "13:40:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.97404,
+    "low_vs_support": 0.96474,
+    "price_vs_prior_high": 0.98527,
+    "volume_ratio": 0.705,
+    "rebound_ratio": 1.00707
+  },
+  {
+    "symbol": "603861.SH",
+    "signal_date": "20260122",
+    "name": "白云电器",
+    "rank": 3,
+    "T+2_ret": 3.17,
+    "best_time": "13:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.9782,
+    "low_vs_support": 0.9683,
+    "price_vs_prior_high": 0.99196,
+    "volume_ratio": 0.642,
+    "rebound_ratio": 1.00543
+  },
+  {
+    "symbol": "600053.SH",
+    "signal_date": "20260123",
+    "name": "九鼎投资",
+    "rank": 3,
+    "T+2_ret": 4.95,
+    "best_time": "10:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99914,
+    "low_vs_support": 0.99187,
+    "price_vs_prior_high": 0.99277,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.00517
+  },
+  {
+    "symbol": "603186.SH",
+    "signal_date": "20260126",
+    "name": "华正新材",
+    "rank": 1,
+    "T+2_ret": 5.7,
+    "best_time": "14:35:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.95144,
+    "low_vs_support": 0.94399,
+    "price_vs_prior_high": 0.99179,
+    "volume_ratio": 0.862,
+    "rebound_ratio": 1.00682
+  },
+  {
+    "symbol": "002258.SZ",
+    "signal_date": "20260126",
+    "name": "利尔化学",
+    "rank": 3,
+    "T+2_ret": 6.71,
+    "best_time": "10:40:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99176,
+    "low_vs_support": 0.97941,
+    "price_vs_prior_high": 0.98828,
+    "volume_ratio": 0.645,
+    "rebound_ratio": 1.0114
+  },
+  {
+    "symbol": "001311.SZ",
+    "signal_date": "20260202",
+    "name": "多利科技",
+    "rank": 2,
+    "T+2_ret": 4.18,
+    "best_time": "13:05:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.95892,
+    "low_vs_support": 0.9434,
+    "price_vs_prior_high": 0.98801,
+    "volume_ratio": 1.274,
+    "rebound_ratio": 1.01522
+  },
+  {
+    "symbol": "603599.SH",
+    "signal_date": "20260205",
+    "name": "广信股份",
+    "rank": 2,
+    "T+2_ret": 4.9,
+    "best_time": "14:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 1.00186,
+    "low_vs_support": 0.98147,
+    "price_vs_prior_high": 0.99154,
+    "volume_ratio": 0.756,
+    "rebound_ratio": 1.01669
+  },
+  {
+    "symbol": "000534.SZ",
+    "signal_date": "20260206",
+    "name": "万泽股份",
+    "rank": 1,
+    "T+2_ret": 14.63,
+    "best_time": "11:10:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98667,
+    "low_vs_support": 0.97867,
+    "price_vs_prior_high": 0.98208,
+    "volume_ratio": 0.688,
+    "rebound_ratio": 1.00612
+  },
+  {
+    "symbol": "601096.SH",
+    "signal_date": "20260210",
+    "name": "宏盛华源",
+    "rank": 1,
+    "T+2_ret": 0.51,
+    "best_time": "10:15:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.9918,
+    "low_vs_support": 0.96557,
+    "price_vs_prior_high": 0.98374,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.02024
+  },
+  {
+    "symbol": "603612.SH",
+    "signal_date": "20260210",
+    "name": "索通发展",
+    "rank": 3,
+    "T+2_ret": 5.3,
+    "best_time": "10:40:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.00749,
+    "low_vs_support": 1.00127,
+    "price_vs_prior_high": 0.99195,
+    "volume_ratio": 0.659,
+    "rebound_ratio": 1.00489
+  },
+  {
+    "symbol": "002985.SZ",
+    "signal_date": "20260211",
+    "name": "北摩高科",
+    "rank": 1,
+    "T+2_ret": 2.86,
+    "best_time": "11:00:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99793,
+    "low_vs_support": 0.99034,
+    "price_vs_prior_high": 0.98838,
+    "volume_ratio": 0.622,
+    "rebound_ratio": 1.00626
+  },
+  {
+    "symbol": "603188.SH",
+    "signal_date": "20260213",
+    "name": "亚邦股份",
+    "rank": 1,
+    "T+2_ret": 3.68,
+    "best_time": "10:10:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 1.00341,
+    "low_vs_support": 0.98807,
+    "price_vs_prior_high": 0.99158,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.00684
+  },
+  {
+    "symbol": "002079.SZ",
+    "signal_date": "20260213",
+    "name": "苏州固锝",
+    "rank": 2,
+    "T+2_ret": 0.71,
+    "best_time": "10:10:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.00088,
+    "low_vs_support": 0.99649,
+    "price_vs_prior_high": 0.99477,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "002597.SZ",
+    "signal_date": "20260224",
+    "name": "金禾实业",
+    "rank": 2,
+    "T+2_ret": 5.38,
+    "best_time": "11:15:00",
+    "best_conf": 0.8,
+    "failed": [
+      "volume_ok"
+    ],
+    "support_ratio": 1.01732,
+    "low_vs_support": 1.00677,
+    "price_vs_prior_high": 0.99374,
+    "volume_ratio": 0.42,
+    "rebound_ratio": 1.00935
+  },
+  {
+    "symbol": "002491.SZ",
+    "signal_date": "20260226",
+    "name": "通鼎互联",
+    "rank": 1,
+    "T+2_ret": 6.11,
+    "best_time": "10:15:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.02604,
+    "low_vs_support": 1.02604,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "600871.SH",
+    "signal_date": "20260302",
+    "name": "石化油服",
+    "rank": 1,
+    "T+2_ret": 20.96,
+    "best_time": "10:10:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.0,
+    "low_vs_support": 1.0,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "603619.SH",
+    "signal_date": "20260302",
+    "name": "中曼石油",
+    "rank": 2,
+    "T+2_ret": 17.65,
+    "best_time": "10:15:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.0,
+    "low_vs_support": 0.99975,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "605117.SH",
+    "signal_date": "20260306",
+    "name": "德业股份",
+    "rank": 1,
+    "T+2_ret": 3.41,
+    "best_time": "13:25:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.97177,
+    "low_vs_support": 0.96448,
+    "price_vs_prior_high": 0.99776,
+    "volume_ratio": 0.84,
+    "rebound_ratio": 1.00555
+  },
+  {
+    "symbol": "603738.SH",
+    "signal_date": "20260309",
+    "name": "泰晶科技",
+    "rank": 2,
+    "T+2_ret": 3.81,
+    "best_time": "13:15:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.9879,
+    "low_vs_support": 0.98028,
+    "price_vs_prior_high": 0.98923,
+    "volume_ratio": 1.072,
+    "rebound_ratio": 1.00593
+  },
+  {
+    "symbol": "603393.SH",
+    "signal_date": "20260309",
+    "name": "新天然气",
+    "rank": 3,
+    "T+2_ret": 2.56,
+    "best_time": "11:30:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98551,
+    "low_vs_support": 0.97607,
+    "price_vs_prior_high": 0.98024,
+    "volume_ratio": 0.623,
+    "rebound_ratio": 1.00634
+  },
+  {
+    "symbol": "000833.SZ",
+    "signal_date": "20260311",
+    "name": "粤桂股份",
+    "rank": 3,
+    "T+2_ret": 1.82,
+    "best_time": "11:20:00",
+    "best_conf": 0.75,
+    "failed": [
+      "rebound"
+    ],
+    "support_ratio": 1.03217,
+    "low_vs_support": 1.03217,
+    "price_vs_prior_high": 1.0,
+    "volume_ratio": 0.95,
+    "rebound_ratio": 1.0
+  },
+  {
+    "symbol": "603629.SH",
+    "signal_date": "20260317",
+    "name": "利通电子",
+    "rank": 2,
+    "T+2_ret": 17.08,
+    "best_time": "13:20:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.95765,
+    "low_vs_support": 0.95064,
+    "price_vs_prior_high": 0.9851,
+    "volume_ratio": 0.686,
+    "rebound_ratio": 1.0072
+  },
+  {
+    "symbol": "603738.SH",
+    "signal_date": "20260320",
+    "name": "泰晶科技",
+    "rank": 2,
+    "T+2_ret": 11.14,
+    "best_time": "10:10:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98693,
+    "low_vs_support": 0.96774,
+    "price_vs_prior_high": 0.98693,
+    "volume_ratio": 1.0,
+    "rebound_ratio": 1.00583
+  },
+  {
+    "symbol": "002432.SZ",
+    "signal_date": "20260324",
+    "name": "九安医疗",
+    "rank": 2,
+    "T+2_ret": 12.8,
+    "best_time": "10:40:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.99149,
+    "low_vs_support": 0.96807,
+    "price_vs_prior_high": 0.98954,
+    "volume_ratio": 0.615,
+    "rebound_ratio": 1.02228
+  },
+  {
+    "symbol": "603098.SH",
+    "signal_date": "20260324",
+    "name": "森特股份",
+    "rank": 3,
+    "T+2_ret": 2.86,
+    "best_time": "13:35:00",
+    "best_conf": 0.65,
+    "failed": [
+      "support_hold"
+    ],
+    "support_ratio": 0.98619,
+    "low_vs_support": 0.9787,
+    "price_vs_prior_high": 0.99189,
+    "volume_ratio": 0.768,
+    "rebound_ratio": 1.00587
+  }
+]

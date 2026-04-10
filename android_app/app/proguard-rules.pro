@@ -1,0 +1,1 @@
+-keep class com.quant.system.data.model.** { *; }

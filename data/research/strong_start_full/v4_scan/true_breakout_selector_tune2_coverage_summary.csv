@@ -1,0 +1,12 @@
+﻿metric,value
+a_total,860.0
+c_total,6048.0
+a_pass_hard_filter,413.0
+c_pass_hard_filter,1890.0
+a_pass_hard_filter_rate,0.48023255813953486
+c_pass_hard_filter_rate,0.3125
+candidate_a_count,39.0
+candidate_c_count,105.0
+candidate_a_share,0.2708333333333333
+full_sample_a_share,0.12449334105385061
+a_share_lift_points,0.1463399922794827

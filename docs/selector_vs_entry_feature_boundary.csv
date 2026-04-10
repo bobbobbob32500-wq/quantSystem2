@@ -1,0 +1,22 @@
+feature,boundary_class,current_phase_role,reason,next_phase_handling
+f_trend_close_ma20_gap,selector,core_filter,stable pre-breakout trend baseline,keep in selector
+f_strength_rs20_xsec_q,selector,core_filter_or_score,high discrimination for relative strength,keep in selector
+f_strength_ret20,selector,score,continuous strength information,keep in selector
+f_strength_ret60,selector,score,continuous strength information,keep in selector
+f_ind_rank_pctchg,selector,filter_plus_score_soft,industry front-rank useful but avoid over-hardening,keep with soft gate
+f_ind_strength_3d,selector,score,industry persistence signal,keep in selector
+f_ind_strength_5d,selector,score,industry persistence signal,keep in selector
+f_chip_concentration,selector,score,chip quality axis,keep in selector
+f_chip_winner_rate,selector,score_band,useful but over-hardening risk,keep as band scoring
+f_chip_stability_std10,selector,score_observe,direction can vary by regime,keep low-weight observe score
+f_platform_range_best,selector,aux_score,structure context only,low weight
+f_platform_compress_ratio,selector,aux_score,structure context only,low weight
+f_k_pct_chg,entry,postponed,trigger/momentum confirmation style,move to entry study
+f_k_body_to_atr,entry,postponed,entry quality/confirmation style,move to entry study
+f_breakout_vol_ratio20,entry,postponed,execution trigger participation check,move to entry study
+f_k_upper_shadow_ratio,entry,postponed,intraday rejection quality indicator,move to entry study
+f_up_down_vol_ratio20,entry,postponed,execution-side continuation tendency,move to entry study
+f_chip_peak_count_sig,mixed,downgraded,weak/unstable for selector core,observe only
+f_chip_secondary_peak_ratio,mixed,downgraded,redundant with stronger chip axes,observe only
+f_chip_peak_dominance,mixed,downgraded,redundant with concentration/winner,observe only
+f_chip_single_peak_score,mixed,downgraded,risk of idealized overfit,observe only

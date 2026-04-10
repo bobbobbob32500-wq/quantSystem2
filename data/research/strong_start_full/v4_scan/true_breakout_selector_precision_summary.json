@@ -1,0 +1,76 @@
+{
+  "window": {
+    "start": "20250925",
+    "end": "20260327",
+    "trade_days": 118
+  },
+  "gate": {
+    "scenario": "S3_conditional_top2",
+    "type": "score_total_floor",
+    "rule": "top1_score >= 0.85 then output top2, else 0"
+  },
+  "compare": [
+    {
+      "scenario": "S0_top3",
+      "sample_n": 354,
+      "win_t2": 0.4604519774011299,
+      "avg_ret_t2": 0.006497407383905878,
+      "med_ret_t2": -0.003509581727403399,
+      "win_t1": 0.4661016949152542,
+      "avg_ret_t1": 0.004190198243021785,
+      "med_ret_t1": -0.003294621069786452,
+      "a_share": 0.24293785310734464,
+      "daily_output_avg": 3.0,
+      "active_days": 118,
+      "blank_days": 0
+    },
+    {
+      "scenario": "S1_top2",
+      "sample_n": 236,
+      "win_t2": 0.4957627118644068,
+      "avg_ret_t2": 0.0103895454656908,
+      "med_ret_t2": -5.484861781479555e-05,
+      "win_t1": 0.4703389830508475,
+      "avg_ret_t1": 0.005104684639697183,
+      "med_ret_t1": -0.0027677290941327537,
+      "a_share": 0.2457627118644068,
+      "daily_output_avg": 2.0,
+      "active_days": 118,
+      "blank_days": 0
+    },
+    {
+      "scenario": "S2_top1",
+      "sample_n": 118,
+      "win_t2": 0.5,
+      "avg_ret_t2": 0.011644192612095839,
+      "med_ret_t2": 0.0001832850607603742,
+      "win_t1": 0.5084745762711864,
+      "avg_ret_t1": 0.008733167623773758,
+      "med_ret_t1": 0.0014517166390811687,
+      "a_share": 0.2627118644067797,
+      "daily_output_avg": 1.0,
+      "active_days": 118,
+      "blank_days": 0
+    },
+    {
+      "scenario": "S3_conditional_top2",
+      "sample_n": 102,
+      "win_t2": 0.45098039215686275,
+      "avg_ret_t2": 0.003833025007544925,
+      "med_ret_t2": -0.012196932211776312,
+      "win_t1": 0.46078431372549017,
+      "avg_ret_t1": 0.004907725858929347,
+      "med_ret_t1": -0.0017050298380222317,
+      "a_share": 0.19607843137254902,
+      "daily_output_avg": 0.864406779661017,
+      "active_days": 51,
+      "blank_days": 67
+    }
+  ],
+  "answers": {
+    "best_under_win_priority": "S2_top1",
+    "closest_or_above_60pct_win_t2": 0.5,
+    "top4_5_dilution_implied": true,
+    "recommended_formal_pool": "S2_top1"
+  }
+}

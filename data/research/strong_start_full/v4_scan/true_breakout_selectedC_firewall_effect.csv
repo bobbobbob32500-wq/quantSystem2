@@ -1,0 +1,5 @@
+﻿firewall_reason,hit_total_n,hit_c_n,hit_c_share,c_share_before,c_share_after
+industry_heat_firewall,0,0,,1.0,1.0
+platform_integrity_firewall,31,13,0.41935483870967744,1.0,1.0
+mixed_pseudo_firewall,9,7,0.7777777777777778,1.0,1.0
+overall,40,20,0.5,1.0,1.0

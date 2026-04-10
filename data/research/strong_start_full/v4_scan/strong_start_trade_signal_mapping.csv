@@ -1,0 +1,10 @@
+﻿research_field,trade_field,transform_rule,role
+is_candidate_after_filters,score_gate_pass,is_candidate_after_filters==True AND score_total>=52.0,candidate_gate
+score_total,trade_signal_tier,score bands with class-dependent thresholds,tiering
+trigger_status + trigger_breakout_pass,trade_signal_class=breakout,score_gate_pass AND trigger_status AND trigger_breakout_pass,classify
+trigger_momentum_pass / trigger_quality_pass,trade_signal_class=pullback_candidate,score_gate_pass AND NOT breakout_class AND (trigger_momentum_pass OR trigger_quality_pass),classify
+filter_reject_reasons,trade_signal_reject_reason,if filter fail then filter_not_pass,reject_reason
+score_total,trade_signal_reject_reason,if filter pass but score<line then score_below_candidate_line,reject_reason
+trigger_details,trade_signal_explain,extract top failed trigger reasons for non-breakout candidates,explain
+score_details,trade_signal_explain,extract top score contributors for breakout candidates,explain
+signal_ready,signal_ready_research,carry as research reference only,reference_only

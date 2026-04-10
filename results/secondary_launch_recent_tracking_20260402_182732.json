@@ -1,0 +1,115 @@
+{
+  "generated_at": "2026-04-02 18:27:32",
+  "latest_trade_date": "20260331",
+  "lookback_trade_days": 1,
+  "hold_days": 2,
+  "trade_dates": [
+    "20260331"
+  ],
+  "signal_days": 1,
+  "signal_count": 1,
+  "completed_count": 0,
+  "pending_count": 1,
+  "completed_win_rate": 0.0,
+  "completed_avg_return": 0.0,
+  "weekly_summary": [
+    {
+      "week_label": "2026-W14",
+      "start_date": "20260331",
+      "end_date": "20260331",
+      "signal_days": 1,
+      "signal_count": 1,
+      "completed_count": 0,
+      "pending_count": 1,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "monthly_summary": [
+    {
+      "month_label": "2026-03",
+      "start_date": "20260331",
+      "end_date": "20260331",
+      "signal_days": 1,
+      "signal_count": 1,
+      "completed_count": 0,
+      "pending_count": 1,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "signal_gap_stats": {
+    "gap_count": 0,
+    "avg_gap_trade_days": 0.0,
+    "max_gap_trade_days": 0,
+    "gaps": []
+  },
+  "empty_streak_stats": {
+    "max_empty_trade_days": 0,
+    "latest_empty_trade_days": 0
+  },
+  "horizon_distribution": {
+    "T+1": {
+      "sample_count": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "min_return": 0.0,
+      "max_return": 0.0
+    },
+    "T+2": {
+      "sample_count": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "min_return": 0.0,
+      "max_return": 0.0
+    },
+    "T+3": {
+      "sample_count": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "min_return": 0.0,
+      "max_return": 0.0
+    }
+  },
+  "intraday_review_summary": {
+    "reviewed_signal_count": 1,
+    "buy_signal_count": 0,
+    "buy_signal_ratio": 0.0,
+    "not_pushed_count": 1,
+    "top_not_pushed_reasons": [
+      {
+        "reason": "未触发",
+        "count": 1
+      }
+    ],
+    "top_blocker_tags": [
+      {
+        "tag": "unclassified",
+        "label": "未分类阻断",
+        "count": 1
+      }
+    ]
+  },
+  "details": [
+    {
+      "signal_date": "20260331",
+      "ts_code": "600468.SH",
+      "name": "百利电气",
+      "rank": 1,
+      "status": "跟踪中",
+      "observed_return": 0.017962037962038213,
+      "exit_date": "20260331",
+      "horizon_returns": {
+        "T+1": null,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "未触发",
+      "confidence": 0.2
+    }
+  ]
+}

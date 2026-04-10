@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-04-02 10:48:58",
+  "baseline": {
+    "score": -999.0,
+    "trigger_count": 0,
+    "positive": 0,
+    "negative": 0,
+    "win_rate": 0.0,
+    "avg_return": 0.0
+  },
+  "best": {
+    "score": -999.0,
+    "trigger_count": 0,
+    "positive": 0,
+    "negative": 0,
+    "win_rate": 0.0,
+    "avg_return": 0.0,
+    "params": {
+      "pullback_confidence_threshold": 0.6,
+      "volume_ratio_low": 0.4,
+      "volume_ratio_high": 1.2,
+      "support_factor": 0.999,
+      "rebound_factor": 1.001,
+      "not_far_factor": 0.98,
+      "breakout_threshold_am": 0.6,
+      "breakout_threshold_pm": 0.68,
+      "required_vol_ratio_am": 1.2,
+      "required_vol_ratio_pm": 1.4,
+      "compact_range_max": 0.02,
+      "monitor_start": "09:35",
+      "monitor_end": "14:00"
+    },
+    "entries": []
+  },
+  "top_10": [
+    {
+      "rank": 1,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:35-14:00"
+    },
+    {
+      "rank": 2,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:35-14:10"
+    },
+    {
+      "rank": 3,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:35-14:20"
+    },
+    {
+      "rank": 4,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:45-14:00"
+    },
+    {
+      "rank": 5,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:45-14:10"
+    },
+    {
+      "rank": 6,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:45-14:20"
+    },
+    {
+      "rank": 7,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:55-14:00"
+    },
+    {
+      "rank": 8,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:55-14:10"
+    },
+    {
+      "rank": 9,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 09:55-14:20"
+    },
+    {
+      "rank": 10,
+      "score": -999.0,
+      "triggers": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "label": "PB cf0.60 v0.4-1.2 sf0.999 rb1.001 nf0.980 | BO am0.60 pm0.68 va1.2 vp1.4 cr0.020 | 10:00-14:00"
+    }
+  ]
+}

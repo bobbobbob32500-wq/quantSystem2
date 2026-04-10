@@ -1,0 +1,44 @@
+{
+  "profile": "neutral",
+  "rows": 30,
+  "days": 1,
+  "after_filters_rate": 0.6333333333333333,
+  "trigger_pass_rate": 0.5,
+  "ready_rate": 0.5,
+  "top_filter_reasons": [
+    {
+      "reason": "hard:trend_close_ma20_gap:fail",
+      "count": 8
+    },
+    {
+      "reason": "hard:industry_rank_pctchg_weak_gate:fail",
+      "count": 5
+    }
+  ],
+  "top_trigger_fail_rules": [
+    {
+      "trigger_rule": "quality:k_body_to_atr",
+      "count": 17
+    },
+    {
+      "trigger_rule": "breakout:breakout_volume_ratio20",
+      "count": 6
+    },
+    {
+      "trigger_rule": "quality:k_upper_shadow_ratio",
+      "count": 5
+    },
+    {
+      "trigger_rule": "quality:industry_rank_trigger_assist",
+      "count": 3
+    },
+    {
+      "trigger_rule": "momentum:up_down_vol_ratio20",
+      "count": 3
+    },
+    {
+      "trigger_rule": "momentum:k_pct_chg",
+      "count": 2
+    }
+  ]
+}

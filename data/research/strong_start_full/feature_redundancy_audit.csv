@@ -1,0 +1,16 @@
+﻿feature_a,feature_b,spearman_corr,keep_primary,downgrade_secondary,reason
+f_platform_range20,f_platform_range_best,1.0,f_platform_range20,f_platform_range_best,高相关(|corr|=1.0000)，优先保留区分力更高/缺失更低者
+f_near_pivot20,f_k_break_pivot20_pct,1.0,f_near_pivot20,f_k_break_pivot20_pct,高相关(|corr|=1.0000)，优先保留区分力更高/缺失更低者
+f_chip_secondary_peak_ratio,f_chip_peak_dominance,-1.0,f_chip_peak_dominance,f_chip_secondary_peak_ratio,高相关(|corr|=1.0000)，优先保留区分力更高/缺失更低者
+f_strength_vs_index60,f_strength_rs60_xsec_q,0.9836,f_strength_rs60_xsec_q,f_strength_vs_index60,高相关(|corr|=0.9836)，优先保留区分力更高/缺失更低者
+f_k_upper_shadow_ratio,f_k_close_pos,-0.9685,f_k_upper_shadow_ratio,f_k_close_pos,高相关(|corr|=0.9685)，优先保留区分力更高/缺失更低者
+f_strength_vs_index20,f_strength_rs20_xsec_q,0.9559,f_strength_rs20_xsec_q,f_strength_vs_index20,高相关(|corr|=0.9559)，优先保留区分力更高/缺失更低者
+f_strength_ret60,f_strength_rs60_xsec_q,0.9494,f_strength_rs60_xsec_q,f_strength_ret60,高相关(|corr|=0.9494)，优先保留区分力更高/缺失更低者
+f_strength_ret60,f_strength_vs_index60,0.9476,f_strength_vs_index60,f_strength_ret60,高相关(|corr|=0.9476)，优先保留区分力更高/缺失更低者
+f_platform_range20,f_platform_range30,0.8958,f_platform_range30,f_platform_range20,高相关(|corr|=0.8958)，优先保留区分力更高/缺失更低者
+f_platform_range30,f_platform_range_best,0.8958,f_platform_range30,f_platform_range_best,高相关(|corr|=0.8958)，优先保留区分力更高/缺失更低者
+f_trend_close_ma60_gap,f_trend_ma20_ma60_gap,0.8882,f_trend_close_ma60_gap,f_trend_ma20_ma60_gap,高相关(|corr|=0.8882)，优先保留区分力更高/缺失更低者
+f_strength_ret20,f_strength_vs_index20,0.8828,f_strength_vs_index20,f_strength_ret20,高相关(|corr|=0.8828)，优先保留区分力更高/缺失更低者
+f_chip_peak_dominance,f_chip_single_peak_score,0.8802,f_chip_peak_dominance,f_chip_single_peak_score,高相关(|corr|=0.8802)，优先保留区分力更高/缺失更低者
+f_chip_secondary_peak_ratio,f_chip_single_peak_score,-0.8802,f_chip_secondary_peak_ratio,f_chip_single_peak_score,高相关(|corr|=0.8802)，优先保留区分力更高/缺失更低者
+f_chip_peak_count_sig,f_chip_single_peak_score,-0.8661,f_chip_peak_count_sig,f_chip_single_peak_score,高相关(|corr|=0.8661)，优先保留区分力更高/缺失更低者

@@ -1,0 +1,17 @@
+{
+  "profile_key": "tradeable_v3_research",
+  "window": {
+    "start_date": "20250403",
+    "end_date": "20260327"
+  },
+  "coverage_rate": 0.9997697267424009,
+  "missing_events": 3,
+  "key_mismatch_events": 0,
+  "raw_null": {
+    "chip_peak_count_sig": 0,
+    "chip_secondary_peak_ratio": 0,
+    "chip_peak_dominance": 0,
+    "single_peak_dense_score": 0
+  },
+  "value_out_of_range_count": 0
+}

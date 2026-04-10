@@ -1,0 +1,11 @@
+﻿axis,a_median,c_median,median_gap_a_minus_c,a_mean,c_mean,keep_as_core_axis,metric,value
+score_strength_axis,0.5986173328447827,0.46641856769557455,0.13219876514920814,0.5892628673838537,0.4873580051292999,True,,
+score_chip_axis,0.5840241531061303,0.4755910346945041,0.10843311841162623,0.587321544677761,0.48879238047519014,True,,
+score_industry_axis,0.5508775969706274,0.49159502609763583,0.0592825708729916,0.5522375650548194,0.4933127753889164,True,,
+score_platform_axis,0.5276374349616998,0.4943960703435463,0.03324136461815347,0.5272672304500347,0.4983382330669033,True,,
+,,,,,,,hard_filter_elimination_rate,0.5815
+,,,,,,,score_continuous,yes
+,,,,,,,score_replacing_filter_risk,moderate
+,,,,,,,platform_axis_value,meaningful
+,,,,,,,axis_dominance_risk,balanced
+,,,,,,,candidate_pool_size_health,balanced

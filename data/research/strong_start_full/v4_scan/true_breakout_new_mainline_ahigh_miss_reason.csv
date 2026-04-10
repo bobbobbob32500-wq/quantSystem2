@@ -1,0 +1,7 @@
+﻿reason_group,reason,miss_count,miss_share_in_remaining_A_high,miss_share_in_total_A_high
+bucket_flag,not_in_C2A_channel,1182,1.0,0.9380952380952381
+bucket_flag,not_in_ECH2_channel,1182,1.0,0.9380952380952381
+bucket_flag,not_in_path_A,529,0.44754653130287647,0.41984126984126985
+bucket_flag,other_identified,0,0.0,0.0
+primary,not_in_ECH2_channel_scope,653,0.5524534686971235,0.5182539682539683
+primary,not_in_path_A,529,0.44754653130287647,0.41984126984126985

@@ -1,0 +1,48 @@
+{
+  "window": {
+    "start": "20250925",
+    "end": "20260327",
+    "trade_days": 118
+  },
+  "groups": [
+    {
+      "group": "freeze1_original_top30pct",
+      "sample_n": 703,
+      "a_share": 0.23044096728307253,
+      "avg_ret_t1": 0.002311424743435496,
+      "med_ret_t1": -0.004301075268817289,
+      "win_t1": 0.45803698435277385,
+      "avg_ret_t2": 0.001342413676336589,
+      "med_ret_t2": -0.00578325370882582,
+      "win_t2": 0.4466571834992888
+    },
+    {
+      "group": "tune21_top3",
+      "sample_n": 354,
+      "a_share": 0.24293785310734464,
+      "avg_ret_t1": 0.004190198243021785,
+      "med_ret_t1": -0.003294621069786452,
+      "win_t1": 0.4661016949152542,
+      "avg_ret_t2": 0.006497407383905878,
+      "med_ret_t2": -0.003509581727403399,
+      "win_t2": 0.4604519774011299
+    },
+    {
+      "group": "reference_top2",
+      "sample_n": 236,
+      "a_share": 0.2457627118644068,
+      "avg_ret_t1": 0.005104684639697183,
+      "med_ret_t1": -0.0027677290941327537,
+      "win_t1": 0.4703389830508475,
+      "avg_ret_t2": 0.0103895454656908,
+      "med_ret_t2": -5.484861781479555e-05,
+      "win_t2": 0.4957627118644068
+    }
+  ],
+  "direct_answers": {
+    "q1_top3_vs_top30_more_reasonable": true,
+    "q2_top3_vs_top2_for_formal_pool": "top3_if_balance_priority",
+    "q3_main_issue_is_pool_too_wide": true,
+    "q4_tune21_worth_next_baseline_candidate": true
+  }
+}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quant Mobile · Luxe IA Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1222;
+      --bg2:#121c36;
+      --ink:#0f172a;
+      --sub:#51627d;
+      --line:#d9e3f3;
+      --card:#f8fbff;
+      --blue:#2a5bff;
+      --blue2:#1a46de;
+      --green:#0ea371;
+      --amber:#cc8a00;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+      background:
+        radial-gradient(1000px 520px at 14% 18%, #2f4fb35a, transparent 62%),
+        radial-gradient(820px 460px at 84% 84%, #0ea37133, transparent 62%),
+        linear-gradient(150deg,var(--bg),var(--bg2));
+      font-family:"Noto Sans SC",sans-serif;color:#fff;
+    }
+    .wrap{display:flex;gap:20px;flex-wrap:wrap;max-width:1180px;width:100%}
+    .notes{
+      flex:1 1 320px;border:1px solid #ffffff25;background:#ffffff10;border-radius:16px;
+      padding:16px 16px 14px;backdrop-filter: blur(12px);
+    }
+    .notes h2{font-size:18px;margin-bottom:8px}
+    .notes p{font-size:13px;line-height:1.6;color:#d4dff7}
+    .notes ul{margin-top:8px;padding-left:18px}
+    .notes li{font-size:13px;line-height:1.8;color:#d4dff7}
+
+    .phone{
+      width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;
+      border:1px solid #ffffff2e;background:#eff4ff;box-shadow:0 24px 56px rgba(8,14,28,.4);
+    }
+    .status{
+      height:54px;padding:14px 20px 0;display:flex;justify-content:space-between;align-items:flex-end;
+      color:#17233f;font-size:13px;font-weight:800;
+    }
+    .app{
+      height:calc(100% - 54px - 86px);overflow:auto;padding:14px 16px 16px;
+      background:
+        radial-gradient(680px 240px at 50% -8%, #d7e5ff, transparent 72%),
+        linear-gradient(180deg,#eef4ff,#f8fbff 26%,#f3f8ff);
+    }
+    .app::-webkit-scrollbar{width:4px}
+    .app::-webkit-scrollbar-thumb{background:#bdd0f1;border-radius:8px}
+
+    .page{display:none}
+    .page.active{display:block}
+
+    .hero{
+      border-radius:24px;padding:18px 16px 14px;color:#fff;position:relative;overflow:hidden;
+      background:linear-gradient(140deg,#163688,#2a5bff 52%,#4d7dff);
+      box-shadow:0 14px 30px rgba(42,91,255,.34);
+    }
+    .hero .t{font-size:12px;opacity:.82}
+    .hero .v{font-size:32px;font-weight:800;margin-top:3px}
+    .hero .kpis{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .kpi{background:#ffffff22;border:1px solid #ffffff33;border-radius:12px;padding:10px;text-align:center}
+    .kpi b{display:block;font-size:16px}
+    .kpi span{font-size:11px;opacity:.86}
+
+    .section{margin-top:14px}
+    .section h3{
+      margin:0 2px 8px;font-size:15px;font-weight:800;color:var(--ink);
+      display:flex;justify-content:space-between;align-items:center;
+    }
+    .section h3 small{font-size:12px;font-weight:700;color:var(--sub)}
+
+    .row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .btn{
+      border:none;border-radius:14px;padding:12px 10px;font-size:13px;font-weight:800;cursor:pointer;
+    }
+    .btn.primary{background:linear-gradient(140deg,var(--blue),var(--blue2));color:#fff}
+    .btn.soft{background:#fff;border:1px solid var(--line);color:#1f3968}
+
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;
+      box-shadow:0 3px 10px #19306a10;
+    }
+    .card + .card{margin-top:8px}
+    .title{font-size:14px;font-weight:800;color:var(--ink)}
+    .sub{font-size:12px;color:var(--sub);line-height:1.5;margin-top:4px}
+    .pill{
+      font-size:11px;font-weight:800;border-radius:999px;padding:4px 9px;border:1px solid #d2def8;background:#eaf1ff;color:#345195;
+      display:inline-block;margin-right:6px;margin-top:7px;
+    }
+    .list-row{display:flex;justify-content:space-between;gap:8px}
+    .score{font-size:12px;font-weight:800;padding:5px 9px;border-radius:999px;background:#e7f8f2;color:#0d7b59}
+
+    .chips{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
+    .chip{
+      white-space:nowrap;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;
+      border:1px solid #c8d6f2;background:#e7efff;color:#25407a;
+    }
+    .chip.active{background:#2a5bff;color:#fff;border-color:#2a5bff}
+
+    .toast{
+      position:absolute;left:50%;bottom:98px;transform:translateX(-50%) translateY(20px);
+      background:#0e1a34ed;color:#fff;border:1px solid #ffffff2a;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;
+      opacity:0;pointer-events:none;transition:.25s;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    .nav{
+      position:absolute;left:0;right:0;bottom:0;height:86px;background:#fff;border-top:1px solid var(--line);
+      display:flex;justify-content:space-around;align-items:flex-start;padding-top:8px;
+    }
+    .nav-item{
+      display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px;padding:6px 8px;border-radius:12px;
+      font-size:11px;font-weight:700;color:#73819f;cursor:pointer;
+    }
+    .nav-item.active{color:#1b3d93;background:#edf2ff}
+    .nav-item span{font-size:20px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="notes">
+      <h2>信息架构重构：去重叠版</h2>
+      <p>首页与候选池职责拆分后，页面目标更清晰，用户不会在两个页面做同一件事。</p>
+      <ul>
+        <li>首页：只做“决策、风险、待办、系统状态”。</li>
+        <li>候选池：只做“策略筛选、执行选股、候选列表详情”。</li>
+        <li>首页保留候选“摘要数字”，不展示候选“详细列表”。</li>
+      </ul>
+    </aside>
+
+    <main class="phone">
+      <div class="status">
+        <span>9:41</span>
+        <span>5G · 86%</span>
+      </div>
+
+      <div class="app">
+        <section class="page active" id="page-home">
+          <div class="hero">
+            <div class="t">今日决策台 · 市场阶段：震荡偏强</div>
+            <div class="v">建议：控仓做多</div>
+            <div class="kpis">
+              <div class="kpi"><b>28</b><span>候选摘要</span></div>
+              <div class="kpi"><b>5</b><span>有效信号</span></div>
+              <div class="kpi"><b>2</b><span>风险提醒</span></div>
+            </div>
+          </div>
+
+          <section class="section">
+            <h3>今日待办 <small>决策视角</small></h3>
+            <article class="card">
+              <div class="title">盘前计划待生成</div>
+              <div class="sub">建议 09:20 前生成计划，并在开盘后 15 分钟做一次偏差检查。</div>
+            </article>
+            <article class="card">
+              <div class="title">风险项：高波动板块回撤</div>
+              <div class="sub">新能源链路出现分化，建议控制单票仓位并提高止损敏感度。</div>
+            </article>
+          </section>
+
+          <section class="section">
+            <h3>快捷动作 <small>不含执行选股</small></h3>
+            <div class="row2">
+              <button class="btn primary">生成计划</button>
+              <button class="btn soft" id="gotoCandidate">进入候选池</button>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-candidates">
+          <section class="section" style="margin-top:0">
+            <h3>候选池 <small id="countLabel">当前 3 只</small></h3>
+            <div class="chips" id="chips">
+              <button class="chip active" data-key="secondary">二次启动</button>
+              <button class="chip" data-key="breakout">突破策略</button>
+              <button class="chip" data-key="legacy">原策略</button>
+              <button class="chip" data-key="fusion">融合策略</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <h3>执行操作 <small>候选池专属</small></h3>
+            <div class="row2">
+              <button class="btn primary" id="runBtn">执行选股</button>
+              <button class="btn soft">推送结果</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <h3>候选列表 <small>含策略标记</small></h3>
+            <article class="card">
+              <div class="list-row">
+                <div><div class="title">贵州茅台</div><div class="sub">600519</div></div>
+                <div class="score">评分 91.4</div>
+              </div>
+              <span class="pill">策略：突破策略</span><span class="pill">信号：放量突破</span>
+              <div class="sub">入选原因：突破 60 日高点且成交量放大，动量强。</div>
+            </article>
+            <article class="card">
+              <div class="list-row">
+                <div><div class="title">宁德时代</div><div class="sub">300750</div></div>
+                <div class="score">评分 86.1</div>
+              </div>
+              <span class="pill">策略：二次启动</span><span class="pill">信号：回踩确认</span>
+              <div class="sub">入选原因：回踩关键均线后反包，趋势延续概率高。</div>
+            </article>
+          </section>
+        </section>
+      </div>
+
+      <div class="toast" id="toast">已发送选股命令，正在执行…</div>
+
+      <nav class="nav">
+        <div class="nav-item active" data-page="home"><span>⌂</span><label>首页</label></div>
+        <div class="nav-item" data-page="candidates"><span>◉</span><label>候选池</label></div>
+        <div class="nav-item"><span>∿</span><label>信号</label></div>
+        <div class="nav-item"><span>▣</span><label>持仓</label></div>
+      </nav>
+    </main>
+  </div>
+
+  <script>
+    const navItems = [...document.querySelectorAll(".nav-item[data-page]")];
+    const pages = { home: document.getElementById("page-home"), candidates: document.getElementById("page-candidates") };
+    const chips = document.getElementById("chips");
+    const runBtn = document.getElementById("runBtn");
+    const toast = document.getElementById("toast");
+    const countLabel = document.getElementById("countLabel");
+    const gotoCandidate = document.getElementById("gotoCandidate");
+
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => switchPage(item.dataset.page));
+    });
+    gotoCandidate.addEventListener("click", () => switchPage("candidates"));
+
+    function switchPage(page){
+      Object.values(pages).forEach(p => p.classList.remove("active"));
+      pages[page].classList.add("active");
+      navItems.forEach(i => i.classList.toggle("active", i.dataset.page === page));
+    }
+
+    chips.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("chip")) return;
+      [...chips.querySelectorAll(".chip")].forEach(c => c.classList.remove("active"));
+      e.target.classList.add("active");
+      const map = { secondary:"当前 5 只", breakout:"当前 3 只", legacy:"当前 8 只", fusion:"当前 11 只" };
+      countLabel.textContent = map[e.target.dataset.key] || "当前 0 只";
+    });
+
+    runBtn.addEventListener("click", () => {
+      showToast("已发送选股命令，正在执行…");
+      setTimeout(() => showToast("选股完成：当前候选池 3 只"), 1300);
+    });
+
+    function showToast(text){
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => toast.classList.remove("show"), 1900);
+    }
+  </script>
+</body>
+</html>

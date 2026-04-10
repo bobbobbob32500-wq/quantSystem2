@@ -1,0 +1,6 @@
+﻿qc_note,count_before,count_after,delta
+missing_ratio_gt_0p15,1441,0,-1441
+ok,11587,9400,-2187
+pct_chg_missing_source,0,2224,2224
+window_insufficient_20;window_insufficient_60,0,326,326
+window_insufficient_60,0,1078,1078

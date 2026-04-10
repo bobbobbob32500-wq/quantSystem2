@@ -1,0 +1,4 @@
+﻿reason,miss_count,miss_share_in_remaining_A_high,miss_share_in_total_A_high
+not_in_ECH2_scope_or_q2,653,0.5609965635738832,0.5182539682539683
+not_in_path_A,309,0.2654639175257732,0.24523809523809523
+not_in_path_A_but_pathB_eligible,202,0.17353951890034364,0.16031746031746033

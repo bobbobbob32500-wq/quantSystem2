@@ -1,0 +1,259 @@
+version: strong_start_research_v4_freeze1
+freeze_meta:
+  freeze_name: strong_start_research_v4_freeze1
+  base_strategy_name: strong_start_research_v4
+  default_profile: neutral
+  freeze_source: strong_start_research_v4_config_tune1.yaml
+  freeze_date: "2026-04-08"
+  freeze_policy: "no further threshold/weight/layer changes under this baseline"
+  tune1_absorbed_changes:
+    - "industry_rank weak gate lowered to 0.72/0.77/0.82"
+    - "quality:k_body_to_atr relaxed to 0.64/0.75/0.88"
+    - "strict breakout_volume_ratio20 relaxed from 1.80 to 1.70"
+  sanity_absorbed:
+    - "f_chip_stability_std10 remains scoring-observation only, not hard filter"
+    - "f_chip_winner_rate remains interval scoring, not unilateral hard cutoff"
+    - "f_ind_rank_pctchg kept as weak filter + scoring main item + trigger assist"
+  known_boundaries_frozen:
+    - "strict profile remains tighter and can be sample-sparse"
+    - "quality:k_body_to_atr is still the largest trigger fail source"
+    - "f_ind_rank_pctchg trigger assist may be weakened in next version, not in freeze1"
+profiles:
+  - loose
+  - neutral
+  - strict
+
+cross_layer_allowlist:
+  - f_ind_rank_pctchg
+
+forbidden_field_patterns:
+  - "_fwd_"
+  - "entry_"
+  - "max_favorable_excursion"
+  - "max_adverse_excursion"
+  - "structure_break"
+
+universe:
+  mainboard_prefixes: ["600", "601", "603", "605", "000", "001", "002", "003"]
+  min_list_days:
+    loose: 60
+    neutral: 120
+    strict: 180
+  min_amount_ma20:
+    loose: 30000
+    neutral: 50000
+    strict: 80000
+  min_price:
+    loose: 3.0
+    neutral: 4.0
+    strict: 5.0
+  max_price:
+    loose: 120.0
+    neutral: 100.0
+    strict: 80.0
+  exclude_st: true
+  risk_name_patterns: ["ST", "*ST", "退"]
+
+hard_filters:
+  enabled: true
+  rules:
+    - id: trend_close_ma20_gap
+      enabled: true
+      feature: f_trend_close_ma20_gap
+      direction: higher_better
+      thresholds:
+        loose: 0.056826
+        neutral: 0.065266
+        strict: 0.073707
+    - id: strength_rs20_xsec_q
+      enabled: true
+      feature: f_strength_rs20_xsec_q
+      direction: higher_better
+      thresholds:
+        loose: 0.748430
+        neutral: 0.777255
+        strict: 0.806079
+    - id: industry_rank_pctchg_weak_gate
+      enabled: true
+      feature: f_ind_rank_pctchg
+      direction: higher_better
+      thresholds:
+        loose: 0.72
+        neutral: 0.77
+        strict: 0.82
+
+scoring:
+  total_score_scale: 100
+  min_total_score:
+    loose: 45
+    neutral: 52
+    strict: 60
+  redundancy_groups:
+    - id: strength_rs20_cluster
+      mode: max_only
+      members: [f_strength_rs20_xsec_q, f_strength_vs_index20, f_strength_ret20]
+    - id: strength_rs60_cluster
+      mode: max_only
+      members: [f_strength_rs60_xsec_q, f_strength_vs_index60, f_strength_ret60]
+  axes:
+    strength_axis:
+      axis_weight: 0.45
+      items:
+        - id: rs20
+          enabled: true
+          feature: f_strength_rs20_xsec_q
+          weight: 0.35
+          direction: higher_better
+          thresholds:
+            loose: 0.748430
+            neutral: 0.777255
+            strict: 0.806079
+        - id: trend_close_ma20
+          enabled: true
+          feature: f_trend_close_ma20_gap
+          weight: 0.40
+          direction: higher_better
+          thresholds:
+            loose: 0.056826
+            neutral: 0.065266
+            strict: 0.073707
+        - id: trend_close_ma60
+          enabled: true
+          feature: f_trend_close_ma60_gap
+          weight: 0.25
+          direction: higher_better
+          thresholds:
+            loose: 0.070000
+            neutral: 0.090000
+            strict: 0.110000
+    industry_front_axis:
+      axis_weight: 0.30
+      items:
+        # sanity check conclusion:
+        # f_ind_rank_pctchg should be weak filter + scoring main axis + trigger assist.
+        - id: industry_rank_pctchg
+          enabled: true
+          feature: f_ind_rank_pctchg
+          weight: 0.60
+          direction: higher_better
+          thresholds:
+            loose: 0.889286
+            neutral: 0.910714
+            strict: 0.932143
+        - id: industry_rank_amount
+          enabled: true
+          feature: f_ind_rank_amount
+          weight: 0.40
+          direction: higher_better
+          thresholds:
+            loose: 0.72
+            neutral: 0.80
+            strict: 0.88
+    chip_base_axis:
+      axis_weight: 0.25
+      items:
+        # sanity check conclusion:
+        # f_chip_winner_rate should be interval scoring, not unilateral hard cutoff.
+        - id: chip_winner_rate
+          enabled: true
+          feature: f_chip_winner_rate
+          weight: 0.65
+          direction: range
+          ranges:
+            loose: [0.75, 0.98]
+            neutral: [0.80, 0.97]
+            strict: [0.85, 0.96]
+        # sanity check conclusion:
+        # f_chip_stability_std10 direction is counter-intuitive vs semantics.
+        # keep as scoring observation item only (NOT hard filter).
+        - id: chip_stability_std10_observe
+          enabled: true
+          feature: f_chip_stability_std10
+          weight: 0.35
+          direction: range
+          ranges:
+            loose: [0.0015, 0.0200]
+            neutral: [0.0020, 0.0150]
+            strict: [0.0025, 0.0120]
+
+trigger:
+  min_groups_pass: 2
+  min_total_rules_pass: 3
+  groups:
+    breakout:
+      min_pass: 1
+      rules:
+        - id: breakout_volume_ratio20
+          enabled: true
+          feature: f_breakout_vol_ratio20
+          direction: higher_better
+          thresholds:
+            loose: 1.45
+            neutral: 1.62
+            strict: 1.70
+    momentum:
+      min_pass: 1
+      rules:
+        - id: k_pct_chg
+          enabled: true
+          feature: f_k_pct_chg
+          direction: higher_better
+          thresholds:
+            loose: 0.030288
+            neutral: 0.036121
+            strict: 0.041954
+        - id: up_down_vol_ratio20
+          enabled: true
+          feature: f_up_down_vol_ratio20
+          direction: higher_better
+          thresholds:
+            loose: 1.05
+            neutral: 1.15
+            strict: 1.25
+    quality:
+      min_pass: 2
+      rules:
+        - id: k_body_to_atr
+          enabled: true
+          feature: f_k_body_to_atr
+          direction: higher_better
+          thresholds:
+            loose: 0.64
+            neutral: 0.75
+            strict: 0.88
+        - id: k_upper_shadow_ratio
+          enabled: true
+          feature: f_k_upper_shadow_ratio
+          direction: lower_better
+          thresholds:
+            loose: 0.26
+            neutral: 0.20
+            strict: 0.14
+        - id: industry_rank_trigger_assist
+          enabled: true
+          feature: f_ind_rank_pctchg
+          direction: higher_better
+          thresholds:
+            loose: 0.85
+            neutral: 0.90
+            strict: 0.94
+
+downgraded_features:
+  features:
+    - f_platform_len
+    - f_platform_range20
+    - f_platform_range30
+    - f_platform_range_best
+    - f_platform_compress_ratio
+    - f_atr_ratio
+    - f_near_pivot20
+    - f_chip_peak_count_sig
+    - f_chip_secondary_peak_ratio
+    - f_chip_peak_dominance
+    - f_chip_single_peak_score
+    - f_chip_low_position120
+
+output:
+  require_trigger_for_ready: true
+  include_explain_json: true
+  include_downgraded_observations: true

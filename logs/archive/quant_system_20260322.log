@@ -1,0 +1,6 @@
+2026-03-22 22:16:58 | INFO     | quant_system | 系统启动
+2026-03-22 22:16:58 | INFO     | quant_system | 配置加载完成
+2026-03-22 22:16:58 | INFO     | quant_system | 数据库初始化完成
+2026-03-22 22:16:58 | INFO     | quant_system | 所有模块初始化完成
+2026-03-22 22:16:58 | INFO     | quant_system | 系统初始化完成
+2026-03-22 22:19:47 | INFO     | quant_system | 系统退出

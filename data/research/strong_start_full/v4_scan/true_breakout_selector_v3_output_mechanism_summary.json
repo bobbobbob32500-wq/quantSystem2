@@ -1,0 +1,87 @@
+{
+  "window": {
+    "start": "20251230",
+    "end": "20260330"
+  },
+  "baseline_a_share": 0.3539,
+  "model_compare": [
+    {
+      "model": "S0_single_v22",
+      "sample_n": 477,
+      "a_n": 151,
+      "c_n": 326,
+      "a_share": 0.3165618448637317,
+      "a_share_lift_vs_baseline_pts": -0.037338155136268314,
+      "a_share_lift_vs_S0_pts": 0.0,
+      "a_share_lift_vs_S3_pts": -0.0314191527609714
+    },
+    {
+      "model": "S3_dual_merge_naive",
+      "sample_n": 842,
+      "a_n": 293,
+      "c_n": 549,
+      "a_share": 0.3479809976247031,
+      "a_share_lift_vs_baseline_pts": -0.005919002375296911,
+      "a_share_lift_vs_S0_pts": 0.0314191527609714,
+      "a_share_lift_vs_S3_pts": 0.0
+    },
+    {
+      "model": "S4_dual_merge_controlled",
+      "sample_n": 497,
+      "a_n": 172,
+      "c_n": 325,
+      "a_share": 0.3460764587525151,
+      "a_share_lift_vs_baseline_pts": -0.00782354124748491,
+      "a_share_lift_vs_S0_pts": 0.029514613888783403,
+      "a_share_lift_vs_S3_pts": -0.0019045388721879997
+    },
+    {
+      "model": "S5_path_selection",
+      "sample_n": 247,
+      "a_n": 80,
+      "c_n": 167,
+      "a_share": 0.32388663967611336,
+      "a_share_lift_vs_baseline_pts": -0.03001336032388663,
+      "a_share_lift_vs_S0_pts": 0.007324794812381685,
+      "a_share_lift_vs_S3_pts": -0.024094357948589717
+    },
+    {
+      "model": "M1_quota_merge",
+      "sample_n": 209,
+      "a_n": 87,
+      "c_n": 122,
+      "a_share": 0.41626794258373206,
+      "a_share_lift_vs_baseline_pts": 0.06236794258373207,
+      "a_share_lift_vs_S0_pts": 0.09970609772000039,
+      "a_share_lift_vs_S3_pts": 0.06828694495902898
+    },
+    {
+      "model": "M2_primary_supplement",
+      "sample_n": 160,
+      "a_n": 64,
+      "c_n": 96,
+      "a_share": 0.4,
+      "a_share_lift_vs_baseline_pts": 0.04610000000000003,
+      "a_share_lift_vs_S0_pts": 0.08343815513626834,
+      "a_share_lift_vs_S3_pts": 0.05201900237529694
+    },
+    {
+      "model": "M3_rank_normalized_merge",
+      "sample_n": 227,
+      "a_n": 92,
+      "c_n": 135,
+      "a_share": 0.4052863436123348,
+      "a_share_lift_vs_baseline_pts": 0.051386343612334795,
+      "a_share_lift_vs_S0_pts": 0.08872449874860311,
+      "a_share_lift_vs_S3_pts": 0.057305345987631706
+    }
+  ],
+  "monthly_a_share_std": {
+    "S3_dual_merge_naive": 0.22947067420637207,
+    "M1_quota_merge": 0.2464611157451222,
+    "M2_primary_supplement": 0.24085395776728985,
+    "M3_rank_normalized_merge": 0.14657394311297317,
+    "S5_path_selection": 0.23972349097774454
+  },
+  "best_model_by_a_share": "M1_quota_merge"
+}

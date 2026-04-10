@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>量化交易移动端 - 演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .mobile-frame {
+            width: 375px;
+            height: 812px;
+            background: #fff;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .mobile-header {
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-icons span {
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .mobile-content {
+            height: calc(100% - 120px);
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .mobile-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .mobile-content::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 2px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title span {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-card .trend {
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .trend.up {
+            color: #f44336;
+        }
+
+        .trend.down {
+            color: #4caf50;
+        }
+
+        .stock-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stock-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stock-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-info {
+            flex: 1;
+        }
+
+        .stock-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .stock-code {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .stock-price {
+            text-align: right;
+        }
+
+        .stock-price .price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .stock-price .change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .change.up {
+            color: #f44336;
+        }
+
+        .change.down {
+            color: #4caf50;
+        }
+
+        .signal-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .signal-badge.buy {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .signal-badge.sell {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .signal-badge.hold {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .signal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .signal-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 15px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .signal-item.buy {
+            border-left-color: #f44336;
+        }
+
+        .signal-item.sell {
+            border-left-color: #4caf50;
+        }
+
+        .signal-item.reduce {
+            border-left-color: #ff9800;
+        }
+
+        .signal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .signal-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .signal-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .signal-message {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .mobile-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f5f5f5;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-item span {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item label {
+            font-size: 9px;
+            color: #666;
+        }
+
+        .nav-item.active label {
+            color: #667eea;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .health-status {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .health-info h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .health-info p {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .health-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4caf50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn.secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .action-btn.secondary:hover {
+            background: #eee;
+            box-shadow: none;
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .action-btn.warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .action-grid .action-btn {
+            padding: 15px 10px;
+            font-size: 12px;
+        }
+
+        .action-grid .action-btn span {
+            font-size: 24px;
+        }
+
+        .history-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-date {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .history-detail {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .history-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .history-status.success {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .history-status.failed {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .history-status.pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .demo-notice {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            color: #1976d2;
+            font-size: 11px;
+        }
+
+        .view-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .multi-view {
+            display: none;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .multi-view.active {
+            display: flex;
+        }
+
+        .mini-frame {
+            width: 180px;
+            height: 390px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .mini-frame .mobile-header {
+            height: 35px;
+            padding: 8px 12px;
+        }
+
+        .mini-frame .mobile-header h1 {
+            font-size: 10px;
+        }
+
+        .mini-frame .header-icons span {
+            font-size: 12px;
+        }
+
+        .mini-frame .mobile-content {
+            height: calc(100% - 90px);
+            padding: 6px;
+        }
+
+        .mini-frame .section-title {
+            font-size: 9px;
+            margin: 8px 0 5px 0;
+        }
+
+        .mini-frame .stat-card {
+            padding: 6px;
+        }
+
+        .mini-frame .stat-card h3 {
+            font-size: 8px;
+        }
+
+        .mini-frame .stat-card .value {
+            font-size: 12px;
+        }
+
+        .mini-frame .stock-item {
+            padding: 6px 8px;
+        }
+
+        .mini-frame .stock-name {
+            font-size: 9px;
+        }
+
+        .mini-frame .stock-code {
+            font-size: 7px;
+        }
+
+        .mini-frame .stock-price .price {
+            font-size: 10px;
+        }
+
+        .mini-frame .stock-price .change {
+            font-size: 8px;
+        }
+
+        .mini-frame .signal-badge {
+            padding: 1px 3px;
+            font-size: 6px;
+            margin-left: 3px;
+        }
+
+        .mini-frame .signal-item {
+            padding: 6px 8px;
+        }
+
+        .mini-frame .signal-title {
+            font-size: 9px;
+        }
+
+        .mini-frame .signal-time {
+            font-size: 7px;
+        }
+
+        .mini-frame .signal-message {
+            font-size: 7px;
+        }
+
+        .mini-frame .mobile-nav {
+            height: 45px;
+        }
+
+        .mini-frame .nav-item span {
+            font-size: 14px;
+        }
+
+        .mini-frame .nav-item label {
+            font-size: 7px;
+        }
+
+        .mini-frame .action-btn {
+            padding: 8px 12px;
+            font-size: 9px;
+        }
+
+        .mini-frame .history-item {
+            padding: 6px 8px;
+        }
+
+        .mini-frame .history-title {
+            font-size: 9px;
+        }
+
+        .mini-frame .history-date {
+            font-size: 7px;
+        }
+
+        .mini-frame .history-detail {
+            font-size: 7px;
+        }
+
+        .view-label {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="view-mode-toggle" onclick="toggleViewMode()">🎨 多视图</button>
+
+    <div class="multi-view" id="multiView">
+    </div>
+
+    <div class="mobile-frame" id="singleView">
+        <div class="mobile-header">
+            <h1>📊 量化交易</h1>
+            <div class="header-icons">
+                <span>🔔</span>
+                <span>⚙️</span>
+            </div>
+        </div>
+
+        <div class="mobile-content">
+            <div class="demo-notice">
+                🎨 点击底部导航切换页面 · 支持快速操作
+            </div>
+
+            <div id="page-overview" class="page active">
+                <div class="health-status">
+                    <div class="health-info">
+                        <h3>系统状态</h3>
+                        <p>运行正常 · 最后更新: 14:30</p>
+                    </div>
+                    <div class="health-indicator">✓</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>监控股票</h3>
+                        <div class="value">28</div>
+                        <div class="trend up">▲ 3 只</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>活跃信号</h3>
+                        <div class="value">5</div>
+                        <div class="trend up">▲ 2 个</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>虚拟交易</h3>
+                        <div class="value">6</div>
+                        <div class="trend up">▲ 12.5%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>今日收益</h3>
+                        <div class="value">+2,350</div>
+                        <div class="trend up">▲ +3.2%</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span>⚡ 快捷操作</span>
+                </div>
+
+                <div class="action-grid">
+                    <button class="action-btn success" onclick="showActionAlert('开始选股')">
+                        <span>🎯</span>
+                        <div>开始选股</div>
+                    </button>
+                    <button class="action-btn" onclick="showActionAlert('一键推送')">
+                        <span>📤</span>
+                        <div>一键推送</div>
+                    </button>
+                    <button class="action-btn warning" onclick="showActionAlert('生成计划')">
+                        <span>📋</span>
+                        <div>生成计划</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="showActionAlert('数据更新')">
+                        <span>🔄</span>
+                        <div>数据更新</div>
+                    </button>
+                </div>
+
+                <div class="section-title">
+                    <span>📱 快速跳转</span>
+                </div>
+
+                <div class="action-grid">
+                    <button class="action-btn secondary" onclick="switchPage('stocks')">
+                        <span>🎯</span>
+                        <div>选股设置</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="switchPage('actions')">
+                        <span>⚡</span>
+                        <div>更多操作</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="switchPage('history')">
+                        <span>📋</span>
+                        <div>历史记录</div>
+                    </button>
+                    <button class="action-btn secondary" onclick="switchPage('settings')">
+                        <span>⚙️</span>
+                        <div>系统设置</div>
+                    </button>
+                </div>
+
+                <div class="section-title">
+                    <span>📈 最新信号</span>
+                    <span>查看全部</span>
+                </div>
+
+                <div class="signal-list">
+                    <div class="signal-item buy">
+                        <div class="signal-header">
+                            <span class="signal-title">买入信号 - 贵州茅台</span>
+                            <span class="signal-time">14:28</span>
+                        </div>
+                        <div class="signal-message">突破60日线压力位，建议关注买入机会</div>
+                    </div>
+                    <div class="signal-item sell">
+                        <div class="signal-header">
+                            <span class="signal-title">卖出信号 - 招商银行</span>
+                            <span class="signal-time">14:15</span>
+                        </div>
+                        <div class="signal-message">达到止盈目标，建议获利了结</div>
+                    </div>
+                    <div class="signal-item reduce">
+                        <div class="signal-header">
+                            <span class="signal-title">减仓信号 - 平安银行</span>
+                            <span class="signal-time">13:52</span>
+                        </div>
+                        <div class="signal-message">放量下跌，建议减仓控制风险</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-stocks" class="page">
+                <div class="section-title">
+                    <span>🎯 选股设置</span>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>📊</span> 选股策略
+                        </span>
+                    </div>
+                    <div class="history-detail">
+                        <select
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin-top: 5px;">
+                            <option>二次启动策略 (推荐)</option>
+                            <option>原策略</option>
+                            <option>双策略对比</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🔢</span> 候选数量
+                        </span>
+                    </div>
+                    <div class="history-detail">
+                        <select
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin-top: 5px;">
+                            <option>10 只</option>
+                            <option selected>20 只</option>
+                            <option>30 只</option>
+                            <option>50 只</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>⚙️</span> 风险控制
+                        </span>
+                    </div>
+                    <div class="history-detail" style="display: flex; gap: 10px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" checked> 排除ST
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" checked> 排除新股
+                        </label>
+                    </div>
+                </div>
+
+                <button class="action-btn success" onclick="showActionAlert('运行选股')">
+                    <span>🎯</span> 运行选股 (run_stock_selection)
+                </button>
+
+                <button class="action-btn" onclick="showActionAlert('推送选股')">
+                    <span>📤</span> 一键推送 (push_selection_wecom)
+                </button>
+
+                <div class="section-title">
+                    <span>🎯 候选股票池</span>
+                    <span>28 只</span>
+                </div>
+
+                <div class="stock-list">
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                贵州茅台
+                                <span class="signal-badge buy">买入</span>
+                            </div>
+                            <div class="stock-code">600519</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">1,856.00</div>
+                            <div class="change up">+2.35%</div>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                招商银行
+                                <span class="signal-badge sell">卖出</span>
+                            </div>
+                            <div class="stock-code">600036</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">32.56</div>
+                            <div class="change down">-0.85%</div>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                平安银行
+                                <span class="signal-badge hold">持有</span>
+                            </div>
+                            <div class="stock-code">000001</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">11.28</div>
+                            <div class="change up">+0.45%</div>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">
+                                宁德时代
+                                <span class="signal-badge buy">买入</span>
+                            </div>
+                            <div class="stock-code">300750</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">198.50</div>
+                            <div class="change up">+3.12%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-signals" class="page">
+                <div class="section-title">
+                    <span>📡 信号列表</span>
+                    <span>今日 12 个</span>
+                </div>
+
+                <div class="signal-list">
+                    <div class="signal-item buy">
+                        <div class="signal-header">
+                            <span class="signal-title">买入信号 - 贵州茅台</span>
+                            <span class="signal-time">14:28</span>
+                        </div>
+                        <div class="signal-message">突破60日线压力位，成交量放大2倍，MACD金叉确认</div>
+                    </div>
+
+                    <div class="signal-item sell">
+                        <div class="signal-header">
+                            <span class="signal-title">卖出信号 - 招商银行</span>
+                            <span class="signal-time">14:15</span>
+                        </div>
+                        <div class="signal-message">达到止盈目标15%，RSI超买</div>
+                    </div>
+
+                    <div class="signal-item reduce">
+                        <div class="signal-header">
+                            <span class="signal-title">减仓信号 - 平安银行</span>
+                            <span class="signal-time">13:52</span>
+                        </div>
+                        <div class="signal-message">放量下跌，跌破20日线支撑</div>
+                    </div>
+
+                    <div class="signal-item buy">
+                        <div class="signal-header">
+                            <span class="signal-title">买入信号 - 宁德时代</span>
+                            <span class="signal-time">13:30</span>
+                        </div>
+                        <div class="signal-message">二次探底成功，KDJ底背离</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-trades" class="page">
+                <div class="section-title">
+                    <span>💰 虚拟交易</span>
+                    <span>6 笔持仓</span>
+                </div>
+
+                <div class="stock-list">
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">贵州茅台</div>
+                            <div class="stock-code">600519 · 持有 100股</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">+12,500</div>
+                            <div class="change up">+8.5%</div>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">宁德时代</div>
+                            <div class="stock-code">300750 · 持有 200股</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">+3,200</div>
+                            <div class="change up">+4.2%</div>
+                        </div>
+                    </div>
+
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-name">比亚迪</div>
+                            <div class="stock-code">002594 · 持有 150股</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">-850</div>
+                            <div class="change down">-1.2%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-actions" class="page">
+                <div class="section-title">
+                    <span>⚡ 选股与推送</span>
+                </div>
+
+                <button class="action-btn success" onclick="showActionAlert('运行选股')">
+                    <span>🎯</span> 运行选股 (run_stock_selection)
+                </button>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>📤</span> 推送目标
+                        </span>
+                    </div>
+                    <div class="history-detail" style="display: flex; gap: 10px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" checked> 企业微信
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <input type="checkbox"> 钉钉
+                        </label>
+                    </div>
+                </div>
+
+                <button class="action-btn" onclick="showActionAlert('推送选股')">
+                    <span>📤</span> 一键推送选股 (push_selection_wecom)
+                </button>
+
+                <button class="action-btn warning" onclick="showActionAlert('推送复盘')">
+                    <span>📝</span> 推送盘后回顾 (push_review_wecom)
+                </button>
+
+                <div class="section-title">
+                    <span>📋 交易计划</span>
+                </div>
+
+                <button class="action-btn" onclick="showActionAlert('生成计划')">
+                    <span>📋</span> 生成交易计划 (generate_plan)
+                </button>
+
+                <div class="section-title">
+                    <span>👁️ 盘中监控</span>
+                </div>
+
+                <button class="action-btn success" onclick="showActionAlert('开始监控')">
+                    <span>👁️</span> 开始盘中监控 (start_intraday_watch)
+                </button>
+
+                <button class="action-btn" onclick="showActionAlert('开始运行')">
+                    <span>▶️</span> 启动监控服务 (start_monitor_runtime)
+                </button>
+
+                <button class="action-btn warning" onclick="showActionAlert('停止运行')">
+                    <span>⏹️</span> 停止监控服务 (stop_monitor_runtime)
+                </button>
+
+                <div class="section-title">
+                    <span>📊 数据操作</span>
+                </div>
+
+                <button class="action-btn secondary" onclick="showActionAlert('更新数据')">
+                    <span>🔄</span> 更新股票数据 (update_stock_data)
+                </button>
+
+                <button class="action-btn secondary" onclick="showActionAlert('盘后回顾')">
+                    <span>📝</span> 生成盘后回顾 (generate_post_market_review)
+                </button>
+
+                <button class="action-btn secondary" onclick="showActionAlert('重试推送')">
+                    <span>📨</span> 重试推送队列 (retry_push_outbox)
+                </button>
+
+                <div class="section-title">
+                    <span>🧹 清理操作</span>
+                </div>
+
+                <button class="action-btn secondary" onclick="showActionAlert('清空候选池')">
+                    <span>🗑️</span> 清空候选池
+                </button>
+
+                <button class="action-btn secondary" onclick="showActionAlert('清理历史')">
+                    <span>🗑️</span> 清理历史记录
+                </button>
+            </div>
+
+            <div id="page-history" class="page">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('operations')">操作记录</button>
+                    <button class="tab-btn" onclick="switchTab('signals')">信号历史</button>
+                    <button class="tab-btn" onclick="switchTab('recommendations')">推荐历史</button>
+                    <button class="tab-btn" onclick="switchTab('trades')">交易记录</button>
+                </div>
+
+                <div id="tab-operations" class="tab-content active">
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>🎯</span> 运行选股
+                            </span>
+                            <span class="history-status success">成功</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:15:30</div>
+                        <div class="history-detail">筛选出28只候选股票，其中5只有买入信号</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📤</span> 推送选股
+                            </span>
+                            <span class="history-status success">成功</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:20:15</div>
+                        <div class="history-detail">已推送到企业微信群</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📋</span> 生成计划
+                            </span>
+                            <span class="history-status success">成功</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:25:42</div>
+                        <div class="history-detail">生成今日交易计划，包含8只股票</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>👁️</span> 开始监控
+                            </span>
+                            <span class="history-status pending">进行中</span>
+                        </div>
+                        <div class="history-date">2026-04-03 09:30:00</div>
+                        <div class="history-detail">盘中监控已启动，每5分钟刷新一次</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>🔄</span> 数据更新
+                            </span>
+                            <span class="history-status success">成功</span>
+                        </div>
+                        <div class="history-date">2026-04-03 08:00:00</div>
+                        <div class="history-detail">完成股票数据更新</div>
+                    </div>
+                </div>
+
+                <div id="tab-signals" class="tab-content">
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📈</span> 买入信号 - 贵州茅台
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-03 14:28:00</div>
+                        <div class="history-detail">突破60日线压力位，建议关注</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📉</span> 卖出信号 - 招商银行
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-03 14:15:00</div>
+                        <div class="history-detail">达到止盈目标15%</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>⚠️</span> 减仓信号 - 平安银行
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-03 13:52:00</div>
+                        <div class="history-detail">放量下跌，跌破支撑</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📈</span> 买入信号 - 宁德时代
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-03 13:30:00</div>
+                        <div class="history-detail">二次探底成功，KDJ底背离</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📉</span> 卖出信号 - 比亚迪
+                            </span>
+                            <span class="history-status success">已触发</span>
+                        </div>
+                        <div class="history-date">2026-04-02 15:10:00</div>
+                        <div class="history-detail">RSI超买，达到止盈目标</div>
+                    </div>
+                </div>
+
+                <div id="tab-recommendations" class="tab-content">
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📋</span> 盘前推荐
+                            </span>
+                            <span class="history-status success">已生成</span>
+                        </div>
+                        <div class="history-date">2026-04-03 08:30:00</div>
+                        <div class="history-detail">推荐12只股票，其中5只重点关注</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📝</span> 盘后回顾
+                            </span>
+                            <span class="history-status success">已生成</span>
+                        </div>
+                        <div class="history-date">2026-04-02 15:30:00</div>
+                        <div class="history-detail">昨日回顾：8个信号触发，6个盈利</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📋</span> 盘前推荐
+                            </span>
+                            <span class="history-status success">已生成</span>
+                        </div>
+                        <div class="history-date">2026-04-02 08:30:00</div>
+                        <div class="history-detail">推荐15只股票，其中6只重点关注</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>📊</span> 选股推送
+                            </span>
+                            <span class="history-status success">已推送</span>
+                        </div>
+                        <div class="history-date">2026-04-02 08:35:00</div>
+                        <div class="history-detail">二次启动策略选股已推送到企业微信</div>
+                    </div>
+                </div>
+
+                <div id="tab-trades" class="tab-content">
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>💰</span> 买入 - 贵州茅台
+                            </span>
+                            <span class="history-status success">已成交</span>
+                        </div>
+                        <div class="history-date">2026-04-03 14:30:00</div>
+                        <div class="history-detail">100股 @ 1,850.00 · 持仓中</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>💰</span> 卖出 - 招商银行
+                            </span>
+                            <span class="history-status success">已成交</span>
+                        </div>
+                        <div class="history-date">2026-04-03 14:20:00</div>
+                        <div class="history-detail">500股 @ 32.80 · 盈利 +2,350</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>💰</span> 买入 - 宁德时代
+                            </span>
+                            <span class="history-status success">已成交</span>
+                        </div>
+                        <div class="history-date">2026-04-03 13:35:00</div>
+                        <div class="history-detail">200股 @ 195.50 · 持仓中</div>
+                    </div>
+
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-title">
+                                <span>💰</span> 买入 - 比亚迪
+                            </span>
+                            <span class="history-status success">已成交</span>
+                        </div>
+                        <div class="history-date">2026-04-02 10:15:00</div>
+                        <div class="history-detail">150股 @ 245.00 · 持仓中</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-settings" class="page">
+                <div class="section-title">
+                    <span>⚙️ 系统设置</span>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🌐</span> 服务器地址
+                        </span>
+                    </div>
+                    <div class="history-detail">http://192.168.1.100:8501</div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🔄</span> 刷新间隔
+                        </span>
+                    </div>
+                    <div class="history-detail">5 分钟</div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>🔔</span> 推送通知
+                        </span>
+                    </div>
+                    <div class="history-detail">已开启</div>
+                </div>
+
+                <div class="section-title">
+                    <span>📊 系统信息</span>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>📱</span> 应用版本
+                        </span>
+                    </div>
+                    <div class="history-detail">1.0.0</div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-title">
+                            <span>💾</span> 数据存储
+                        </span>
+                    </div>
+                    <div class="history-detail">SQLite + DuckDB</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-nav">
+            <div class="nav-item active" onclick="switchPage('overview')">
+                <span>🏠</span>
+                <label>概览</label>
+            </div>
+            <div class="nav-item" onclick="switchPage('stocks')">
+                <span>🎯</span>
+                <label>选股</label>
+            </div>
+            <div class="nav-item" onclick="switchPage('signals')">
+                <span>📡</span>
+                <label>信号</label>
+            </div>
+            <div class="nav-item" onclick="switchPage('trades')">
+                <span>💰</span>
+                <label>交易</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isMultiView = false;
+        let currentPage = 'overview';
+        const pageOrder = ['overview', 'stocks', 'signals', 'trades', 'actions', 'history', 'settings'];
+        const pageNames = {
+            'overview': '🏠 概览',
+            'stocks': '🎯 选股',
+            'signals': '📡 信号',
+            'trades': '💰 交易',
+            'actions': '⚡ 操作',
+            'history': '📋 历史',
+            'settings': '⚙️ 设置'
+        };
+
+        function toggleViewMode() {
+            isMultiView = !isMultiView;
+            const multiView = document.getElementById('multiView');
+            const singleView = document.getElementById('singleView');
+            const toggleBtn = document.querySelector('.view-mode-toggle');
+
+            if (isMultiView) {
+                multiView.classList.add('active');
+                singleView.style.display = 'none';
+                toggleBtn.textContent = '📱 单视图';
+                generateMultiView();
+            } else {
+                multiView.classList.remove('active');
+                singleView.style.display = 'block';
+                toggleBtn.textContent = '🎨 多视图';
+            }
+        }
+
+        function generateMultiView() {
+            const multiView = document.getElementById('multiView');
+            multiView.innerHTML = '';
+
+            pageOrder.forEach(pageName => {
+                const container = document.createElement('div');
+                container.innerHTML = `
+                    <div class="mini-frame" id="mini-${pageName}">
+                        <div class="mobile-header">
+                            <h1>📊 量化</h1>
+                            <div class="header-icons">
+                                <span>🔔</span>
+                            </div>
+                        </div>
+                        <div class="mobile-content" id="mini-content-${pageName}">
+                        </div>
+                        <div class="mobile-nav">
+                            ${pageOrder.map(p => `
+                                <div class="nav-item ${p === pageName ? 'active' : ''}">
+                                    <span>${getNavIcon(p)}</span>
+                                    <label>${getNavLabel(p)}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="view-label">${pageNames[pageName]}</div>
+                `;
+                multiView.appendChild(container);
+                populateMiniPage(pageName);
+            });
+        }
+
+        function getNavIcon(page) {
+            const icons = {
+                'overview': '🏠',
+                'stocks': '🎯',
+                'signals': '📡',
+                'trades': '💰',
+                'actions': '⚡',
+                'history': '📋',
+                'settings': '⚙️'
+            };
+            return icons[page] || '📄';
+        }
+
+        function getNavLabel(page) {
+            const labels = {
+                'overview': '概览',
+                'stocks': '选股',
+                'signals': '信号',
+                'trades': '交易',
+                'actions': '操作',
+                'history': '历史',
+                'settings': '设置'
+            };
+            return labels[page] || '';
+        }
+
+        function populateMiniPage(pageName) {
+            const content = document.getElementById(`mini-content-${pageName}`);
+            const fullContent = document.getElementById(`page-${pageName}`);
+            if (content && fullContent) {
+                content.innerHTML = fullContent.innerHTML;
+            }
+        }
+
+        function switchPage(pageName) {
+            currentPage = pageName;
+
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            document.getElementById('page-' + pageName).classList.add('active');
+
+            const navPages = ['overview', 'stocks', 'signals', 'trades'];
+            document.querySelectorAll('#singleView .nav-item').forEach((item, index) => {
+                item.classList.remove('active');
+                if (navPages[index] === pageName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        function showActionAlert(actionName) {
+            alert(`🎯 执行操作: ${actionName}\n\n这是一个演示，实际功能需要连接后端API`);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('multiView').classList.remove('active');
+            document.getElementById('singleView').style.display = 'block';
+        });
+    </script>
+</body>
+
+</html>

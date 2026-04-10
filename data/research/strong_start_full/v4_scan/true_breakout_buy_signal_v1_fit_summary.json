@@ -1,0 +1,15 @@
+{
+  "rows_signal": 210,
+  "triggered_n": 90,
+  "pathA_trigger_rate": 0.29411764705882354,
+  "pathB_trigger_rate": 0.44041450777202074,
+  "priority1_trigger_rate": 0.35714285714285715,
+  "priority0_trigger_rate": 0.4336734693877551,
+  "ready_for_minimal_buypoint_iteration": true,
+  "files": {
+    "trigger_audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_trigger_audit.csv",
+    "block_reason_audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_block_reason_audit.csv",
+    "path_fit_audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_path_fit_audit.csv",
+    "review": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_buy_signal_v1_fit_review.md"
+  }
+}

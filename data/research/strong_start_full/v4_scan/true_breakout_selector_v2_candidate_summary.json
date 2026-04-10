@@ -1,0 +1,13 @@
+{
+  "window": {
+    "start": "20251230",
+    "end": "20260330",
+    "trade_days": 57,
+    "sample_n_ac": 4029
+  },
+  "conclusion": {
+    "v2_candidate_a_share": 0.3115942028985507,
+    "v1_candidate_a_share": 0.28832116788321166,
+    "v2_better_on_purity": true
+  }
+}

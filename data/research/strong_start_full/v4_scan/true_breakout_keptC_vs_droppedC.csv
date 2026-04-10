@@ -1,0 +1,22 @@
+﻿group,factor,kept_n,dropped_n,kept_median,dropped_median,kept_minus_dropped
+C_keep_vs_drop,score_trend_axis_single,31,40,0.8907361678506059,0.7013423533415402,0.18939381450906578
+C_keep_vs_drop,score_platform_axis_single,31,40,0.3355604173678895,0.7057388084819927,-0.37017839111410317
+C_keep_vs_drop,score_chip_axis_single,31,40,0.8081545823600118,0.6998909577483954,0.10826362461161643
+C_keep_vs_drop,score_industry_axis_single,31,40,0.6954080012700429,0.4762263851404985,0.2191816161295444
+C_keep_vs_drop,f_strength_rs20_xsec_q,31,40,0.9548954895489549,0.8329354212016946,0.12196006834726025
+C_keep_vs_drop,f_platform_compress_ratio,31,40,0.6518987341772154,0.4171918767507006,0.23470685742651487
+C_keep_vs_drop,f_chip_winner_rate,31,40,0.9898641215583639,0.9771454459669482,0.012718675591415707
+C_keep_vs_drop,f_ind_peer_strong_count,31,40,20.0,6.0,14.0
+C_keep_vs_drop,score_total,31,40,0.8493038577551993,0.7642963957165824,0.08500746203861698
+
+
+# c_reason_keep_drop
+core_keep,selected_c_reason,n
+False,mixed_pseudo_C,37
+False,trend_chase_C,2
+False,industry_heat_C,1
+True,mixed_pseudo_C,11
+True,platform_false_break_C,10
+True,industry_heat_C,6
+True,chip_distortion_C,2
+True,trend_chase_C,2

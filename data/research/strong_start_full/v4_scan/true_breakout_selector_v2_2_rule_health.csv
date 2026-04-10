@@ -1,0 +1,3 @@
+﻿model,hard_filter_elimination_rate,score_total_unique,score_continuous,axis_dominance_proxy,axis_dominance_share,axis_imbalance_risk,trend_selectedA_minus_selectedC,trend_wrong_ranking_risk
+v2.1_draft,0.48746587242491934,3173,True,score_trend_axis,0.29150932767654747,low,-0.05285259327669822,high
+v2.2_draft,0.48746587242491934,3173,True,score_trend_axis,0.29817327887450296,low,-0.03108160464234222,high

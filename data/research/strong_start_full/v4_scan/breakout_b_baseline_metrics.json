@@ -1,0 +1,58 @@
+{
+  "window": {
+    "start": "20260309",
+    "end": "20260327",
+    "trading_days": 15,
+    "sanity_check_only": true
+  },
+  "scale": {
+    "signal_count": 124,
+    "execution_candidate_count": 124,
+    "entry_count": 23,
+    "exit_count": 23,
+    "abandon_count": 101,
+    "trade_record_count": 124
+  },
+  "performance_minimal": {
+    "total_trades": 23,
+    "win_rate": 0.21739130434782608,
+    "avg_trade_return": -0.0028847996035144805,
+    "median_trade_return": -0.020000000000000018,
+    "profit_factor": 0.8078855763458196,
+    "max_drawdown": -0.19122854146599394,
+    "avg_holding_days": 1.6956521739130435,
+    "exit_reason_distribution": {
+      "structural_stop": 17,
+      "time_stop": 5,
+      "max_hold_or_momentum_decay": 1
+    }
+  },
+  "attribution": {
+    "loser_common": {
+      "exit_reason_top": {
+        "structural_stop": 17,
+        "max_hold_or_momentum_decay": 1
+      },
+      "score_total_median": 90.20866100941647,
+      "quality_pass_rate": 0.8333333333333334
+    },
+    "winner_common": {
+      "exit_reason_top": {
+        "time_stop": 5
+      },
+      "score_total_median": 88.90171161825725,
+      "quality_pass_rate": 0.6
+    },
+    "entry_vs_exit_dominance": "exit_definition_dominant_issue",
+    "structural_stop_implication": "stop_trigger_is_frequent_and_primary_loss_driver"
+  },
+  "suspicious_top3": [
+    "structural_stop exits dominate the distribution",
+    "sample size is small and from a short contiguous regime",
+    "entry logic is strict-ready only; risk/reject all excluded so entry diversity is low"
+  ],
+  "next_action": {
+    "choice": "A",
+    "reason": "current 15-day sample is mainly sanity-level; need one larger single baseline window before rule edits"
+  }
+}

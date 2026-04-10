@@ -1,0 +1,38 @@
+{
+  "label_target": "true_vs_fake_startup_research_only",
+  "main_window_days": 5,
+  "aux_window_days": 3,
+  "counts": {
+    "G": 7163,
+    "C": 6992,
+    "A": 3817,
+    "N": 519
+  },
+  "ratios": {
+    "G": 0.38737764317776213,
+    "C": 0.3781299010329349,
+    "A": 0.206424747174301,
+    "N": 0.028067708615001893
+  },
+  "n_total": 18491,
+  "n_months": 12,
+  "n_trade_days": 223,
+  "label_skew_warning": null,
+  "ready_for_feature_diff_analysis": true,
+  "label_fields_forbidden_in_features": [
+    "label_true_breakout",
+    "label_reason",
+    "has_full_forward_window",
+    "forward_window_days",
+    "max_up_ret_5",
+    "max_dd_ret_3",
+    "max_dd_ret_5",
+    "close_ret_3",
+    "close_ret_5",
+    "key_break_3",
+    "open_fwd_*",
+    "high_fwd_*",
+    "low_fwd_*",
+    "close_fwd_*"
+  ]
+}

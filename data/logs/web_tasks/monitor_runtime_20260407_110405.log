@@ -1,0 +1,303 @@
+2026-04-07 11:04:07 | INFO     | service | Quant service initialized
+没有因子表现数据，无法优化权重
+2026-04-07 11:04:07 | INFO     | service | Quant service started
+获取002361行情失败: HTTP Error 502: Bad Gateway
+获取002940行情失败: HTTP Error 502: Bad Gateway
+Minute batch fetch timeout (2.80s), pending=5/5
+
+    ================================================================
+    |  A-share Quant Trading Assistant - Background Service         |
+    |                                                              |
+    |  Features:                                                   |
+    |    - Scheduled jobs                                          |
+    |    - Intraday monitoring                                     |
+    |    - Runtime health monitoring and alerts                    |
+    |                                                              |
+    |  Usage: python run_service.py                                |
+    |  Stop : Ctrl+C                                               |
+    ================================================================
+    
+
+============================================================
+  A-share Quant Trading Assistant - Service Mode
+============================================================
+  Start time: 2026-04-07 11:04:07
+============================================================
+
+[1/3] Starting scheduler...
+      Scheduler started with 20 jobs
+
+[2/3] Starting intraday monitor...
+      Candidate pool size: 5
+
+[3/3] Service started
+
+------------------------------------------------------------
+  Status: running
+  Monitor interval: 5 minutes
+  Stop with Ctrl+C
+------------------------------------------------------------
+
+[11:04:07] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:05<00:35,  5.13s/it] 25%|██▌       | 2/8 [00:06<00:18,  3.08s/it] 38%|███▊      | 3/8 [00:07<00:10,  2.17s/it] 50%|█████     | 4/8 [00:08<00:06,  1.50s/it] 62%|██████▎   | 5/8 [00:08<00:03,  1.12s/it] 75%|███████▌  | 6/8 [00:09<00:01,  1.12it/s]                                             [防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+1.43% 广度=66.7% 目标仓位=30% 系数=0.65
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:05<00:15,  5.24s/it]                                             行业实时主源获取失败，降级到候选分钟聚合: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+Minute batch fetch timeout (2.80s), pending=5/5
+[11:04:07] No buy signals
+
+[2026-04-07 11:05:38] Service alive | jobs=20 | incidents=0 | uptime=91.43s
+
+[11:09:08] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:01<00:08,  1.21s/it] 25%|██▌       | 2/8 [00:01<00:05,  1.20it/s] 38%|███▊      | 3/8 [00:03<00:05,  1.05s/it] 50%|█████     | 4/8 [00:03<00:03,  1.05it/s] 62%|██████▎   | 5/8 [00:04<00:02,  1.13it/s] 75%|███████▌  | 6/8 [00:06<00:02,  1.16s/it] 88%|████████▊ | 7/8 [00:22<00:05,  6.00s/it]100%|██████████| 8/8 [00:22<00:00,  4.28s/it]                                             [防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.24% 广度=60.0% 目标仓位=30% 系数=0.65
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:05<00:16,  5.45s/it]                                             行业实时主源获取失败，降级到候选分钟聚合: HTTPSConnectionPool(host='17.push2.eastmoney.com', port=443): Read timed out. (read timeout=15)
+Minute batch fetch timeout (2.80s), pending=5/5
+[11:09:08] No buy signals
+
+[2026-04-07 11:10:47] Service alive | jobs=20 | incidents=0 | uptime=399.68s
+
+[11:14:08] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:05,  1.40it/s] 25%|██▌       | 2/8 [00:01<00:03,  1.80it/s] 38%|███▊      | 3/8 [00:02<00:04,  1.19it/s] 50%|█████     | 4/8 [00:02<00:02,  1.48it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.46it/s] 75%|███████▌  | 6/8 [00:04<00:01,  1.25it/s] 88%|████████▊ | 7/8 [00:05<00:00,  1.04it/s]100%|██████████| 8/8 [00:06<00:00,  1.08it/s]                                             [防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.07% 广度=60.0% 目标仓位=30% 系数=0.65
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:13<00:40, 13.61s/it] 50%|█████     | 2/4 [00:18<00:17,  8.72s/it] 75%|███████▌  | 3/4 [00:26<00:08,  8.15s/it]100%|██████████| 4/4 [00:31<00:00,  6.86s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+获取000065行情失败: HTTP Error 502: Bad Gateway
+Minute batch fetch timeout (2.80s), pending=5/5
+[11:14:08] No buy signals
+
+[2026-04-07 11:15:57] Service alive | jobs=20 | incidents=0 | uptime=709.53s
+
+[11:19:09] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:05,  1.31it/s] 25%|██▌       | 2/8 [00:03<00:11,  1.86s/it] 38%|███▊      | 3/8 [00:03<00:05,  1.20s/it] 50%|█████     | 4/8 [00:04<00:03,  1.12it/s] 62%|██████▎   | 5/8 [00:04<00:02,  1.23it/s] 75%|███████▌  | 6/8 [00:06<00:02,  1.19s/it] 88%|████████▊ | 7/8 [00:12<00:02,  2.79s/it]100%|██████████| 8/8 [00:13<00:00,  2.11s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=-0.05% 广度=50.0% 目标仓位=30% 系数=0.65
+[11:19:09] No buy signals
+
+[2026-04-07 11:20:50] Service alive | jobs=20 | incidents=0 | uptime=1003.24s
+
+[11:24:09] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:04,  1.54it/s] 25%|██▌       | 2/8 [00:01<00:03,  1.78it/s] 38%|███▊      | 3/8 [00:01<00:02,  1.79it/s] 50%|█████     | 4/8 [00:02<00:02,  1.76it/s] 62%|██████▎   | 5/8 [00:02<00:01,  1.85it/s] 75%|███████▌  | 6/8 [00:03<00:01,  1.71it/s] 88%|████████▊ | 7/8 [00:03<00:00,  1.80it/s]100%|██████████| 8/8 [00:04<00:00,  1.96it/s]                                             行业实时主源获取失败，降级到候选分钟聚合: HTTPSConnectionPool(host='91.push2delay.eastmoney.com', port=443): Max retries exceeded with url: /api/qt/stock/get?fields=f43%2Cf44%2Cf45%2Cf46%2Cf47%2Cf48%2Cf170%2Cf171%2Cf168%2Cf169&mpi=1000&invt=2&fltt=1&secid=90.BK1027 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1077)')))
+Minute batch fetch timeout (2.80s), pending=5/5
+行业实时主源获取失败，降级到候选分钟聚合: ('Connection aborted.', ConnectionAbortedError(10053, '你的主机中的软件中止了一个已建立的连接。', None, 10053, None))
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=-0.14% 广度=60.0% 目标仓位=30% 系数=0.65
+[11:24:09] No buy signals
+
+[2026-04-07 11:26:01] Service alive | jobs=20 | incidents=0 | uptime=1313.54s
+
+[11:29:10] Running monitor check...
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.26% 广度=60.0% 目标仓位=30% 系数=0.65
+[11:29:10] No buy signals
+
+[2026-04-07 11:29:29] Service alive | jobs=20 | incidents=0 | uptime=1522.05s
+
+[2026-04-07 11:34:10] Service alive | jobs=20 | incidents=0 | uptime=1803.29s
+
+[2026-04-07 11:39:11] Service alive | jobs=20 | incidents=0 | uptime=2103.53s
+
+[2026-04-07 11:44:11] Service alive | jobs=20 | incidents=0 | uptime=2403.82s
+
+[2026-04-07 11:49:11] Service alive | jobs=20 | incidents=0 | uptime=2704.07s
+
+[2026-04-07 11:54:11] Service alive | jobs=20 | incidents=0 | uptime=3004.36s
+
+[2026-04-07 11:59:12] Service alive | jobs=20 | incidents=0 | uptime=3304.63s
+
+[2026-04-07 12:04:12] Service alive | jobs=20 | incidents=0 | uptime=3604.92s
+
+[2026-04-07 12:09:12] Service alive | jobs=20 | incidents=0 | uptime=3905.33s
+
+[2026-04-07 12:14:13] Service alive | jobs=20 | incidents=0 | uptime=4205.57s
+
+[2026-04-07 12:19:13] Service alive | jobs=20 | incidents=0 | uptime=4505.92s
+
+[2026-04-07 12:24:13] Service alive | jobs=20 | incidents=0 | uptime=4806.2s
+
+[2026-04-07 12:29:13] Service alive | jobs=20 | incidents=0 | uptime=5106.43s
+
+[2026-04-07 12:34:14] Service alive | jobs=20 | incidents=0 | uptime=5406.69s
+
+[2026-04-07 12:39:14] Service alive | jobs=20 | incidents=0 | uptime=5706.97s
+
+[2026-04-07 12:44:14] Service alive | jobs=20 | incidents=0 | uptime=6007.24s
+
+[2026-04-07 12:49:14] Service alive | jobs=20 | incidents=0 | uptime=6307.52s
+
+[2026-04-07 12:54:15] Service alive | jobs=20 | incidents=0 | uptime=6607.78s
+
+[2026-04-07 12:59:15] Service alive | jobs=20 | incidents=0 | uptime=6908.04s
+
+[13:00:00] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:04,  1.59it/s] 25%|██▌       | 2/8 [00:01<00:04,  1.45it/s] 38%|███▊      | 3/8 [00:01<00:03,  1.62it/s] 50%|█████     | 4/8 [00:02<00:02,  1.46it/s] 62%|██████▎   | 5/8 [00:03<00:01,  1.55it/s] 75%|███████▌  | 6/8 [00:03<00:01,  1.54it/s] 88%|████████▊ | 7/8 [00:04<00:00,  1.52it/s]100%|██████████| 8/8 [00:05<00:00,  1.51it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=-0.14% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:00:00] No buy signals
+
+[2026-04-07 13:04:16] Service alive | jobs=20 | incidents=0 | uptime=7208.56s
+
+[13:05:01] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:05,  1.36it/s] 25%|██▌       | 2/8 [00:01<00:03,  1.60it/s] 38%|███▊      | 3/8 [00:01<00:02,  1.67it/s] 50%|█████     | 4/8 [00:02<00:02,  1.79it/s] 62%|██████▎   | 5/8 [00:02<00:01,  1.79it/s] 75%|███████▌  | 6/8 [00:03<00:01,  1.42it/s] 88%|████████▊ | 7/8 [00:04<00:00,  1.59it/s]100%|██████████| 8/8 [00:05<00:00,  1.34it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.05% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:05:01] No buy signals
+
+[2026-04-07 13:09:16] Service alive | jobs=20 | incidents=0 | uptime=7509.07s
+
+[13:10:01] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:03,  1.76it/s] 25%|██▌       | 2/8 [00:01<00:04,  1.30it/s] 38%|███▊      | 3/8 [00:02<00:04,  1.18it/s] 50%|█████     | 4/8 [00:03<00:03,  1.29it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.38it/s] 75%|███████▌  | 6/8 [00:04<00:01,  1.55it/s] 88%|████████▊ | 7/8 [00:04<00:00,  1.50it/s]100%|██████████| 8/8 [00:05<00:00,  1.45it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.05% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:10:01] No buy signals
+
+[2026-04-07 13:14:16] Service alive | jobs=20 | incidents=0 | uptime=7809.28s
+
+[13:15:01] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:03,  2.10it/s] 25%|██▌       | 2/8 [00:00<00:02,  2.08it/s] 38%|███▊      | 3/8 [00:03<00:06,  1.26s/it] 50%|█████     | 4/8 [00:04<00:05,  1.36s/it] 62%|██████▎   | 5/8 [00:05<00:03,  1.24s/it] 75%|███████▌  | 6/8 [00:06<00:01,  1.03it/s] 88%|████████▊ | 7/8 [00:06<00:00,  1.14it/s]100%|██████████| 8/8 [00:07<00:00,  1.35it/s]                                             行业实时主源获取失败，降级到候选分钟聚合: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=-0.12% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:15:01] No buy signals
+
+[2026-04-07 13:19:16] Service alive | jobs=20 | incidents=0 | uptime=8109.33s
+
+[13:20:01] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:08<00:57,  8.15s/it] 25%|██▌       | 2/8 [00:08<00:21,  3.63s/it] 38%|███▊      | 3/8 [00:09<00:11,  2.27s/it] 50%|█████     | 4/8 [00:09<00:06,  1.55s/it] 62%|██████▎   | 5/8 [00:11<00:04,  1.53s/it] 75%|███████▌  | 6/8 [00:12<00:02,  1.40s/it] 88%|████████▊ | 7/8 [00:14<00:01,  1.73s/it]100%|██████████| 8/8 [00:15<00:00,  1.29s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=-0.22% 广度=40.0% 目标仓位=30% 系数=0.65
+[13:20:01] No buy signals
+
+[2026-04-07 13:24:17] Service alive | jobs=20 | incidents=0 | uptime=8409.98s
+
+[13:25:02] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:05,  1.30it/s] 25%|██▌       | 2/8 [00:01<00:03,  1.69it/s] 38%|███▊      | 3/8 [00:05<00:10,  2.13s/it] 50%|█████     | 4/8 [00:05<00:05,  1.46s/it] 62%|██████▎   | 5/8 [00:06<00:03,  1.10s/it] 75%|███████▌  | 6/8 [00:06<00:01,  1.13it/s] 88%|████████▊ | 7/8 [00:07<00:00,  1.34it/s]100%|██████████| 8/8 [00:07<00:00,  1.38it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+  [高] 603098.SH 森特股份: 极差市场清仓 - 立即清仓
+  [高] 002422.SZ 科伦药业: 极差市场清仓 - 立即清仓
+  [中] 605162.SH 新中港: 趋势止盈 - 密切关注，分批止盈
+  [高] 002575.SZ 群兴玩具: 极差市场清仓 - 立即清仓
+企业微信消息发送失败: api concurrent out of limit, hint: [1775539801253803446167582], from ip: 43.239.95.28, more info at https://open.work.weixin.qq.com/devtool/query?e=45033
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=-0.20% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:25:02] No buy signals
+
+[2026-04-07 13:29:18] Service alive | jobs=20 | incidents=0 | uptime=8710.77s
+
+[13:30:03] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:03,  2.07it/s] 25%|██▌       | 2/8 [00:01<00:04,  1.49it/s] 38%|███▊      | 3/8 [00:01<00:02,  1.67it/s] 50%|█████     | 4/8 [00:02<00:02,  1.85it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.45it/s] 75%|███████▌  | 6/8 [00:04<00:01,  1.28it/s] 88%|████████▊ | 7/8 [00:08<00:01,  1.80s/it]100%|██████████| 8/8 [00:08<00:00,  1.36s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+获取002756行情失败: HTTP Error 502: Bad Gateway
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.07% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:30:03] No buy signals
+
+[2026-04-07 13:34:18] Service alive | jobs=20 | incidents=0 | uptime=9011.47s
+
+[13:35:03] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:04,  1.41it/s] 25%|██▌       | 2/8 [00:01<00:03,  1.75it/s] 38%|███▊      | 3/8 [00:02<00:04,  1.02it/s] 50%|█████     | 4/8 [00:03<00:03,  1.14it/s] 62%|██████▎   | 5/8 [00:09<00:08,  2.94s/it] 75%|███████▌  | 6/8 [00:11<00:04,  2.44s/it] 88%|████████▊ | 7/8 [00:11<00:01,  1.82s/it]100%|██████████| 8/8 [00:13<00:00,  1.68s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.01% 广度=75.0% 目标仓位=30% 系数=0.65
+[13:35:03] No buy signals
+
+[2026-04-07 13:39:19] Service alive | jobs=20 | incidents=0 | uptime=9312.24s
+
+[13:40:04] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:01<00:07,  1.13s/it] 25%|██▌       | 2/8 [00:01<00:04,  1.28it/s] 38%|███▊      | 3/8 [00:02<00:04,  1.15it/s] 50%|█████     | 4/8 [00:03<00:03,  1.30it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.36it/s] 75%|███████▌  | 6/8 [00:04<00:01,  1.32it/s] 88%|████████▊ | 7/8 [00:05<00:00,  1.14it/s]100%|██████████| 8/8 [00:06<00:00,  1.29it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.25% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:40:04] No buy signals
+
+[2026-04-07 13:44:19] Service alive | jobs=20 | incidents=0 | uptime=9612.38s
+
+[13:45:04] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:05,  1.36it/s] 25%|██▌       | 2/8 [00:01<00:04,  1.41it/s] 38%|███▊      | 3/8 [00:02<00:04,  1.25it/s] 50%|█████     | 4/8 [00:02<00:02,  1.45it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.40it/s] 75%|███████▌  | 6/8 [00:04<00:01,  1.19it/s] 88%|████████▊ | 7/8 [00:05<00:00,  1.20it/s]100%|██████████| 8/8 [00:06<00:00,  1.12it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.07% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:45:04] No buy signals
+
+[2026-04-07 13:49:20] Service alive | jobs=20 | incidents=0 | uptime=9913.23s
+
+[13:50:05] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:03,  2.32it/s] 25%|██▌       | 2/8 [00:02<00:07,  1.18s/it] 38%|███▊      | 3/8 [00:02<00:04,  1.17it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.57% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:50:05] No buy signals
+
+[2026-04-07 13:54:21] Service alive | jobs=20 | incidents=0 | uptime=10213.53s
+
+[13:55:06] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:05,  1.32it/s] 25%|██▌       | 2/8 [00:01<00:04,  1.30it/s] 38%|███▊      | 3/8 [00:04<00:08,  1.61s/it] 50%|█████     | 4/8 [00:05<00:05,  1.31s/it] 62%|██████▎   | 5/8 [00:06<00:04,  1.47s/it] 75%|███████▌  | 6/8 [00:07<00:02,  1.25s/it] 88%|████████▊ | 7/8 [00:08<00:01,  1.09s/it]100%|██████████| 8/8 [00:08<00:00,  1.10it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+  [高] 603098.SH 森特股份: 极差市场清仓 - 立即清仓
+  [高] 002422.SZ 科伦药业: 极差市场清仓 - 立即清仓
+  [中] 605162.SH 新中港: 趋势止盈 - 密切关注，分批止盈
+  [高] 002575.SZ 群兴玩具: 极差市场清仓 - 立即清仓
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.35% 广度=60.0% 目标仓位=30% 系数=0.65
+[13:55:06] No buy signals
+
+[2026-04-07 13:59:21] Service alive | jobs=20 | incidents=0 | uptime=10514.19s
+
+[14:00:06] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:04,  1.52it/s] 25%|██▌       | 2/8 [00:01<00:05,  1.17it/s] 38%|███▊      | 3/8 [00:02<00:04,  1.07it/s] 50%|█████     | 4/8 [00:03<00:03,  1.21it/s] 62%|██████▎   | 5/8 [00:04<00:02,  1.10it/s] 75%|███████▌  | 6/8 [00:05<00:01,  1.09it/s] 88%|████████▊ | 7/8 [00:05<00:00,  1.20it/s]100%|██████████| 8/8 [00:06<00:00,  1.42it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.57% 广度=60.0% 目标仓位=30% 系数=0.65
+[14:00:06] No buy signals
+
+[2026-04-07 14:04:22] Service alive | jobs=20 | incidents=0 | uptime=10815.19s
+
+[14:05:07] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:02<00:16,  2.35s/it] 25%|██▌       | 2/8 [00:04<00:14,  2.46s/it] 38%|███▊      | 3/8 [00:06<00:11,  2.30s/it] 50%|█████     | 4/8 [00:08<00:08,  2.05s/it] 62%|██████▎   | 5/8 [00:10<00:06,  2.06s/it] 75%|███████▌  | 6/8 [00:13<00:04,  2.29s/it] 88%|████████▊ | 7/8 [00:15<00:02,  2.30s/it]100%|██████████| 8/8 [00:18<00:00,  2.41s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.40% 广度=60.0% 目标仓位=30% 系数=0.65
+[14:05:07] No buy signals
+
+[2026-04-07 14:09:22] Service alive | jobs=20 | incidents=0 | uptime=11115.49s
+
+[14:10:07] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:03,  2.07it/s] 25%|██▌       | 2/8 [00:00<00:02,  2.12it/s] 38%|███▊      | 3/8 [00:02<00:05,  1.13s/it] 50%|█████     | 4/8 [00:03<00:03,  1.16it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.41it/s] 75%|███████▌  | 6/8 [00:04<00:01,  1.42it/s] 88%|████████▊ | 7/8 [00:04<00:00,  1.62it/s]100%|██████████| 8/8 [00:05<00:00,  1.45it/s]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.51% 广度=60.0% 目标仓位=30% 系数=0.65
+[14:10:07] No buy signals
+
+[2026-04-07 14:14:23] Service alive | jobs=20 | incidents=0 | uptime=11416.48s
+
+[14:15:08] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:06,  1.01it/s] 25%|██▌       | 2/8 [00:01<00:04,  1.42it/s] 38%|███▊      | 3/8 [00:03<00:07,  1.47s/it] 50%|█████     | 4/8 [00:05<00:06,  1.68s/it] 62%|██████▎   | 5/8 [00:07<00:04,  1.60s/it] 75%|███████▌  | 6/8 [00:09<00:03,  1.81s/it] 88%|████████▊ | 7/8 [00:11<00:01,  1.94s/it]100%|██████████| 8/8 [00:13<00:00,  1.89s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+Minute batch fetch timeout (2.80s), pending=5/5
+[防护] 闸门=normal 闭环闸门=defensive 熔断=normal 指数均值=+0.41% 广度=60.0% 目标仓位=30% 系数=0.65
+[14:15:08] No buy signals
+
+[2026-04-07 14:19:24] Service alive | jobs=20 | incidents=0 | uptime=11717.0s
+
+[14:20:09] Running monitor check...
+  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:00<00:03,  2.31it/s] 25%|██▌       | 2/8 [00:02<00:06,  1.16s/it] 38%|███▊      | 3/8 [00:02<00:04,  1.05it/s] 50%|█████     | 4/8 [00:03<00:03,  1.30it/s] 62%|██████▎   | 5/8 [00:03<00:02,  1.49it/s] 75%|███████▌  | 6/8 [00:05<00:02,  1.19s/it] 88%|████████▊ | 7/8 [00:09<00:02,  2.10s/it]100%|██████████| 8/8 [00:10<00:00,  1.63s/it]                                             行业实时主源字段不匹配，降级到候选分钟聚合
+获取002756行情失败: HTTP Error 502: Bad Gateway
+获取600249行情失败: HTTP Error 502: Bad Gateway
+获取002361行情失败: HTTP Error 502: Bad Gateway
+获取002940行情失败: HTTP Error 502: Bad Gateway
+获取000065行情失败: HTTP Error 502: Bad Gateway
+获取实时行情数据为空
+Minute batch fetch timeout (2.80s), pending=5/5
+Neither realtime quotes nor minute data is available
+  [高] 603098.SH 森特股份: 极差市场清仓 - 立即清仓
+  [高] 002422.SZ 科伦药业: 极差市场清仓 - 立即清仓
+  [中] 605162.SH 新中港: 趋势止盈 - 密切关注，分批止盈
+  [高] 002575.SZ 群兴玩具: 极差市场清仓 - 立即清仓
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送异常: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+企业微信消息发送失败: api concurrent out of limit, hint: [1775544002356212119947274], from ip: 36.148.251.97, more info at https://open.work.weixin.qq.com/devtool/query?e=45033
+交易计划推送失败: 'dict' object has no attribute 'split'
+  [高] 603098.SH 森特股份: 极差市场清仓 - 立即清仓
+  [高] 002422.SZ 科伦药业: 极差市场清仓 - 立即清仓
+  [中] 605162.SH 新中港: 趋势止盈 - 密切关注，分批止盈
+  [高] 002575.SZ 群兴玩具: 极差市场清仓 - 立即清仓

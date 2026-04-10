@@ -1,0 +1,26 @@
+{
+  "trade_date": "20260224",
+  "selection_count": 1,
+  "persisted_count": 1,
+  "main_db_rows": [
+    {
+      "trade_date": "20260224",
+      "ts_code": "603058.SH",
+      "strategy_name": "secondary_launch_walkforward",
+      "rank": 1,
+      "rs20": 0.2121,
+      "drawdown_from_peak": 0.054
+    }
+  ],
+  "history_db_rows": [
+    {
+      "recommendation_date": "20260224",
+      "symbol": "603058.SH",
+      "strategy_type": "secondary_launch_walkforward",
+      "recommendation_reason": "二次启动策略候选 | RS20=0.212 | 回撤=5.40%"
+    }
+  ],
+  "passed": true,
+  "report_markdown": "",
+  "report_json": ""
+}

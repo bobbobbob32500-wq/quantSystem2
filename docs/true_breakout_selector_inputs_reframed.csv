@@ -1,0 +1,23 @@
+feature,layer,status,rationale,notes
+f_trend_close_ma20_gap,hard_filter_candidate,keep,trend baseline and robust directionality,keep threshold moderate
+f_strength_rs20_xsec_q,hard_filter_candidate,keep,strong discriminative power for relative leadership,use percentile floor not extreme
+f_ind_rank_pctchg,hard_filter_candidate,keep_with_softness,industry front-rank signal is strong but avoid over-hardening,prefer weak filter + score
+f_trend_ma20_ma60_gap,scoring_candidate,keep,continuous trend quality signal,do not hard-cut
+f_strength_ret20,scoring_candidate,keep,short-cycle strength axis,continuous scoring
+f_strength_ret60,scoring_candidate,keep,mid-cycle strength axis,continuous scoring
+f_ind_strength_3d,scoring_candidate,keep,industry persistence axis,score-only
+f_ind_strength_5d,scoring_candidate,keep,industry continuity axis,score-only
+f_chip_winner_rate,scoring_candidate,keep,chip quality useful but prone to overfitting if hard-thresholded,use band scoring
+f_chip_stability_std10,scoring_candidate,keep_observe,chip stability has signal but direction can be regime-sensitive,no hard filter
+f_chip_concentration,scoring_candidate,keep,chip concentration supports selector quality,avoid extreme cutoff
+f_platform_range_best,aux_structure_candidate,keep_light,structure context useful but weaker than core axes,low weight
+f_platform_compress_ratio,aux_structure_candidate,keep_light,platform compression is auxiliary,low weight
+f_k_pct_chg,entry_layer_only,remove_from_selector_core,more entry/trigger behavior than selector essence,postpone to entry study
+f_k_body_to_atr,entry_layer_only,remove_from_selector_core,execution/confirmation style feature,postpone to entry study
+f_breakout_vol_ratio20,entry_layer_only,remove_from_selector_core,trigger participation check not selector core,postpone
+f_k_upper_shadow_ratio,entry_layer_only,remove_from_selector_core,intraday quality/entry rejection style,postpone
+f_up_down_vol_ratio20,entry_layer_only,remove_from_selector_core,execution confirmation tendency,postpone
+f_chip_peak_count_sig,downgraded_observe,downgrade,weak or unstable contribution in selector core,observation only
+f_chip_secondary_peak_ratio,downgraded_observe,downgrade,redundant with stronger chip descriptors,observation only
+f_chip_peak_dominance,downgraded_observe,downgrade,high overlap with concentration/winner axes,observation only
+f_chip_single_peak_score,downgraded_observe,downgrade,may overfit idealized morphology,observation only

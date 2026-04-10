@@ -1,0 +1,6 @@
+rule_id,if_condition,then_action,target,Ahigh_pass_rate_in_core,C_pass_rate_in_core
+R1,score_total >= 0.8377 AND score_platform_axis_single >= 0.3080,keep_in_core_pool,retain_Ahigh,0.875,0.03225806451612903
+R2,NOT(score_industry_axis_single >= 0.6460 AND f_chip_winner_rate >= 0.9925),keep_in_core_pool,kill_industry_heat_C,1.0,0.7096774193548387
+R3,NOT(score_platform_axis_single <= 0.3080 AND f_platform_compress_ratio >= 0.6772),keep_in_core_pool,kill_platform_false_break_C,0.875,0.5483870967741935
+BEFORE,core_keep == True,baseline,Ahigh/C ratio,8.0,31.0
+AFTER,R1 AND R2 AND R3,net-separated-core,Ahigh/C ratio,7.0,1.0

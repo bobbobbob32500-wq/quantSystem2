@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-04-02 13:54:20",
+  "strategy_version": "v3_final",
+  "strategy_label": "二次启动策略（V3 最终版：日线闸门+分时渐进回踩）",
+  "data_range": {
+    "stock_daily_min": "20250901",
+    "stock_daily_max": "20260401"
+  },
+  "backtest_window": {
+    "start": "20250901",
+    "end": "20260401"
+  },
+  "hold_days": 2,
+  "signal_count": 134,
+  "metrics": {
+    "total_trades": 131.0,
+    "total_signal_days": 73.0,
+    "win_rate": 0.5648854961832062,
+    "day_win_rate": 0.6027397260273972,
+    "annual_return": 42.04820101544825,
+    "sharpe_ratio": 5.400725412073895,
+    "max_drawdown": -0.3774010683070307,
+    "total_return": 4.403637087526173,
+    "avg_return": 0.027478320412109576,
+    "std_return": 0.09374628420208225,
+    "avg_day_return": 0.026144789068456915,
+    "std_day_return": 0.0768481320684081,
+    "profit_factor": 2.246538186533431,
+    "regime_bull_avg": 0.0,
+    "regime_sideways_avg": -0.01879053739869572,
+    "regime_bear_avg": 0.011167990835781115
+  },
+  "signals_csv": "D:\\HuaweiAI\\quantSystem2\\results\\secondary_launch_v3_signals_full_20260402_135420.csv",
+  "trades_csv": "D:\\HuaweiAI\\quantSystem2\\results\\secondary_launch_v3_trades_20260402_135420.csv"
+}

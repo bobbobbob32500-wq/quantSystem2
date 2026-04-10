@@ -1,0 +1,10 @@
+﻿window,candidate_filter,expr,base_n,base_A_high_n,base_C_n,kept_n,kept_A_high_n,kept_C_n,A_high_keep_rate,C_remove_rate,A_high_share_after_filter,C_share_after_filter,Ahigh_C_ratio_after
+all,F1_platform_cap,score_platform_axis_single <= 0.64,12,5,5,8,5,3,1.0,0.4,0.625,0.375,1.6666666666666667
+all,F2_industry_overheat_cap,score_industry_axis_single <= 0.90,12,5,5,11,5,4,1.0,0.2,0.45454545454545453,0.36363636363636365,1.25
+all,F3_combo_platform_industry_compress,(score_platform_axis_single <= 0.64) & (score_industry_axis_single <= 0.90) & (f_platform_compress_ratio >= 0.33),12,5,5,7,5,2,1.0,0.6,0.7142857142857143,0.2857142857142857,2.5
+main,F1_platform_cap,score_platform_axis_single <= 0.64,6,3,2,5,3,2,1.0,0.0,0.6,0.4,1.5
+main,F2_industry_overheat_cap,score_industry_axis_single <= 0.90,6,3,2,5,3,1,1.0,0.5,0.6,0.2,3.0
+main,F3_combo_platform_industry_compress,(score_platform_axis_single <= 0.64) & (score_industry_axis_single <= 0.90) & (f_platform_compress_ratio >= 0.33),6,3,2,4,3,1,1.0,0.5,0.75,0.25,3.0
+confirm,F1_platform_cap,score_platform_axis_single <= 0.64,6,2,3,3,2,1,1.0,0.6666666666666666,0.6666666666666666,0.3333333333333333,2.0
+confirm,F2_industry_overheat_cap,score_industry_axis_single <= 0.90,6,2,3,6,2,3,1.0,0.0,0.3333333333333333,0.5,0.6666666666666666
+confirm,F3_combo_platform_industry_compress,(score_platform_axis_single <= 0.64) & (score_industry_axis_single <= 0.90) & (f_platform_compress_ratio >= 0.33),6,2,3,3,2,1,1.0,0.6666666666666666,0.6666666666666666,0.3333333333333333,2.0

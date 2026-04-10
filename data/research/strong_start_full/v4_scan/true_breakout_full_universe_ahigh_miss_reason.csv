@@ -1,0 +1,6 @@
+﻿miss_reason,miss_count,miss_ratio_in_missed_A_high,miss_ratio_in_total_A_high
+not_in_path_A,546,0.43402225755166934,0.43333333333333335
+not_in_core_pool,677,0.5381558028616852,0.5373015873015873
+no_priority_tag,35,0.02782193958664547,0.027777777777777776
+excluded_by_strict_pool,0,0.0,0.0
+failed_F3_gate,0,0.0,0.0

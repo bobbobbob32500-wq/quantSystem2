@@ -1,0 +1,68 @@
+{
+  "strict_pool_n": 12,
+  "strict_pool_counts": {
+    "A_high": 5,
+    "A_mid": 0,
+    "A_low": 2,
+    "C": 5,
+    "G": 0
+  },
+  "top_candidate_filters_all": [
+    {
+      "window": "all",
+      "candidate_filter": "F3_combo_platform_industry_compress",
+      "expr": "(score_platform_axis_single <= 0.64) & (score_industry_axis_single <= 0.90) & (f_platform_compress_ratio >= 0.33)",
+      "base_n": 12,
+      "base_A_high_n": 5,
+      "base_C_n": 5,
+      "kept_n": 7,
+      "kept_A_high_n": 5,
+      "kept_C_n": 2,
+      "A_high_keep_rate": 1.0,
+      "C_remove_rate": 0.6,
+      "A_high_share_after_filter": 0.7142857142857143,
+      "C_share_after_filter": 0.2857142857142857,
+      "Ahigh_C_ratio_after": 2.5
+    },
+    {
+      "window": "all",
+      "candidate_filter": "F1_platform_cap",
+      "expr": "score_platform_axis_single <= 0.64",
+      "base_n": 12,
+      "base_A_high_n": 5,
+      "base_C_n": 5,
+      "kept_n": 8,
+      "kept_A_high_n": 5,
+      "kept_C_n": 3,
+      "A_high_keep_rate": 1.0,
+      "C_remove_rate": 0.4,
+      "A_high_share_after_filter": 0.625,
+      "C_share_after_filter": 0.375,
+      "Ahigh_C_ratio_after": 1.6666666666666667
+    },
+    {
+      "window": "all",
+      "candidate_filter": "F2_industry_overheat_cap",
+      "expr": "score_industry_axis_single <= 0.90",
+      "base_n": 12,
+      "base_A_high_n": 5,
+      "base_C_n": 5,
+      "kept_n": 11,
+      "kept_A_high_n": 5,
+      "kept_C_n": 4,
+      "A_high_keep_rate": 1.0,
+      "C_remove_rate": 0.2,
+      "A_high_share_after_filter": 0.45454545454545453,
+      "C_share_after_filter": 0.36363636363636365,
+      "Ahigh_C_ratio_after": 1.25
+    }
+  ],
+  "answers": {
+    "q1": "是，当前主战场已经明确为 priority_tag=1 & path_source=A。",
+    "q2": "是，strict_pool 内部 A_high 与 C 在平台轴、行业轴、筹码/压缩字段上存在可见差异。",
+    "q3": "部分稳定：平台轴与行业轴差异在双窗口方向基本同向，但样本较小，幅度有波动。",
+    "q4": "是，已找到最小改动候选方向（平台轴上限、行业过热上限、平台+行业+压缩组合门）。",
+    "q5": "是，具备进入 strict_pool 纯化落地验证阶段条件。",
+    "q6": "不应该。当前仍应先做 strict_pool 纯化，不应继续买点开发。"
+  }
+}

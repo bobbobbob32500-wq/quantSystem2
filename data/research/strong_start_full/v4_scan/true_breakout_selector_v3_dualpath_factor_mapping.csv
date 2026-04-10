@@ -1,0 +1,22 @@
+﻿path,role,factor,reason,status
+PathA,hard_filter,f_strength_rs20_xsec_q,core trend floor,core
+PathA,hard_filter,f_trend_close_ma20_gap,trend quality floor,core
+PathA,scoring_core,f_strength_rs20_xsec_q,primary momentum-frontline,keep
+PathA,scoring_core,f_ind_peer_strong_count,frontline breadth support,keep
+PathA,scoring_aux,f_chip_winner_rate,quality purifier,weak_aux
+PathA,heat_cap,trend_rank x industry_rank,anti-resonance cap/penalty,new_struct_rule
+PathA,downgraded,f_strength_ret60,pseudo-heat amplifier,remove_from_main
+PathA,downgraded,f_strength_vs_index20,pseudo-heat amplifier,remove_from_main
+PathA,downgraded,f_trend_close_ma60_gap,pseudo-heat amplifier,remove_from_main
+PathB,hard_filter,f_strength_rs20_xsec_q,trend floor only,core_floor
+PathB,hard_filter,f_trend_close_ma20_gap,non-broken trend floor,core_floor
+PathB,scoring_core,f_platform_compress_ratio,steady structure core,keep
+PathB,scoring_core,f_platform_range30,steady structure support,keep
+PathB,scoring_core,f_chip_winner_rate,chip support core,keep
+PathB,scoring_core,f_chip_low_position120,chip support core,keep
+PathB,scoring_aux,f_strength_rs20_xsec_q,trend floor tie-break,weak_aux
+Common,downgraded_observe,f_k_pct_chg,research-only; entry-like,postpone
+Common,downgraded_observe,f_k_body_to_atr,research-only; entry-like,postpone
+Common,downgraded_observe,f_breakout_vol_ratio20,research-only; entry-like,postpone
+Common,downgraded_observe,f_k_upper_shadow_ratio,research-only; entry-like,postpone
+Common,downgraded_observe,f_up_down_vol_ratio20,research-only; entry-like,postpone

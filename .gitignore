@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables (Sensitive)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/*.log
+!logs/.gitkeep
+
+# Database
+*.db
+*.db-journal
+*.duckdb
+!data/database/.gitkeep
+
+# Large binary files
+*.apk
+*.ipa
+*.exe
+*.dll
+*.so
+
+# Backup files
+data/database/backup/
+data/releases/
+
+# Cache
+cache/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# CodeArts
+.arts/
+.codeartsdoer/cache/
+.codeartsdoer/mcp/
+
+# System specific
+Thumbs.db
+desktop.ini

@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>量化交易辅助看板</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero-card">
+            <div class="hero-copy">
+                <div class="eyebrow">Today Trading Desk</div>
+                <h1>三段式交易工作台</h1>
+                <p class="hero-subtitle">
+                    打开就知道今天能不能做、现在该盯什么、收盘后该怎么复盘。默认只给结论，复杂细节放到后面。
+                </p>
+                <div class="chip-row" id="heroChips"></div>
+            </div>
+            <div class="hero-status">
+                <div class="status-orb" id="statusOrb"></div>
+                <div class="hero-status-copy">
+                    <span class="muted-label">系统状态</span>
+                    <strong id="heroStatusLabel">加载中</strong>
+                    <span id="heroStatusDetail">正在连接数据源...</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="toolbar-card">
+            <div class="toolbar-left">
+                <button class="primary-btn" id="refreshButton" type="button">立即刷新</button>
+                <label class="refresh-label">
+                    自动刷新
+                    <select id="refreshSelect">
+                        <option value="15">15秒</option>
+                        <option value="30" selected>30秒</option>
+                        <option value="60">60秒</option>
+                        <option value="0">关闭</option>
+                    </select>
+                </label>
+            </div>
+            <div class="toolbar-right">
+                <div class="toolbar-stat">
+                    <span class="muted-label">最新拉取</span>
+                    <strong id="generatedTime">--</strong>
+                </div>
+                <div class="toolbar-stat">
+                    <span class="muted-label">市场阶段</span>
+                    <strong id="marketPhase">--</strong>
+                </div>
+                <div class="toolbar-stat">
+                    <span class="muted-label">分钟源</span>
+                    <strong id="minuteProvider">--</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="action-feedback-card" id="actionFeedbackCard" hidden>
+            <div class="action-feedback-inner">
+                <strong id="actionFeedbackTitle">操作已完成</strong>
+                <span id="actionFeedbackText">--</span>
+            </div>
+        </section>
+        <div class="workspace-shell">
+            <aside class="sidebar-card">
+                <div class="sidebar-title">
+                    <span class="panel-kicker">Navigation</span>
+                    <h2>侧边导航</h2>
+                </div>
+                <div class="sidebar-nav" id="stageNav">
+                    <button class="sidebar-nav-btn active" type="button" data-stage-target="dashboardSection">仪表盘</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="tradingSection">交易</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="strategySection">策略</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="dataSection">数据</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="monitorSection">监控</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="reportSection">报告</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="systemSection">系统</button>
+                </div>
+            </aside>
+
+            <main class="content-shell">
+                <section class="content-stage is-active" id="todayBoardSection">
+                    <article class="panel-card stage-summary-card">
+                        <div class="panel-head">
+                            <div>
+                                <span class="panel-kicker">Today Board</span>
+                                <h2>今日作战面板</h2>
+                            </div>
+                            <p>只回答 4 个问题：今天能不能做、主做什么、候选有几只、现在该干嘛。</p>
+                        </div>
+                        <div class="today-board-cards" id="todayBoardCards"></div>
+                        <div class="stage-action-row" id="todayBoardActions"></div>
+                        <div class="summary-bullets" id="todayBoardHighlights"></div>
+                        <div class="summary-bullets" id="actionCenterSummary"></div>
+                        <div class="action-center-grid">
+                            <div class="action-center-card" id="actionCenterLatestSuccess"></div>
+                            <div class="action-center-card" id="actionCenterLatestFailed"></div>
+                        </div>
+                        <div class="action-timeline" id="actionTimeline"></div>
+                        <div class="ops-grid">
+                            <article class="ops-card">
+                                <div class="panel-head">
+                                    <div>
+                                        <span class="panel-kicker">Operations</span>
+                                        <h2>操作中心</h2>
+                                    </div>
+                                    <p>脱离终端，在网页上直接完成监控、数据、选股、推送和清理操作。</p>
+                                </div>
+                                <div class="ops-group">
+                                    <h3 class="journey-subtitle">运行控制</h3>
+                                    <div class="stage-action-row">
+                                        <button class="primary-btn ops-action-btn" type="button" data-action="start_monitor_runtime">一键开启监控</button>
+                                        <button class="stage-ghost-btn ops-action-btn" type="button" data-action="stop_monitor_runtime">停止监控</button>
+                                        <button class="stage-ghost-btn ops-action-btn" type="button" data-action="refresh_intraday_status">刷新运行状态</button>
+                                        <button class="stage-ghost-btn ops-action-btn" type="button" data-action="export_diagnostic_bundle">导出诊断包</button>
+                                    </div>
+                                </div>
+                                <div class="ops-group">
+                                    <h3 class="journey-subtitle">数据与选股</h3>
+                                    <div class="stage-action-row">
+                                        <button class="primary-btn ops-action-btn" type="button" data-action="update_stock_data">一键更新股票数据</button>
+                                        <button class="primary-btn ops-action-btn" type="button" data-action="run_stock_selection">一键更新选股</button>
+                                    </div>
+                                </div>
+                                <div class="ops-group">
+                                    <h3 class="journey-subtitle">企业微信推送</h3>
+                                    <div class="push-strategy-row">
+                                        <label class="refresh-label push-strategy-label">
+                                            推送策略
+                                            <select id="wecomStrategySelect">
+                                                <option value="secondary_launch" selected>二次启动策略</option>
+                                                <option value="legacy">原策略</option>
+                                                <option value="both">双推送</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="stage-action-row">
+                                        <button class="stage-ghost-btn ops-action-btn" type="button" data-action="push_selection_wecom">推送选股结果</button>
+                                        <button class="stage-ghost-btn ops-action-btn" type="button" data-action="push_review_wecom">推送复盘结果</button>
+                                        <button class="stage-ghost-btn ops-action-btn" type="button" data-action="retry_push_outbox">重试推送队列</button>
+                                    </div>
+                                </div>
+                            </article>
+                            <article class="ops-card">
+                                <div class="panel-head">
+                                    <div>
+                                        <span class="panel-kicker">Holding Editor</span>
+                                        <h2>持仓更新</h2>
+                                    </div>
+                                    <p>直接维护真实持仓，无需回到终端控制台。</p>
+                                </div>
+                                <form class="holding-form" id="holdingForm">
+                                    <input class="ops-input" type="text" name="ts_code" placeholder="股票代码，如 600000.SH">
+                                    <input class="ops-input" type="text" name="name" placeholder="股票名称">
+                                    <input class="ops-input" type="number" step="0.01" min="0" name="hold_price" placeholder="持仓成本">
+                                    <input class="ops-input" type="number" step="1" min="0" name="hold_num" placeholder="持仓数量">
+                                    <input class="ops-input" type="number" step="0.01" name="target_profit" placeholder="止盈价(可选)">
+                                    <input class="ops-input" type="number" step="0.01" name="target_stop" placeholder="止损价(可选)">
+                                    <input class="ops-input" type="date" name="hold_date">
+                                </form>
+                                <div class="stage-action-row">
+                                    <button class="primary-btn" type="button" id="saveHoldingButton">保存持仓</button>
+                                    <button class="danger-btn" type="button" id="removeHoldingButton">删除持仓</button>
+                                </div>
+                            </article>
+                            <article class="ops-card ops-card-danger">
+                                <div class="panel-head">
+                                    <div>
+                                        <span class="panel-kicker">Cleanup</span>
+                                        <h2>记录清理</h2>
+                                    </div>
+                                    <p>这些动作不可逆，执行前会再次确认，并保留动作审计记录。</p>
+                                </div>
+                                <div class="stage-action-row">
+                                    <button class="danger-btn ops-action-btn" type="button" data-action="clear_candidate_pool" data-confirm-message="确认清空当前候选池吗？">清空候选池</button>
+                                    <button class="danger-btn ops-action-btn" type="button" data-action="clear_history_records" data-confirm-message="确认清理历史推荐和跟踪记录吗？">清理历史记录</button>
+                                    <button class="danger-btn ops-action-btn" type="button" data-action="clear_virtual_trades" data-confirm-message="确认清理虚拟交易记录吗？">清理虚拟交易</button>
+                                </div>
+                            </article>
+                            <article class="ops-card">
+                                <div class="panel-head">
+                                    <div>
+                                        <span class="panel-kicker">Tasks</span>
+                                        <h2>后台任务状态</h2>
+                                    </div>
+                                    <p>长任务会在这里显示执行中、完成或失败状态。</p>
+                                </div>
+                                <div class="task-list" id="taskList"></div>
+                            </article>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="content-stage" id="preMarketSection">
+                    <article class="panel-card journey-card">
+                        <div class="panel-head">
+                            <div>
+                                <span class="panel-kicker">Pre Market</span>
+                                <h2>盘前</h2>
+                            </div>
+                            <p id="preMarketSummary">加载中...</p>
+                        </div>
+                        <div class="stage-action-row">
+                            <button class="primary-btn" type="button" id="preMarketActionButton" data-action="generate_plan">生成今日计划</button>
+                        </div>
+                        <div class="journey-list" id="preMarketList"></div>
+                    </article>
+                </section>
+
+                <section class="content-stage" id="intradaySection">
+                    <article class="panel-card journey-card">
+                        <div class="panel-head">
+                            <div>
+                                <span class="panel-kicker">Intraday</span>
+                                <h2>盘中</h2>
+                            </div>
+                            <p id="intradaySummary">加载中...</p>
+                        </div>
+                        <div class="stage-action-row">
+                            <button class="primary-btn" type="button" id="intradayActionButton" data-action="start_intraday_watch">开始盘中盯盘</button>
+                            <button class="stage-ghost-btn" type="button" id="intradayRefreshButton" data-action="refresh_intraday_status">刷新盘中状态</button>
+                        </div>
+                        <div class="journey-split">
+                            <div>
+                                <h3 class="journey-subtitle">当前最值得盯的股票</h3>
+                                <div class="journey-list" id="intradayWatchList"></div>
+                            </div>
+                            <div>
+                                <h3 class="journey-subtitle">最近信号</h3>
+                                <div class="journey-list" id="intradaySignalList"></div>
+                            </div>
+                        </div>
+                        <div class="stage-risk-note" id="intradayRiskHint"></div>
+                    </article>
+                </section>
+
+                <section class="content-stage" id="postMarketSection">
+                    <article class="panel-card journey-card">
+                        <div class="panel-head">
+                            <div>
+                                <span class="panel-kicker">Post Market</span>
+                                <h2>盘后</h2>
+                            </div>
+                            <p id="postMarketSummary">加载中...</p>
+                        </div>
+                        <div class="stage-action-row">
+                            <button class="primary-btn" type="button" id="postMarketActionButton" data-action="generate_post_market_review">生成今日复盘</button>
+                        </div>
+                        <div class="post-market-grid">
+                            <div class="summary-bullets" id="postMarketHeadline"></div>
+                            <div class="summary-bullets" id="postMarketDoneRight"></div>
+                            <div class="summary-bullets" id="postMarketMissed"></div>
+                            <div class="summary-bullets" id="postMarketNextActions"></div>
+                        </div>
+                        <div class="summary-bullets" id="postMarketBlockers"></div>
+                    </article>
+                </section>
+
+                <section class="content-stage" id="detailSection">
+                    <section class="detail-head-card">
+                        <div>
+                            <span class="panel-kicker">Detail Layer</span>
+                            <h2>进阶详情</h2>
+                        </div>
+                        <p>下面保留系统细节、图表与明细表，用于复核原因，不干扰默认看盘。</p>
+                    </section>
+
+                    <section class="command-grid">
+                        <article class="brief-card brief-card-primary" id="commandCard"></article>
+                        <article class="brief-card" id="edgeCard"></article>
+                        <article class="brief-card" id="riskCard"></article>
+                        <article class="brief-card" id="focusCard"></article>
+                    </section>
+
+                    <section class="focus-grid">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Focus List</span>
+                                    <h2>现在最值得盯的 3 只</h2>
+                                </div>
+                                <p>不需要你从表格里自己筛，直接把当前最该优先看的候选列出来。</p>
+                            </div>
+                            <div class="spotlight-list" id="spotlightList"></div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Risk Radar</span>
+                                    <h2>不要忽略的风险</h2>
+                                </div>
+                                <p>如果系统当前存在停更、边际偏弱、持仓回撤或运行异常，这里会先提醒你。</p>
+                            </div>
+                            <div class="risk-list" id="riskList"></div>
+                        </article>
+                    </section>
+
+                    <section class="metric-grid" id="metricsGrid"></section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Blocked Review</span>
+                                    <h2>二次启动被拦截明细</h2>
+                                </div>
+                                <p>直接看哪些票被前高抛压、午后阈值或市场共振闸门拦下，避免误判成系统漏推。</p>
+                            </div>
+                            <table class="data-table" id="secondaryLaunchReviewTable"></table>
+                        </article>
+                    </section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Performance</span>
+                                    <h2>系统最近有没有效果</h2>
+                                </div>
+                                <p>优先看闭环反馈和虚拟交易表现，不用你自己去拼结论。</p>
+                            </div>
+                            <div class="chart" id="feedbackChart"></div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Paper Trades</span>
+                                    <h2>虚拟交易累计表现</h2>
+                                </div>
+                                <p>看系统跟踪样本是变强还是变弱，重点关注收益轨迹和日度波动。</p>
+                            </div>
+                            <div class="chart" id="tradeCurveChart"></div>
+                        </article>
+                    </section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Selection Flow</span>
+                                    <h2>盘前候选最近稳不稳</h2>
+                                </div>
+                                <p>看最近推荐日的候选数量和平均评分，快速判断盘前池是否还在稳定输出。</p>
+                            </div>
+                            <div class="chart" id="recommendationTrendChart"></div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Runtime Pulse</span>
+                                    <h2>系统是否在线、是否稳定</h2>
+                                </div>
+                                <p>如果健康快照停更或者告警上升，这里会直接暴露出来。</p>
+                            </div>
+                            <div class="chart" id="healthTimelineChart"></div>
+                            <div class="summary-bullets" id="systemMetricsSummary"></div>
+                        </article>
+                    </section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Action Mix</span>
+                                    <h2>信号结构</h2>
+                                </div>
+                                <p>快速看系统最近主要在发哪类信号，判断当前是否偏进攻、偏卖出或偏风控。</p>
+                            </div>
+                            <div class="chart compact-chart" id="signalMixChart"></div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Theme Heat</span>
+                                    <h2>候选池行业集中度</h2>
+                                </div>
+                                <p>如果候选过于扎堆，这里会很明显，方便你避免同一方向过度拥挤。</p>
+                            </div>
+                            <div class="chart compact-chart" id="industryMixChart"></div>
+                        </article>
+                    </section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Top Picks</span>
+                                    <h2>盘前候选池详情</h2>
+                                </div>
+                                <p>这是完整候选清单，用来做二次核对，不是让你逐个再判断优先级。</p>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" id="candidateTable"></table>
+                            </div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Live Book</span>
+                                    <h2>真实持仓一眼看懂</h2>
+                                </div>
+                                <p>直接看成本、现价和浮盈，不用你再手动算当前持仓状态。</p>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" id="holdingTable"></table>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Open Risk</span>
+                                    <h2>虚拟持仓跟踪</h2>
+                                </div>
+                                <p>看系统当前跟踪的未平仓样本，理解它正在“观察什么”。</p>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" id="openTradeTable"></table>
+                            </div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Signal Feed</span>
+                                    <h2>最近发生了什么信号</h2>
+                                </div>
+                                <p>把最近的买卖动作和触发原因直接按时间摆出来，方便快速扫一眼。</p>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" id="signalTable"></table>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="content-grid two-col">
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Feedback Detail</span>
+                                    <h2>闭环表现摘要</h2>
+                                </div>
+                                <p>如果你要深一点看，就在这里看各来源、各窗口的样本和净收益。</p>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" id="feedbackTable"></table>
+                            </div>
+                        </article>
+
+                        <article class="panel-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-kicker">Health Events</span>
+                                    <h2>运行告警明细</h2>
+                                </div>
+                                <p>系统真的有问题时，这里会作为最后一层明细给你看。</p>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" id="incidentTable"></table>
+                            </div>
+                        </article>
+                    </section>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

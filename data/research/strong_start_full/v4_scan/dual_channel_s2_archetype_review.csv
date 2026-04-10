@@ -1,0 +1,11 @@
+﻿scenario,archetype,archetype_total,archetype_captured,archetype_recall_rate
+C2A+ECH2_Q2,A1_momentum_frontline,94,8,0.0851063829787234
+C2A+ECH2_Q2,A2_structure_chip,94,37,0.39361702127659576
+C2A+ECH2_Q2,A3_early_structure_low_rs20,237,5,0.02109704641350211
+C2A+ECH2_Q2,A4_balanced_highscore,20,5,0.25
+C2A+ECH2_Q2,A5_mixed_other,815,23,0.02822085889570552
+C2A+ECH2_S2,A1_momentum_frontline,94,8,0.0851063829787234
+C2A+ECH2_S2,A2_structure_chip,94,38,0.40425531914893614
+C2A+ECH2_S2,A3_early_structure_low_rs20,237,7,0.029535864978902954
+C2A+ECH2_S2,A4_balanced_highscore,20,5,0.25
+C2A+ECH2_S2,A5_mixed_other,815,24,0.029447852760736196

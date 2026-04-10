@@ -1,0 +1,11 @@
+﻿scenario,archetype,archetype_total,archetype_captured,archetype_recall_rate
+C2A,A1_momentum_frontline,94,8,0.0851063829787234
+C2A,A2_structure_chip,94,32,0.3404255319148936
+C2A,A3_early_structure_low_rs20,237,2,0.008438818565400843
+C2A,A4_balanced_highscore,20,5,0.25
+C2A,A5_mixed_other,815,22,0.026993865030674847
+dual_channel_mainline_v1,A1_momentum_frontline,94,8,0.0851063829787234
+dual_channel_mainline_v1,A2_structure_chip,94,37,0.39361702127659576
+dual_channel_mainline_v1,A3_early_structure_low_rs20,237,9,0.0379746835443038
+dual_channel_mainline_v1,A4_balanced_highscore,20,5,0.25
+dual_channel_mainline_v1,A5_mixed_other,815,24,0.029447852760736196

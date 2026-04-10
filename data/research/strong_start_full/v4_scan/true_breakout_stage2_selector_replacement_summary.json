@@ -1,0 +1,21 @@
+{
+  "baseline": "R2_base_daily_top1",
+  "candidate": "R2_ind55_rs20q30",
+  "criteria": {
+    "crit1_recall_up": false,
+    "crit2_purity_not_worse": true,
+    "crit3_win_not_worse": true,
+    "crit4_no_window_flip": true
+  },
+  "final_replace_decision": false,
+  "full_year_delta": {
+    "A_high_recall_delta": -0.0103174603174604,
+    "A_high_over_C_delta": 0.23333333333333334,
+    "win_t2_delta": 0.03434321338729085,
+    "mean_ret_t2_delta": 0.0053199623275336
+  },
+  "files": {
+    "validation": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_selector_replacement_validation.csv",
+    "review": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_selector_replacement_review.md"
+  }
+}

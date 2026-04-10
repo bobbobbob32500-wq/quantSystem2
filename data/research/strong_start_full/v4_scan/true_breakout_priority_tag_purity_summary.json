@@ -1,0 +1,20 @@
+{
+  "answers": {
+    "Q1_dual_window_gain": true,
+    "Q2_right_tail_driven": true,
+    "Q3_median_win_sync": true,
+    "Q4_ahigh_stable": true,
+    "Q5_c_pollution_major": true,
+    "Q6_label_type": "高弹性混合标签",
+    "Q7_keep_as_enhancement_tag": true,
+    "Q8_ready_for_entry_research": "不具备",
+    "Q8_reason": "priority_tag 中 C 占比仍偏高，尚未形成稳定高纯 A_high 层。",
+    "main_pool_stability": "主池稳定性保持"
+  },
+  "files": {
+    "stability_audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_stability_audit.csv",
+    "return_shape_audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_return_shape_audit.csv",
+    "path_audit": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_path_audit.csv",
+    "purity_md": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_priority_tag_purity_audit.md"
+  }
+}

@@ -1,0 +1,6 @@
+pattern_id,pattern_desc,logic,support_kept_C,support_kept_Ahigh,diff_C_minus_Ahigh,support_gap_rank
+C_pattern_1,low_score + low_trend,c1_low_score_low_trend,0.3870967741935484,0.0,0.3870967741935484,0.3870967741935484
+C_pattern_2,low_platform_score + high_platform_compress,c2_low_platform_high_compress,0.45161290322580644,0.125,0.32661290322580644,0.32661290322580644
+C_pattern_4,low_score + low_rs20,c4_low_score_low_rs20,0.3225806451612903,0.0,0.3225806451612903,0.3225806451612903
+C_pattern_3,high_industry_heat + high_chip_heat,c3_hot_industry_hot_chip,0.2903225806451613,0.0,0.2903225806451613,0.2903225806451613
+C_pattern_5,low_trend + high_industry_heat,c5_trend_industry_pseudo_sync,0.3870967741935484,0.125,0.2620967741935484,0.2620967741935484

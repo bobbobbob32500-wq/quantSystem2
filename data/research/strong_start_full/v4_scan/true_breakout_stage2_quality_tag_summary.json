@@ -1,0 +1,74 @@
+{
+  "rule": {
+    "quality_tag": "score_industry_axis_single <= q55 and f_strength_rs20_xsec_q >= q30",
+    "industry_cap_q55": 0.5869395922340599,
+    "rs20_floor_q30": 0.8270325203252032
+  },
+  "full_year": {
+    "mainline_top1_all": {
+      "scope": "full_year",
+      "group": "mainline_top1_all",
+      "selected_n": 223,
+      "signal_days": 223,
+      "avg_days_per_signal": 1.0,
+      "A_recall_rate": 0.01676709457689285,
+      "A_high_recall_rate": 0.023809523809523808,
+      "A_high_over_C": 0.3333333333333333,
+      "A_low_plus_C_share": 0.4798206278026906,
+      "mean_ret_t1": 0.001738568539684847,
+      "median_ret_t1": -0.0011901042828877,
+      "win_t1": 0.4618834080717489,
+      "mean_ret_t2": 0.006178882294513452,
+      "median_ret_t2": 0.0010775862068965,
+      "win_t2": 0.5022421524663677,
+      "mean_ret_t3": 0.004380157456279967,
+      "median_ret_t3": -0.0015479611384783,
+      "win_t3": 0.47533632286995514
+    },
+    "quality_tag_1": {
+      "scope": "full_year",
+      "group": "quality_tag_1",
+      "selected_n": 82,
+      "signal_days": 82,
+      "avg_days_per_signal": 2.7195121951219514,
+      "A_recall_rate": 0.007597589730154571,
+      "A_high_recall_rate": 0.013492063492063493,
+      "A_high_over_C": 0.5666666666666667,
+      "A_low_plus_C_share": 0.43902439024390244,
+      "mean_ret_t1": 0.0014848906448429878,
+      "median_ret_t1": -0.00131233595800525,
+      "win_t1": 0.4634146341463415,
+      "mean_ret_t2": 0.011498844622047078,
+      "median_ret_t2": 0.0038880248833592,
+      "win_t2": 0.5365853658536586,
+      "mean_ret_t3": 0.01170999241689307,
+      "median_ret_t3": 0.0048787745896503,
+      "win_t3": 0.5365853658536586
+    },
+    "quality_tag_0": {
+      "scope": "full_year",
+      "group": "quality_tag_0",
+      "selected_n": 141,
+      "signal_days": 141,
+      "avg_days_per_signal": 1.5815602836879432,
+      "A_recall_rate": 0.009169504846738277,
+      "A_high_recall_rate": 0.010317460317460317,
+      "A_high_over_C": 0.21666666666666667,
+      "A_low_plus_C_share": 0.5035460992907801,
+      "mean_ret_t1": 0.0018871513066636505,
+      "median_ret_t1": -0.0011901042828877,
+      "win_t1": 0.46099290780141844,
+      "mean_ret_t2": 0.0031009040907261365,
+      "median_ret_t2": -0.00111312962999475,
+      "win_t2": 0.48226950354609927,
+      "mean_ret_t3": 0.00019168033592962289,
+      "median_ret_t3": -0.004507767849955701,
+      "win_t3": 0.4397163120567376
+    }
+  },
+  "files": {
+    "tagged_output": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_mainline_with_quality_tag.csv",
+    "metrics": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_quality_tag_metrics.csv",
+    "review": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_stage2_quality_tag_review.md"
+  }
+}

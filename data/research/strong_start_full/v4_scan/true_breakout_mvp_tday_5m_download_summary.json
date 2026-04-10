@@ -1,0 +1,12 @@
+{
+  "target_pairs": 210,
+  "already_covered_before": 9,
+  "download_todo_pairs": 201,
+  "download_ok_pairs": 201,
+  "download_fail_pairs": 0,
+  "inserted_rows": 9648,
+  "covered_after_pairs": 210,
+  "coverage_after_ratio": 1.0,
+  "fail_samples": [],
+  "output_json": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_mvp_tday_5m_download_summary.json"
+}

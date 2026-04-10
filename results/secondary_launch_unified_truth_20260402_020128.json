@@ -1,0 +1,961 @@
+{
+  "generated_at": "2026-04-02 02:01:28",
+  "source_report": "D:\\HuaweiAI\\quantSystem2\\results\\secondary_launch_recent_tracking_20260402_014509.json",
+  "signal_count": 85,
+  "entry_count": 16,
+  "no_entry_count": 66,
+  "entry_rate_pct": 18.82,
+  "metrics": {
+    "same_day_close": {
+      "count": 16,
+      "win_rate": 25.0,
+      "avg_return_pct": -0.19,
+      "median_return_pct": -0.37,
+      "best_return_pct": 4.0,
+      "worst_return_pct": -2.4
+    },
+    "T+1_open": {
+      "count": 16,
+      "win_rate": 37.5,
+      "avg_return_pct": 1.19,
+      "median_return_pct": -0.18,
+      "best_return_pct": 10.71,
+      "worst_return_pct": -5.45
+    },
+    "T+1_close": {
+      "count": 16,
+      "win_rate": 43.75,
+      "avg_return_pct": 0.26,
+      "median_return_pct": -1.93,
+      "best_return_pct": 12.01,
+      "worst_return_pct": -6.5
+    },
+    "T+2_close": {
+      "count": 16,
+      "win_rate": 56.25,
+      "avg_return_pct": 2.31,
+      "median_return_pct": 0.98,
+      "best_return_pct": 20.5,
+      "worst_return_pct": -14.63
+    },
+    "T+3_close": {
+      "count": 16,
+      "win_rate": 56.25,
+      "avg_return_pct": 3.24,
+      "median_return_pct": 0.8,
+      "best_return_pct": 32.61,
+      "worst_return_pct": -12.79
+    }
+  },
+  "by_rank": [
+    {
+      "rank": 1,
+      "sample_count": 9,
+      "same_day_close": {
+        "count": 9,
+        "win_rate": 11.11,
+        "avg_return_pct": -0.64,
+        "median_return_pct": -0.91,
+        "best_return_pct": 2.0,
+        "worst_return_pct": -2.16
+      },
+      "T+1_close": {
+        "count": 9,
+        "win_rate": 33.33,
+        "avg_return_pct": -1.65,
+        "median_return_pct": -2.64,
+        "best_return_pct": 8.55,
+        "worst_return_pct": -6.46
+      },
+      "T+2_close": {
+        "count": 9,
+        "win_rate": 66.67,
+        "avg_return_pct": 2.53,
+        "median_return_pct": 2.86,
+        "best_return_pct": 19.41,
+        "worst_return_pct": -14.63
+      },
+      "T+3_close": {
+        "count": 9,
+        "win_rate": 55.56,
+        "avg_return_pct": 3.43,
+        "median_return_pct": 0.3,
+        "best_return_pct": 27.71,
+        "worst_return_pct": -12.79
+      }
+    },
+    {
+      "rank": 2,
+      "sample_count": 5,
+      "same_day_close": {
+        "count": 5,
+        "win_rate": 40.0,
+        "avg_return_pct": -0.09,
+        "median_return_pct": -0.26,
+        "best_return_pct": 1.82,
+        "worst_return_pct": -2.4
+      },
+      "T+1_close": {
+        "count": 5,
+        "win_rate": 60.0,
+        "avg_return_pct": 3.69,
+        "median_return_pct": 4.9,
+        "best_return_pct": 12.01,
+        "worst_return_pct": -6.5
+      },
+      "T+2_close": {
+        "count": 5,
+        "win_rate": 60.0,
+        "avg_return_pct": 4.09,
+        "median_return_pct": 0.7,
+        "best_return_pct": 20.5,
+        "worst_return_pct": -5.08
+      },
+      "T+3_close": {
+        "count": 5,
+        "win_rate": 60.0,
+        "avg_return_pct": 5.82,
+        "median_return_pct": 2.79,
+        "best_return_pct": 32.61,
+        "worst_return_pct": -9.8
+      }
+    },
+    {
+      "rank": 3,
+      "sample_count": 2,
+      "same_day_close": {
+        "count": 2,
+        "win_rate": 50.0,
+        "avg_return_pct": 1.59,
+        "median_return_pct": 1.59,
+        "best_return_pct": 4.0,
+        "worst_return_pct": -0.82
+      },
+      "T+1_close": {
+        "count": 2,
+        "win_rate": 50.0,
+        "avg_return_pct": 0.28,
+        "median_return_pct": 0.28,
+        "best_return_pct": 4.67,
+        "worst_return_pct": -4.12
+      },
+      "T+2_close": {
+        "count": 2,
+        "win_rate": 0.0,
+        "avg_return_pct": -3.11,
+        "median_return_pct": -3.11,
+        "best_return_pct": -3.03,
+        "worst_return_pct": -3.18
+      },
+      "T+3_close": {
+        "count": 2,
+        "win_rate": 50.0,
+        "avg_return_pct": -4.04,
+        "median_return_pct": -4.04,
+        "best_return_pct": 1.29,
+        "worst_return_pct": -9.37
+      }
+    }
+  ],
+  "by_time_bucket": [
+    {
+      "time_bucket": "上午",
+      "sample_count": 12,
+      "same_day_close": {
+        "count": 12,
+        "win_rate": 16.67,
+        "avg_return_pct": -0.34,
+        "median_return_pct": -0.62,
+        "best_return_pct": 4.0,
+        "worst_return_pct": -2.4
+      },
+      "T+1_close": {
+        "count": 12,
+        "win_rate": 33.33,
+        "avg_return_pct": -1.36,
+        "median_return_pct": -3.19,
+        "best_return_pct": 12.01,
+        "worst_return_pct": -6.5
+      },
+      "T+2_close": {
+        "count": 12,
+        "win_rate": 41.67,
+        "avg_return_pct": -0.74,
+        "median_return_pct": -1.16,
+        "best_return_pct": 8.23,
+        "worst_return_pct": -14.63
+      },
+      "T+3_close": {
+        "count": 12,
+        "win_rate": 41.67,
+        "avg_return_pct": -2.4,
+        "median_return_pct": -1.81,
+        "best_return_pct": 8.78,
+        "worst_return_pct": -12.79
+      }
+    },
+    {
+      "time_bucket": "午后",
+      "sample_count": 4,
+      "same_day_close": {
+        "count": 4,
+        "win_rate": 50.0,
+        "avg_return_pct": 0.27,
+        "median_return_pct": 0.19,
+        "best_return_pct": 2.0,
+        "worst_return_pct": -1.33
+      },
+      "T+1_close": {
+        "count": 4,
+        "win_rate": 75.0,
+        "avg_return_pct": 5.11,
+        "median_return_pct": 6.72,
+        "best_return_pct": 9.63,
+        "worst_return_pct": -2.64
+      },
+      "T+2_close": {
+        "count": 4,
+        "win_rate": 100.0,
+        "avg_return_pct": 11.47,
+        "median_return_pct": 12.34,
+        "best_return_pct": 20.5,
+        "worst_return_pct": 0.7
+      },
+      "T+3_close": {
+        "count": 4,
+        "win_rate": 100.0,
+        "avg_return_pct": 20.18,
+        "median_return_pct": 21.77,
+        "best_return_pct": 32.61,
+        "worst_return_pct": 4.55
+      }
+    }
+  ],
+  "entries": [
+    {
+      "signal_date": "20260130",
+      "symbol": "601226.SH",
+      "name": "华电科工",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "13:15:00",
+      "time_bucket": "午后",
+      "entry_price": 10.99,
+      "same_day_close_ret": 0.020018198362147466,
+      "T+1_date": "20260202",
+      "T+1_open_ret": -0.0018198362147406888,
+      "T+1_close_ret": -0.02638762511373982,
+      "T+2_date": "20260203",
+      "T+2_open_ret": -0.010009099181073622,
+      "T+2_close_ret": 0.05277525022747964,
+      "T+3_date": "20260204",
+      "T+3_open_ret": 0.05368516833484982,
+      "T+3_close_ret": 0.1583257506824387
+    },
+    {
+      "signal_date": "20260203",
+      "symbol": "600871.SH",
+      "name": "石化油服",
+      "rank": 2,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "13:35:00",
+      "time_bucket": "午后",
+      "entry_price": 2.86,
+      "same_day_close_ret": 0.006993006993007089,
+      "T+1_date": "20260204",
+      "T+1_open_ret": 0.03146853146853168,
+      "T+1_close_ret": 0.04895104895104896,
+      "T+2_date": "20260205",
+      "T+2_open_ret": 0.02447552447552459,
+      "T+2_close_ret": 0.006993006993007089,
+      "T+3_date": "20260206",
+      "T+3_open_ret": -0.04895104895104885,
+      "T+3_close_ret": 0.045454545454545636
+    },
+    {
+      "signal_date": "20260204",
+      "symbol": "002259.SZ",
+      "name": "升达林业",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:25:00",
+      "time_bucket": "上午",
+      "entry_price": 5.83,
+      "same_day_close_ret": -0.010291595197255643,
+      "T+1_date": "20260205",
+      "T+1_open_ret": -0.0017152658662091813,
+      "T+1_close_ret": 0.012006861063464935,
+      "T+2_date": "20260206",
+      "T+2_open_ret": 0.012006861063464935,
+      "T+2_close_ret": 0.08233276157804448,
+      "T+3_date": "20260209",
+      "T+3_open_ret": 0.025728987993139052,
+      "T+3_close_ret": -0.025728987993139052
+    },
+    {
+      "signal_date": "20260204",
+      "symbol": "000031.SZ",
+      "name": "大悦城",
+      "rank": 2,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:35:00",
+      "time_bucket": "上午",
+      "entry_price": 3.79,
+      "same_day_close_ret": -0.0026385224274406704,
+      "T+1_date": "20260205",
+      "T+1_open_ret": -0.02110817941952503,
+      "T+1_close_ret": -0.0158311345646438,
+      "T+2_date": "20260206",
+      "T+2_open_ret": -0.01846965699208436,
+      "T+2_close_ret": -0.0158311345646438,
+      "T+3_date": "20260209",
+      "T+3_open_ret": -0.00527704485488123,
+      "T+3_close_ret": -0.01055408970976257
+    },
+    {
+      "signal_date": "20260209",
+      "symbol": "603806.SH",
+      "name": "福斯特",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "11:05:00",
+      "time_bucket": "上午",
+      "entry_price": 19.68,
+      "same_day_close_ret": -0.009146341463414642,
+      "T+1_date": "20260210",
+      "T+1_open_ret": 0.009654471544715548,
+      "T+1_close_ret": -0.02286585365853655,
+      "T+2_date": "20260211",
+      "T+2_open_ret": -0.03353658536585369,
+      "T+2_close_ret": -0.044207317073170826,
+      "T+3_date": "20260212",
+      "T+3_open_ret": -0.0477642276422765,
+      "T+3_close_ret": -0.049288617886178776
+    },
+    {
+      "signal_date": "20260212",
+      "symbol": "600841.SH",
+      "name": "动力新科",
+      "rank": 2,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "11:15:00",
+      "time_bucket": "上午",
+      "entry_price": 11.23,
+      "same_day_close_ret": -0.024042742653606397,
+      "T+1_date": "20260213",
+      "T+1_open_ret": -0.030276046304541393,
+      "T+1_close_ret": -0.06500445235975072,
+      "T+2_date": "20260224",
+      "T+2_open_ret": -0.056099732858415075,
+      "T+2_close_ret": -0.050756901157613554,
+      "T+3_date": "20260225",
+      "T+3_open_ret": -0.061442564559216484,
+      "T+3_close_ret": -0.09795191451469276
+    },
+    {
+      "signal_date": "20260213",
+      "symbol": "002009.SZ",
+      "name": "天奇股份",
+      "rank": 3,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:10:00",
+      "time_bucket": "上午",
+      "entry_price": 34.27,
+      "same_day_close_ret": 0.03997665596731825,
+      "T+1_date": "20260224",
+      "T+1_open_ret": 0.1070907499270497,
+      "T+1_close_ret": 0.04668806536329129,
+      "T+2_date": "20260225",
+      "T+2_open_ret": 0.004960606944849566,
+      "T+2_close_ret": -0.030347242486139625,
+      "T+3_date": "20260226",
+      "T+3_open_ret": -0.06040268456375841,
+      "T+3_close_ret": -0.09366793113510374
+    },
+    {
+      "signal_date": "20260224",
+      "symbol": "600841.SH",
+      "name": "动力新科",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:25:00",
+      "time_bucket": "上午",
+      "entry_price": 10.83,
+      "same_day_close_ret": -0.01569713758079405,
+      "T+1_date": "20260225",
+      "T+1_open_ret": -0.026777469990766467,
+      "T+1_close_ret": -0.06463527239150502,
+      "T+2_date": "20260226",
+      "T+2_open_ret": -0.06278855032317632,
+      "T+2_close_ret": 0.028624192059095055,
+      "T+3_date": "20260227",
+      "T+3_open_ret": 0.012927054478301114,
+      "T+3_close_ret": 0.01754385964912286
+    },
+    {
+      "signal_date": "20260227",
+      "symbol": "603619.SH",
+      "name": "中曼石油",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "13:35:00",
+      "time_bucket": "午后",
+      "entry_price": 36.84,
+      "same_day_close_ret": -0.013300760043431059,
+      "T+1_date": "20260302",
+      "T+1_open_ret": 0.08550488599348527,
+      "T+1_close_ret": 0.08550488599348527,
+      "T+2_date": "20260303",
+      "T+2_open_ret": 0.19408251900108575,
+      "T+2_close_ret": 0.19408251900108575,
+      "T+3_date": "20260304",
+      "T+3_open_ret": 0.30781758957654715,
+      "T+3_close_ret": 0.2771444082518999
+    },
+    {
+      "signal_date": "20260227",
+      "symbol": "600871.SH",
+      "name": "石化油服",
+      "rank": 2,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "13:45:00",
+      "time_bucket": "午后",
+      "entry_price": 3.22,
+      "same_day_close_ret": -0.0031055900621118626,
+      "T+1_date": "20260302",
+      "T+1_open_ret": 0.09627329192546563,
+      "T+1_close_ret": 0.09627329192546563,
+      "T+2_date": "20260303",
+      "T+2_open_ret": 0.2049689440993787,
+      "T+2_close_ret": 0.2049689440993787,
+      "T+3_date": "20260304",
+      "T+3_open_ret": 0.326086956521739,
+      "T+3_close_ret": 0.326086956521739
+    },
+    {
+      "signal_date": "20260304",
+      "symbol": "002008.SZ",
+      "name": "大族激光",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "11:20:00",
+      "time_bucket": "上午",
+      "entry_price": 70.05,
+      "same_day_close_ret": 0.0,
+      "T+1_date": "20260305",
+      "T+1_open_ret": -0.005567451820128522,
+      "T+1_close_ret": 0.02041399000713784,
+      "T+2_date": "20260306",
+      "T+2_open_ret": 0.017987152034261378,
+      "T+2_close_ret": -0.007280513918629383,
+      "T+3_date": "20260309",
+      "T+3_open_ret": -0.04925053533190582,
+      "T+3_close_ret": -0.032548179871520366
+    },
+    {
+      "signal_date": "20260304",
+      "symbol": "002348.SZ",
+      "name": "高乐股份",
+      "rank": 3,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:40:00",
+      "time_bucket": "上午",
+      "entry_price": 8.5,
+      "same_day_close_ret": -0.008235294117647118,
+      "T+1_date": "20260305",
+      "T+1_open_ret": 0.0,
+      "T+1_close_ret": -0.04117647058823526,
+      "T+2_date": "20260306",
+      "T+2_open_ret": -0.04117647058823526,
+      "T+2_close_ret": -0.03176470588235292,
+      "T+3_date": "20260309",
+      "T+3_open_ret": -0.022352941176470575,
+      "T+3_close_ret": 0.012941176470588234
+    },
+    {
+      "signal_date": "20260309",
+      "symbol": "605117.SH",
+      "name": "德业股份",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:45:00",
+      "time_bucket": "上午",
+      "entry_price": 125.01,
+      "same_day_close_ret": -0.0040796736261099475,
+      "T+1_date": "20260310",
+      "T+1_open_ret": -0.036077113830893515,
+      "T+1_close_ret": -0.04095672346212309,
+      "T+2_date": "20260311",
+      "T+2_open_ret": -0.04799616030717546,
+      "T+2_close_ret": 0.054955603551715804,
+      "T+3_date": "20260312",
+      "T+3_open_ret": 0.08135349172066242,
+      "T+3_close_ret": 0.08783297336213103
+    },
+    {
+      "signal_date": "20260318",
+      "symbol": "002432.SZ",
+      "name": "九安医疗",
+      "rank": 2,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:45:00",
+      "time_bucket": "上午",
+      "entry_price": 58.88,
+      "same_day_close_ret": 0.018172554347826164,
+      "T+1_date": "20260319",
+      "T+1_open_ret": 0.05757472826086962,
+      "T+1_close_ret": 0.12007472826086962,
+      "T+2_date": "20260320",
+      "T+2_open_ret": 0.12652853260869557,
+      "T+2_close_ret": 0.05910326086956519,
+      "T+3_date": "20260323",
+      "T+3_open_ret": 0.05315896739130421,
+      "T+3_close_ret": 0.02785326086956519
+    },
+    {
+      "signal_date": "20260323",
+      "symbol": "000890.SZ",
+      "name": "法尔胜",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "10:35:00",
+      "time_bucket": "上午",
+      "entry_price": 13.44,
+      "same_day_close_ret": -0.02157738095238093,
+      "T+1_date": "20260324",
+      "T+1_open_ret": -0.0200892857142857,
+      "T+1_close_ret": -0.04836309523809523,
+      "T+2_date": "20260325",
+      "T+2_open_ret": -0.0200892857142857,
+      "T+2_close_ret": 0.012648809523809534,
+      "T+3_date": "20260327",
+      "T+3_open_ret": -0.02604166666666663,
+      "T+3_close_ret": 0.0029761904761904656
+    },
+    {
+      "signal_date": "20260325",
+      "symbol": "605286.SH",
+      "name": "同力天启",
+      "rank": 1,
+      "signal_type": "secondary_launch_pullback",
+      "entry_time": "11:05:00",
+      "time_bucket": "上午",
+      "entry_price": 50.11,
+      "same_day_close_ret": -0.0033925364198763575,
+      "T+1_date": "20260327",
+      "T+1_open_ret": -0.05448014368389542,
+      "T+1_close_ret": -0.06365994811414888,
+      "T+2_date": "20260331",
+      "T+2_open_ret": -0.12871682298942333,
+      "T+2_close_ret": -0.14627818798642978,
+      "T+3_date": "20260401",
+      "T+3_open_ret": -0.11195370185591702,
+      "T+3_close_ret": -0.12791857912592286
+    }
+  ],
+  "non_entries": [
+    {
+      "signal_date": "20260128",
+      "symbol": "601608.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260128",
+      "symbol": "600714.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260128",
+      "symbol": "002266.SZ",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260129",
+      "symbol": "600552.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260129",
+      "symbol": "002785.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260129",
+      "symbol": "603806.SH",
+      "rank": 3,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260130",
+      "symbol": "605056.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260202",
+      "symbol": "603988.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260202",
+      "symbol": "001311.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260203",
+      "symbol": "600869.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260203",
+      "symbol": "605288.SH",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260205",
+      "symbol": "002181.SZ",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260205",
+      "symbol": "603599.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260206",
+      "symbol": "000534.SZ",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260206",
+      "symbol": "002606.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260209",
+      "symbol": "002606.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260210",
+      "symbol": "601096.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260210",
+      "symbol": "002853.SZ",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260210",
+      "symbol": "603612.SH",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260211",
+      "symbol": "002985.SZ",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260212",
+      "symbol": "600185.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260213",
+      "symbol": "603188.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260213",
+      "symbol": "002079.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260224",
+      "symbol": "002597.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260224",
+      "symbol": "603320.SH",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260226",
+      "symbol": "002491.SZ",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260302",
+      "symbol": "600871.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260302",
+      "symbol": "603619.SH",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260303",
+      "symbol": "600550.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260303",
+      "symbol": "002283.SZ",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260303",
+      "symbol": "002457.SZ",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260304",
+      "symbol": "600522.SH",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260305",
+      "symbol": "002655.SZ",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260305",
+      "symbol": "002756.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260306",
+      "symbol": "605117.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260309",
+      "symbol": "603738.SH",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260309",
+      "symbol": "603393.SH",
+      "rank": 3,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260310",
+      "symbol": "600149.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260310",
+      "symbol": "002357.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260310",
+      "symbol": "603530.SH",
+      "rank": 3,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260311",
+      "symbol": "603067.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260311",
+      "symbol": "002800.SZ",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260311",
+      "symbol": "000833.SZ",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260312",
+      "symbol": "002986.SZ",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260313",
+      "symbol": "001339.SZ",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260316",
+      "symbol": "001339.SZ",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260316",
+      "symbol": "601869.SH",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260317",
+      "symbol": "605117.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260317",
+      "symbol": "603629.SH",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260318",
+      "symbol": "000545.SZ",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260318",
+      "symbol": "002903.SZ",
+      "rank": 3,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260319",
+      "symbol": "000010.SZ",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260319",
+      "symbol": "600956.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260319",
+      "symbol": "000600.SZ",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260320",
+      "symbol": "603175.SH",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260320",
+      "symbol": "603738.SH",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260323",
+      "symbol": "600791.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260323",
+      "symbol": "601016.SH",
+      "rank": 3,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260324",
+      "symbol": "600643.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260324",
+      "symbol": "002432.SZ",
+      "rank": 2,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260324",
+      "symbol": "603098.SH",
+      "rank": 3,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260326",
+      "symbol": "000968.SZ",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260326",
+      "symbol": "605389.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260330",
+      "symbol": "000791.SZ",
+      "rank": 1,
+      "no_entry_reason": "未触发盘中买点"
+    },
+    {
+      "signal_date": "20260330",
+      "symbol": "600744.SH",
+      "rank": 2,
+      "no_entry_reason": "缺少当日分钟数据"
+    },
+    {
+      "signal_date": "20260401",
+      "symbol": "600815.SH",
+      "rank": 1,
+      "no_entry_reason": "缺少当日分钟数据"
+    }
+  ],
+  "insights": [
+    "全部样本 `85` 条中，真正出现盘中买点 `16` 条，触发率 `18.82%`。",
+    "真实触发价口径下，`T+1收盘` 平均收益 `0.26%`，`T+2收盘` `2.31%`，`T+3收盘` `3.24%`。",
+    "`排名第1` 买点在 `T+2收盘` 的平均收益为 `2.53%`，其余排名为 `2.03%`。",
+    "`上午触发` 买点在 `T+2收盘` 的平均收益为 `-0.74%`，`午后触发` 为 `11.47%`。",
+    "未触发样本最多的原因是 `缺少当日分钟数据`，共 `39` 条。"
+  ]
+}

@@ -1,0 +1,15 @@
+﻿metric,value
+signal_count,124
+execution_candidate_count,124
+entry_count,23
+exit_count,23
+abandon_count,101
+reject_risk_not_entered_count,97
+exit_reason::structural_stop,17
+exit_reason::time_stop,5
+exit_reason::max_hold_or_momentum_decay,1
+holding_days::0,5
+holding_days::1,6
+holding_days::2,7
+holding_days::3,1
+holding_days::4,4

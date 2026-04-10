@@ -1,0 +1,10 @@
+module_name,purpose,input,output,data_granularity,phase,priority,current_status,notes
+candidate_event_table,研究信号转交易候选的标准事件表,event_feature_snapshot+freeze1_signal_output,candidate_events_trade_ready,daily,A,P0,design_only,沿用事件级主键(ts_code+trade_date)
+signal_decision_table,记录候选分层与分型判定,candidate_event_table,signal_decision_records,daily,A,P0,design_only,区分high_confidence/normal/watchlist
+execution_assumption_spec,定义T确认与T+1执行口径,signal_decision_table,execution_rules_doc,mixed(BOD+intraday assumptions),B,P0,design_only,先定义不执行
+execution_event_table,候选到可成交事件的中间层,signal_decision_table+execution_assumption_spec,execution_events,daily+optional_intraday,B,P1,design_only,用于识别买不到与偏离
+exit_rule_spec,统一出场规则草图,signal_decision_table,exit_rule_doc,daily,C,P0,design_only,结构止损/时间止损/动量衰减/板块退潮
+risk_control_spec,仓位与集中度约束草图,signal_decision_table,risk_rule_doc,daily,C,P1,design_only,单票风险+总仓+同板块集中度
+backtest_event_stream_spec,回测前事件流规范,execution_event_table+exit_rule_spec,event_stream_schema,daily+optional_intraday,D,P0,design_only,仅规范不执行
+data_alignment_guard,时点与前视风险防护规范,all_specs,alignment_guard_doc,daily+intraday,D,P0,design_only,明确禁止未来函数与错位填充
+intraday_extension_plan,分时验证扩展计划,execution_assumption_spec,5min_validation_plan,intraday_5min,B/C,P2,design_only,先日线口径后分时补充

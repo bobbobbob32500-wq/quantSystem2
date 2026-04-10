@@ -1,0 +1,16 @@
+{
+  "before": {
+    "non_null_rate": 0.7400982499232422,
+    "oob_count": 19
+  },
+  "after": {
+    "non_null_rate": 0.7400982499232422,
+    "oob_count": 19
+  },
+  "missing_reason_counts": {
+    "chip_window_insufficient_120": 3386,
+    "chip_range_denominator_near_zero": 0,
+    "chip_center_invalid": 0,
+    "other_missing": 0
+  }
+}

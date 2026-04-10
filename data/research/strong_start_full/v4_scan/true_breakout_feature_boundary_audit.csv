@@ -1,0 +1,59 @@
+﻿field,class,allowed_in_feature_model,note
+ts_code,metadata,True,metadata/index
+trade_date,metadata,True,metadata/index
+name,metadata,True,metadata/index
+industry,metadata,True,metadata/index
+candidate_event_id,metadata,True,metadata/index
+label_true_breakout,metadata,True,metadata/index
+label_reason,label_only,False,future/label field; forbidden in features
+has_full_forward_window,label_only,False,future/label field; forbidden in features
+forward_window_days,label_only,False,future/label field; forbidden in features
+max_up_ret_5,label_only,False,future/label field; forbidden in features
+max_dd_ret_3,label_only,False,future/label field; forbidden in features
+max_dd_ret_5,label_only,False,future/label field; forbidden in features
+close_ret_3,label_only,False,future/label field; forbidden in features
+close_ret_5,label_only,False,future/label field; forbidden in features
+key_break_3,label_only,False,future/label field; forbidden in features
+f_strength_ret20,feature,True,T-day feature
+f_strength_ret60,feature,True,T-day feature
+f_strength_rs20_xsec_q,feature,True,T-day feature
+f_strength_rs60_xsec_q,feature,True,T-day feature
+f_trend_close_ma20_gap,feature,True,T-day feature
+f_trend_close_ma60_gap,feature,True,T-day feature
+f_trend_ma20_ma60_gap,feature,True,T-day feature
+f_trend_ma20_slope5,feature,True,T-day feature
+f_platform_range20,feature,True,T-day feature
+f_platform_range30,feature,True,T-day feature
+f_platform_range_best,feature,True,T-day feature
+f_platform_compress_ratio,feature,True,T-day feature
+f_near_pivot20,feature,True,T-day feature
+f_platform_len,feature,True,T-day feature
+f_atr_ratio,feature,True,T-day feature
+f_vol20_vol60,feature,True,T-day feature
+f_breakout_vol_ratio20,feature,True,research feature only; not entry rule
+f_vol_stability20,feature,True,T-day feature
+f_low_vol_days10,feature,True,T-day feature
+f_up_down_vol_ratio20,feature,True,research feature only; not entry rule
+f_k_pct_chg,feature,True,research feature only; not entry rule
+f_k_body_to_atr,feature,True,research feature only; not entry rule
+f_k_upper_shadow_ratio,feature,True,research feature only; not entry rule
+f_k_lower_shadow_ratio,feature,True,T-day feature
+f_k_close_pos,feature,True,T-day feature
+f_k_break_pivot20_pct,feature,True,T-day feature
+f_ind_strength_today,feature,True,T-day feature
+f_ind_strength_3d,feature,True,T-day feature
+f_ind_strength_5d,feature,True,T-day feature
+f_ind_breadth,feature,True,T-day feature
+f_ind_peer_strong_count,feature,True,T-day feature
+f_ind_rank_pctchg,feature,True,T-day feature
+f_ind_rank_amount,feature,True,T-day feature
+f_strength_vs_index20,feature,True,T-day feature
+f_strength_vs_index60,feature,True,T-day feature
+f_chip_concentration,feature,True,T-day feature
+f_chip_stability_std10,feature,True,T-day feature
+f_chip_low_position120,feature,True,T-day feature
+f_chip_winner_rate,feature,True,T-day feature
+f_chip_peak_count_sig,feature,True,T-day feature
+f_chip_secondary_peak_ratio,feature,True,T-day feature
+f_chip_peak_dominance,feature,True,T-day feature
+f_chip_single_peak_score,feature,True,T-day feature

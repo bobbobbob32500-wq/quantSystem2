@@ -1,0 +1,58 @@
+{
+  "totals": {
+    "A_total": 3817,
+    "A_high_total": 1260
+  },
+  "miss_top3": [
+    {
+      "miss_step_reason": "step2_fail_pathA_rank_cutoff",
+      "miss_count": 500,
+      "miss_ratio_in_total_A_high": 0.3968253968253968,
+      "miss_ratio_in_not_in_core_A_high": 0.411522633744856,
+      "rank_by_miss": 1,
+      "is_top3_source": 1
+    },
+    {
+      "miss_step_reason": "step1_fail_dual_path_eligibility",
+      "miss_count": 309,
+      "miss_ratio_in_total_A_high": 0.24523809523809523,
+      "miss_ratio_in_not_in_core_A_high": 0.254320987654321,
+      "rank_by_miss": 2,
+      "is_top3_source": 1
+    },
+    {
+      "miss_step_reason": "step2_fail_pathB_rank_cutoff",
+      "miss_count": 205,
+      "miss_ratio_in_total_A_high": 0.1626984126984127,
+      "miss_ratio_in_not_in_core_A_high": 0.16872427983539096,
+      "rank_by_miss": 3,
+      "is_top3_source": 1
+    }
+  ],
+  "best_candidate": {
+    "candidate": "C2_expand_daily_quotas",
+    "note": "keep cutoffs, expand day quotas (A:1->2, B:2->3)",
+    "selected_n": 627,
+    "recall_count_A": 174,
+    "recall_rate_A": 0.04558553838092743,
+    "recall_count_A_high": 69,
+    "recall_rate_A_high": 0.05476190476190476,
+    "A_high_over_C": 0.30131004366812225,
+    "mean_ret_t1": 0.0019687948030620442,
+    "mean_ret_t2": 0.0044814755904696016,
+    "mean_ret_t3": 0.004580408953063648,
+    "win_t1": 0.4704944178628389,
+    "win_t2": 0.4944178628389155,
+    "win_t3": 0.4880382775119617
+  },
+  "decision": {
+    "enter_recall_first_corepool_validation": true,
+    "continue_buypoint_development": false
+  },
+  "files": {
+    "miss_breakdown": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_core_pool_ahigh_miss_breakdown.csv",
+    "in_out_compare": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_core_pool_ahigh_in_vs_out_compare.csv",
+    "candidates": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_core_pool_recall_candidates.csv",
+    "review": "D:\\HuaweiAI\\quantSystem2\\data\\research\\strong_start_full\\v4_scan\\true_breakout_core_pool_recall_rebuild_review.md"
+  }
+}

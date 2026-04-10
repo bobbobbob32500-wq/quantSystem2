@@ -1,0 +1,36 @@
+{
+  "status": "completed",
+  "generated_at": "2026-04-08 15:45:19",
+  "window": {
+    "start_date": "20250403",
+    "end_date": "20260403",
+    "days": 243
+  },
+  "preset": "tradeable_v2",
+  "intrabar_policy": "midpoint",
+  "progress": {
+    "processed_signal_days": 242,
+    "total_signal_days": 242,
+    "progress_pct": 100.0
+  },
+  "runtime": {
+    "elapsed_sec": 791.29,
+    "signal_days_per_sec": 0.3058
+  },
+  "trades_count": 6,
+  "summary": {
+    "win_rate": 0.0,
+    "avg_ret": -0.009946293015655675,
+    "profit_factor": null,
+    "port_total_ret": -0.05841127544616265,
+    "port_mdd": -0.05841127544616265,
+    "port_sharpe": -17.39556693541795,
+    "ambiguous_intrabar_rate": 0.3333333333333333
+  },
+  "files": {
+    "summary_latest": "D:\\HuaweiAI\\quantSystem2\\data\\reports\\strong_start_backtest_summary_latest.md",
+    "summary_stamp": "D:\\HuaweiAI\\quantSystem2\\data\\reports\\strong_start_backtest_summary_20260408_153208.md",
+    "trades_latest": "D:\\HuaweiAI\\quantSystem2\\data\\reports\\strong_start_backtest_trades_latest.csv",
+    "trades_stamp": "D:\\HuaweiAI\\quantSystem2\\data\\reports\\strong_start_backtest_trades_20260408_153208.csv"
+  }
+}

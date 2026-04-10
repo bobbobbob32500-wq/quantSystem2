@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量化交易 - 专业版UI演示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary-500: #0ea5e9; --primary-600: #0284c7; --primary-700: #0369a1;
+            --success-500: #22c55e; --success-600: #16a34a;
+            --warning-500: #f59e0b; --warning-600: #d97706;
+            --error-500: #ef4444; --error-600: #dc2626;
+            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+            --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151; --gray-900: #111827;
+            --radius-lg: 14px; --radius-xl: 20px; --radius-2xl: 28px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
+        }
+        .style-toggle-panel {
+            position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 9999;
+        }
+        .style-btn {
+            padding: 12px 20px; border-radius: var(--radius-xl); border: none;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; gap: 8px;
+        }
+        .style-btn.active { background: var(--primary-600); color: white; box-shadow: var(--shadow-lg); }
+        .style-btn:not(.active) { background: white; color: var(--gray-600); box-shadow: var(--shadow-md); }
+        .style-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        
+        .mobile-frame {
+            width: 390px; height: 844px; background: white; border-radius: 48px;
+            overflow: hidden; position: relative; box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.05);
+        }
+        .mobile-frame::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 32px; background: #000; border-radius: 0 0 20px 20px; z-index: 1000;
+        }
+        
+        .status-bar {
+            height: 54px; padding: 12px 24px 0; display: flex; justify-content: space-between;
+            align-items: flex-end; background: white; font-size: 14px; font-weight: 600; color: var(--gray-900);
+        }
+        
+        .app-content {
+            height: calc(100% - 54px - 88px); overflow-y: auto; overflow-x: hidden; background: var(--gray-50);
+        }
+        .app-content::-webkit-scrollbar { width: 4px; }
+        .app-content::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+        
+        .page { display: none; animation: fadeIn 0.3s ease-out; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-item { animation: slideUp 0.5s ease-out forwards; opacity: 0; }
+        
+        .app-header {
+            background: white; padding: 16px 20px 20px; position: sticky; top: 0; z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .greeting { display: flex; flex-direction: column; gap: 2px; }
+        .greeting-label { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+        .greeting-name { font-size: 22px; font-weight: 700; color: var(--gray-900); }
+        .header-actions { display: flex; gap: 10px; }
+        .icon-btn {
+            width: 44px; height: 44px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);
+            background: white; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .icon-btn:hover { background: var(--gray-50); transform: scale(0.95); }
+        
+        .stats-section { padding: 20px; }
+        .hero-card {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            border-radius: var(--radius-2xl); padding: 24px; color: white;
+            box-shadow: 0 20px 40px -12px rgba(14,165,233,0.4);
+            margin-bottom: 20px; position: relative; overflow: hidden;
+        }
+        .hero-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 20px; position: relative; z-index: 1;
+        }
+        .hero-label { font-size: 13px; opacity: 0.8; font-weight: 500; margin-bottom: 4px; }
+        .hero-value { font-size: 34px; font-weight: 700; }
+        .hero-change {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 12px; background: rgba(255,255,255,0.15);
+            border-radius: var(--radius-xl); font-size: 13px; font-weight: 600;
+        }
+        .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; position: relative; z-index: 1; }
+        .hero-stat { text-align: center; padding: 12px 8px; background: rgba(255,255,255,0.1); border-radius: var(--radius-lg); }
+        .hero-stat-value { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+        .hero-stat-label { font-size: 11px; opacity: 0.7; }
+        
+        .mini-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .mini-card {
+            background: white; border-radius: var(--radius-xl); padding: 16px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+            transition: all 0.2s ease;
+        }
+        .mini-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .mini-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .mini-icon.blue { background: #f0f9ff; color: var(--primary-600); }
+        .mini-icon.green { background: #f0fdf4; color: var(--success-600); }
+        .mini-icon.orange { background: #fffbeb; color: var(--warning-600); }
+        .mini-card-value { font-size: 24px; font-weight: 700; color: var(--gray-900); margin-top: 12px; margin-bottom: 2px; }
+        .mini-card-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
+        .mini-card-trend { font-size: 11px; font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--gray-100); }
+        .trend-up { color: var(--success-600); }
+        
+        .health-card {
+            background: white; border-radius: var(--radius-xl); padding: 18px 20px;
+            margin: 0 20px 16px; display: flex; align-items: center; gap: 14px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+        }
+        .health-indicator {
+            width: 48px; height: 48px; border-radius: var(--radius-xl);
+            background: #f0fdf4; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; border: 2px solid var(--success-500);
+        }
+        .health-title { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+        .health-subtitle { font-size: 12px; color: var(--gray-500); }
+        .health-badge {
+            padding: 6px 12px; background: #f0fdf4; color: var(--success-700);
+            border-radius: var(--radius-xl); font-size: 11px; font-weight: 700;
+        }
+        
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; margin-top: 8px; margin-bottom: 12px;
+        }
+        .section-title { font-size: 17px; font-weight: 700; color: var(--gray-900); }
+        .section-action { font-size: 13px; color: var(--primary-600); font-weight: 600; cursor: pointer; }
+        
+        .actions-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+            padding: 0 20px 20px;
+        }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .action-item:active { transform: scale(0.95); }
+        .action-icon-wrapper {
+            width: 56px; height: 56px; border-radius: var(--radius-xl);
+            display: flex; align-items: center; justify-content: center; font-size: 26px;
+            transition: all 0.2s ease; box-shadow: var(--shadow-sm); color: white;
+        }
+        .action-item:hover .action-icon-wrapper { transform: scale(1.05); box-shadow: var(--shadow-md); }
+        .action-label { font-size: 11px; font-weight: 600; color: var(--gray-700); text-align: center; }
+        
+        .signal-list { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 10px; }
+        .signal-card {
+            background: white; border-radius: var(--radius-xl); padding: 16px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+            transition: all 0.2s ease; cursor: pointer;
+        }
+        .signal-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .signal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .signal-name { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+        .signal-type-badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+        }
+        .signal-type-badge.buy { background: #f0fdf4; color: var(--success-700); }
+        .signal-type-badge.sell { background: #fef2f2; color: var(--error-700); }
+        .signal-type-badge.hold { background: #fffbeb; color: var(--warning-700); }
+        .signal-time { font-size: 12px; color: var(--gray-400); margin-bottom: 6px; }
+        .signal-message { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+        
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+            background: white; padding: 12px 20px 30px; display: flex; justify-content: space-around;
+            border-top: 1px solid var(--gray-100); box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            cursor: pointer; padding: 6px 16px; border-radius: var(--radius-lg);
+            transition: all 0.2s ease; position: relative;
+        }
+        .nav-item.active { background: #f0f9ff; }
+        .nav-icon { font-size: 22px; transition: transform 0.2s ease; }
+        .nav-item.active .nav-icon { transform: scale(1.1); }
+        .nav-label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
+        .nav-item.active .nav-label { color: var(--primary-600); }
+        
+        .page-content { padding: 20px; }
+        .settings-card {
+            background: white; border-radius: var(--radius-xl); padding: 20px; margin-bottom: 16px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+        }
+        .settings-title {
+            font-size: 13px; font-weight: 700; color: var(--gray-500);
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+        }
+        .settings-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0; border-bottom: 1px solid var(--gray-100);
+        }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item-label { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+        .settings-item-value { font-size: 14px; color: var(--gray-500); display: flex; align-items: center; gap: 6px; }
+        
+        .primary-btn {
+            width: 100%; padding: 16px; border-radius: var(--radius-xl); border: none;
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            color: white; font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 10px 20px -10px rgba(14,165,233,0.5);
+        }
+        .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 24px -10px rgba(14,165,233,0.6); }
+        .secondary-btn {
+            width: 100%; padding: 16px; border-radius: var(--radius-xl);
+            border: 2px solid var(--gray-200); background: white;
+            color: var(--gray-800); font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 10px;
+        }
+        .secondary-btn:hover { background: var(--gray-50); border-color: var(--gray-300); }
+        
+        .stock-item-card {
+            background: white; border-radius: var(--radius-xl); padding: 16px;
+            display: flex; align-items: center; gap: 14px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+            transition: all 0.2s ease; margin-bottom: 10px;
+        }
+        .stock-item-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .stock-avatar {
+            width: 48px; height: 48px; border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800; color: var(--primary-700);
+        }
+        .stock-info-main { flex: 1; }
+        .stock-name-main { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+        .stock-code-main { font-size: 12px; color: var(--gray-500); }
+        .stock-price-main { text-align: right; }
+        .stock-price-value { font-size: 17px; font-weight: 800; color: var(--gray-900); margin-bottom: 2px; }
+        
+        .tab-bar {
+            display: flex; gap: 6px; background: var(--gray-100); padding: 4px;
+            border-radius: var(--radius-xl); margin: 0 20px 16px;
+        }
+        .tab-item {
+            flex: 1; padding: 10px 12px; border-radius: var(--radius-lg);
+            border: none; background: transparent; font-size: 13px; font-weight: 700;
+            color: var(--gray-600); cursor: pointer; transition: all 0.2s ease;
+        }
+        .tab-item.active { background: white; color: var(--primary-600); box-shadow: var(--shadow-sm); }
+        
+        .settings-group {
+            background: white; border-radius: var(--radius-xl); margin-bottom: 16px;
+            overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100);
+        }
+        .settings-group-header {
+            padding: 16px 20px 8px; font-size: 12px; font-weight: 700;
+            color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 20px; cursor: pointer; transition: background 0.2s ease;
+        }
+        .settings-row:hover { background: var(--gray-50); }
+        .settings-row:not(:last-child) { border-bottom: 1px solid var(--gray-100); }
+        .settings-row-left { display: flex; align-items: center; gap: 12px; }
+        .settings-row-icon {
+            width: 32px; height: 32px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .settings-row-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+        
+        .toast {
+            position: fixed; bottom: 120px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 12px 24px; background: var(--gray-800);
+            color: white; border-radius: var(--radius-xl);
+            font-size: 14px; font-weight: 600; opacity: 0;
+            transition: all 0.3s ease; z-index: 9999;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="style-toggle-panel">
+        <button class="style-btn active" onclick="location.href='mobile_demo_premium.html'">✨ 专业版</button>
+        <button class="style-btn" onclick="location.href='mobile_demo_glass.html'">💎 玻璃态</button>
+        <button class="style-btn" onclick="location.href='mobile_demo.html'">📱 标准版</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="mobile-frame">
+        <div class="status-bar">
+            <span>9:41</span>
+            <div><span>📶</span><span>🔋</span></div>
+        </div>
+
+        <div class="app-content">
+            <!-- Overview Page -->
+            <div class="page active" id="page-overview">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">早上好 ☀️</span>
+                            <span class="greeting-name">量化交易</span>
+                        </div>
+                        <div class="header-actions">
+                            <button class="icon-btn" onclick="showToast('消息通知')">🔔</button>
+                            <button class="icon-btn" onclick="switchPage('settings')">⚙️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="hero-card animate-item" style="animation-delay: 0.05s">
+                        <div class="hero-header">
+                            <div>
+                                <div class="hero-label">今日收益</div>
+                                <div class="hero-value">+¥2,350.00</div>
+                            </div>
+                            <div class="hero-change"><span>↑</span><span>+3.2%</span></div>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="hero-stat">
+                                <div class="hero-stat-value">28</div>
+                                <div class="hero-stat-label">监控</div>
+                            </div>
+                            <div class="hero-stat">
+                                <div class="hero-stat-value">5</div>
+                                <div class="hero-stat-label">信号</div>
+                            </div>
+                            <div class="hero-stat">
+                                <div class="hero-stat-value">6</div>
+                                <div class="hero-stat-label">持仓</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mini-stats">
+                        <div class="mini-card animate-item" style="animation-delay: 0.1s">
+                            <div class="mini-icon blue">📊</div>
+                            <div class="mini-card-value">28</div>
+                            <div class="mini-card-label">监控股票</div>
+                            <div class="mini-card-trend trend-up">↑ 3 只新增</div>
+                        </div>
+                        <div class="mini-card animate-item" style="animation-delay: 0.15s">
+                            <div class="mini-icon green">📡</div>
+                            <div class="mini-card-value">5</div>
+                            <div class="mini-card-label">活跃信号</div>
+                            <div class="mini-card-trend trend-up">↑ 2 个新增</div>
+                        </div>
+                        <div class="mini-card animate-item" style="animation-delay: 0.2s">
+                            <div class="mini-icon orange">💰</div>
+                            <div class="mini-card-value">6</div>
+                            <div class="mini-card-label">虚拟持仓</div>
+                            <div class="mini-card-trend trend-up">↑ 12.5%</div>
+                        </div>
+                        <div class="mini-card animate-item" style="animation-delay: 0.25s">
+                            <div class="mini-icon" style="background:#fef2f2;color:#dc2626">🎯</div>
+                            <div class="mini-card-value">12</div>
+                            <div class="mini-card-label">候选股票</div>
+                            <div class="mini-card-trend trend-up">↑ 5 只</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="health-card animate-item" style="animation-delay: 0.3s">
+                    <div class="health-indicator">✓</div>
+                    <div style="flex:1">
+                        <div class="health-title">系统运行正常</div>
+                        <div class="health-subtitle">最后更新: 09:41:30</div>
+                    </div>
+                    <span class="health-badge">健康</span>
+                </div>
+
+                <div class="section-header animate-item" style="animation-delay: 0.35s">
+                    <span class="section-title">快捷操作</span>
+                </div>
+
+                <div class="actions-grid animate-item" style="animation-delay: 0.4s">
+                    <div class="action-item" onclick="runAction('选股')">
+                        <div class="action-icon-wrapper" style="background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%)">🎯</div>
+                        <span class="action-label">执行选股</span>
+                    </div>
+                    <div class="action-item" onclick="runAction('推送')">
+                        <div class="action-icon-wrapper" style="background:linear-gradient(135deg,#0ea5e9 0%,#0284c7 100%)">📤</div>
+                        <span class="action-label">一键推送</span>
+                    </div>
+                    <div class="action-item" onclick="switchPage('actions')">
+                        <div class="action-icon-wrapper" style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%)">⚡</div>
+                        <span class="action-label">更多操作</span>
+                    </div>
+                    <div class="action-item" onclick="switchPage('history')">
+                        <div class="action-icon-wrapper" style="background:linear-gradient(135deg,#8b5cf6 0%,#7c3aed 100%)">📋</div>
+                        <span class="action-label">历史记录</span>
+                    </div>
+                </div>
+
+                <div class="section-header animate-item" style="animation-delay: 0.45s">
+                    <span class="section-title">最新信号</span>
+                    <span class="section-action" onclick="switchPage('signals')">查看全部</span>
+                </div>
+
+                <div class="signal-list">
+                    <div class="signal-card animate-item" style="animation-delay: 0.5s">
+                        <div class="signal-header">
+                            <span class="signal-name">贵州茅台</span>
+                            <span class="signal-type-badge buy">买入</span>
+                        </div>
+                        <div class="signal-time">09:38 · 600519</div>
+                        <div class="signal-message">突破60日线压力位，成交量放大2倍，建议关注</div>
+                    </div>
+                    <div class="signal-card animate-item" style="animation-delay: 0.55s">
+                        <div class="signal-header">
+                            <span class="signal-name">招商银行</span>
+                            <span class="signal-type-badge sell">卖出</span>
+                        </div>
+                        <div class="signal-time">09:25 · 600036</div>
+                        <div class="signal-message">达到止盈目标15%，RSI超买区间</div>
+                    </div>
+                    <div class="signal-card animate-item" style="animation-delay: 0.6s">
+                        <div class="signal-header">
+                            <span class="signal-name">宁德时代</span>
+                            <span class="signal-type-badge hold">持有</span>
+                        </div>
+                        <div class="signal-time">09:15 · 300750</div>
+                        <div class="signal-message">二次探底成功，KDJ底背离确认</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stocks Page -->
+            <div class="page" id="page-stocks">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">候选股票池</span>
+                            <span class="greeting-name">28 只股票</span>
+                        </div>
+                        <div class="header-actions">
+                            <button class="icon-btn" onclick="showToast('筛选')">🔍</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-content">
+                    <div class="settings-card animate-item" style="animation-delay: 0.05s">
+                        <div class="settings-title">选股配置</div>
+                        <div class="settings-item">
+                            <span class="settings-item-label">选股策略</span>
+                            <span class="settings-item-value">二次启动 ▸</span>
+                        </div>
+                        <div class="settings-item">
+                            <span class="settings-item-label">候选数量</span>
+                            <span class="settings-item-value">20 只 ▸</span>
+                        </div>
+                    </div>
+
+                    <button class="primary-btn animate-item" style="animation-delay: 0.1s" onclick="runAction('选股')">
+                        <span>🎯</span> 执行选股
+                    </button>
+                    <button class="secondary-btn animate-item" style="animation-delay: 0.15s" onclick="runAction('推送')">
+                        <span>📤</span> 一键推送
+                    </button>
+
+                    <div class="section-header" style="padding:0;margin-top:24px;">
+                        <span class="section-title">候选股票</span>
+                    </div>
+
+                    <div class="stock-item-card animate-item" style="animation-delay: 0.2s">
+                        <div class="stock-avatar">贵</div>
+                        <div class="stock-info-main">
+                            <div class="stock-name-main">贵州茅台 <span class="signal-type-badge buy" style="font-size:10px;padding:2px 8px;">买入</span></div>
+                            <div class="stock-code-main">600519</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-size:17px;font-weight:800;color:var(--gray-900)">1,856.00</div>
+                            <div style="font-size:13px;font-weight:700;color:var(--success-600)">+2.35%</div>
+                        </div>
+                    </div>
+                    <div class="stock-item-card animate-item" style="animation-delay: 0.25s">
+                        <div class="stock-avatar" style="background:linear-gradient(135deg,#fecaca 0%,#fca5a5 100%);color:#dc2626">招</div>
+                        <div class="stock-info-main">
+                            <div class="stock-name-main">招商银行 <span class="signal-type-badge sell" style="font-size:10px;padding:2px 8px;">卖出</span></div>
+                            <div class="stock-code-main">600036</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-size:17px;font-weight:800;color:var(--gray-900)">32.56</div>
+                            <div style="font-size:13px;font-weight:700;color:var(--error-600)">-0.85%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other pages placeholder -->
+            <div class="page" id="page-signals">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">交易信号</span>
+                            <span class="greeting-name">今日 12 个</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content">
+                    <div style="text-align:center;padding:60px 20px;color:var(--gray-500)">
+                        <div style="font-size:48px;margin-bottom:16px">📡</div>
+                        <div style="font-size:16px;font-weight:600">信号列表页面</div>
+                        <div style="font-size:13px;margin-top:8px">点击底部导航切换</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="page-trades">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">虚拟持仓</span>
+                            <span class="greeting-name">6 笔持仓</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content">
+                    <div style="text-align:center;padding:60px 20px;color:var(--gray-500)">
+                        <div style="font-size:48px;margin-bottom:16px">💰</div>
+                        <div style="font-size:16px;font-weight:600">持仓列表页面</div>
+                        <div style="font-size:13px;margin-top:8px">点击底部导航切换</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="page-actions">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">动作中心</span>
+                            <span class="greeting-name">所有操作</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content">
+                    <div style="text-align:center;padding:60px 20px;color:var(--gray-500)">
+                        <div style="font-size:48px;margin-bottom:16px">⚡</div>
+                        <div style="font-size:16px;font-weight:600">动作中心页面</div>
+                        <div style="font-size:13px;margin-top:8px">点击底部导航切换</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="page-history">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">历史记录</span>
+                            <span class="greeting-name">执行日志</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content">
+                    <div style="text-align:center;padding:60px 20px;color:var(--gray-500)">
+                        <div style="font-size:48px;margin-bottom:16px">📋</div>
+                        <div style="font-size:16px;font-weight:600">历史记录页面</div>
+                        <div style="font-size:13px;margin-top:8px">点击底部导航切换</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="page-settings">
+                <div class="app-header">
+                    <div class="header-top">
+                        <div class="greeting">
+                            <span class="greeting-label">设置</span>
+                            <span class="greeting-name">系统配置</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content">
+                    <div style="text-align:center;padding:60px 20px;color:var(--gray-500)">
+                        <div style="font-size:48px;margin-bottom:16px">⚙️</div>
+                        <div style="font-size:16px;font-weight:600">设置页面</div>
+                        <div style="font-size:13px;margin-top:8px">点击底部导航切换</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchPage('overview')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">总览</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('stocks')">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">候选</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('signals')">
+                <span class="nav-icon">📡</span>
+                <span class="nav-label">信号</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('trades')">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">持仓</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pages = ['overview', 'stocks', 'signals', 'trades', 'actions', 'history', 'settings'];
+        const navPages = ['overview', 'stocks', 'signals', 'trades'];
+
+        function switchPage(page) {
+            pages.forEach(p => {
+                document.getElementById('page-' + p)?.classList.remove('active');
+            });
+            document.getElementById('page-' + page).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                item.classList.remove('active');
+                if (navPages[index] === page) {
+                    item.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.animate-item').forEach((el, i) => {
+                el.style.animationDelay = (i * 0.05 + 0.05) + 's';
+                el.style.animation = 'none';
+                el.offsetHeight;
+                el.style.animation = 'slideUp 0.5s ease-out forwards';
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function runAction(action) {
+            showToast('正在执行: ' + action);
+        }
+
+        function switchTab(tab) {
+            showToast('切换到: ' + tab);
+        }
+    </script>
+</body>
+</html>

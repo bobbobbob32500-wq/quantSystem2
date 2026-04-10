@@ -1,0 +1,9 @@
+﻿qc_note,count
+ok,7376
+pct_chg_missing_source,2191
+chip_window_insufficient_120,1977
+window_insufficient_60;chip_window_insufficient_120,1078
+window_insufficient_20;window_insufficient_60;chip_window_insufficient_120,326
+chip_value_out_of_range,47
+pct_chg_missing_source;chip_value_out_of_range,28
+pct_chg_missing_source;chip_window_insufficient_120,5

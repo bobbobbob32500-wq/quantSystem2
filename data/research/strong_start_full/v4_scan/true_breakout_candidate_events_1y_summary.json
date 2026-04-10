@@ -1,0 +1,59 @@
+{
+  "time_range": {
+    "start": "20250408",
+    "end": "20260408"
+  },
+  "universe_boundaries": {
+    "main_board_only": true,
+    "min_list_days": 180,
+    "min_amount": 100000.0,
+    "st_excluded": true
+  },
+  "candidate_rule": {
+    "classes": [
+      "trend",
+      "price",
+      "volume",
+      "structure"
+    ],
+    "in_pool_logic": "candidate_trigger_count >= 2 and close > ma20",
+    "cooldown_bars": 12,
+    "secondary_restart_release": true
+  },
+  "pool_profile": {
+    "candidate_event_count": 18491,
+    "covered_stock_count": 2730,
+    "daily_event_count_mean": 82.91928251121077,
+    "daily_event_count_median": 73.0,
+    "daily_event_count_p90": 138.60000000000002,
+    "monthly_rows": 12,
+    "top_industries": {
+      "电气设备": 1173,
+      "汽车配件": 851,
+      "元器件": 797,
+      "化工原料": 781,
+      "专用机械": 547,
+      "证券": 512,
+      "软件服务": 485,
+      "通信设备": 468,
+      "建筑工程": 458,
+      "银行": 441,
+      "小金属": 434,
+      "化学制药": 367,
+      "半导体": 351,
+      "火力发电": 339,
+      "农药化肥": 286,
+      "中成药": 282,
+      "食品": 273,
+      "机械基件": 271,
+      "家用电器": 260,
+      "互联网": 238
+    }
+  },
+  "repeat_risk_hint": {
+    "same_stock_multi_event_count": 2472,
+    "interval_median_days": 21.0,
+    "interval_p25_days": 17.0
+  },
+  "ready_for_labeling": true
+}

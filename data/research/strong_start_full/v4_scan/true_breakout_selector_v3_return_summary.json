@@ -1,0 +1,40 @@
+{
+  "selector": "true_breakout_selector_v3_freeze_candidate_2",
+  "params": {
+    "quota_a": 1,
+    "quota_b": 2,
+    "heat_cap": "high",
+    "path_a_cutoff": "top10%",
+    "path_b_cutoff": "top20%"
+  },
+  "windows": {
+    "main": {
+      "start": "20251230",
+      "end": "20260330",
+      "sample_n": 167,
+      "mean_ret_t1": 0.005348404545108079,
+      "mean_ret_t2": 0.004228041640142821,
+      "mean_ret_t3": 0.004555868430027442,
+      "median_ret_t1": 0.0033014769765422614,
+      "median_ret_t2": 0.0,
+      "median_ret_t3": 0.00024437927663734094,
+      "win_t1": 0.5508982035928144,
+      "win_t2": 0.49101796407185627,
+      "win_t3": 0.5029940119760479
+    },
+    "confirm": {
+      "start": "20250929",
+      "end": "20251229",
+      "sample_n": 172,
+      "mean_ret_t1": 0.005182221701821953,
+      "mean_ret_t2": 0.01111898424986414,
+      "mean_ret_t3": 0.008513536441658998,
+      "median_ret_t1": 0.0002409638554217164,
+      "median_ret_t2": 0.006955236092686445,
+      "median_ret_t3": 0.0027568478667696628,
+      "win_t1": 0.5,
+      "win_t2": 0.5697674418604651,
+      "win_t3": 0.5174418604651163
+    }
+  }
+}

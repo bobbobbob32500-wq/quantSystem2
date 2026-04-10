@@ -1,0 +1,203 @@
+{
+  "generated_at": "2026-04-09 00:42:39",
+  "latest_trade_date": "20260408",
+  "lookback_trade_days": 3,
+  "hold_days": 2,
+  "trade_dates": [
+    "20260403",
+    "20260407",
+    "20260408"
+  ],
+  "signal_days": 2,
+  "signal_count": 4,
+  "completed_count": 0,
+  "pending_count": 4,
+  "completed_win_rate": 0.0,
+  "completed_avg_return": 0.0,
+  "weekly_summary": [
+    {
+      "week_label": "2026-W14",
+      "start_date": "20260403",
+      "end_date": "20260403",
+      "signal_days": 1,
+      "signal_count": 2,
+      "completed_count": 0,
+      "pending_count": 2,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    },
+    {
+      "week_label": "2026-W15",
+      "start_date": "20260407",
+      "end_date": "20260408",
+      "signal_days": 1,
+      "signal_count": 2,
+      "completed_count": 0,
+      "pending_count": 2,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "monthly_summary": [
+    {
+      "month_label": "2026-04",
+      "start_date": "20260403",
+      "end_date": "20260408",
+      "signal_days": 2,
+      "signal_count": 4,
+      "completed_count": 0,
+      "pending_count": 4,
+      "avg_return": 0.0,
+      "win_rate": 0.0
+    }
+  ],
+  "signal_gap_stats": {
+    "gap_count": 1,
+    "avg_gap_trade_days": 0.0,
+    "max_gap_trade_days": 0,
+    "gaps": [
+      {
+        "from_date": "20260403",
+        "to_date": "20260407",
+        "gap_trade_days": 0
+      }
+    ]
+  },
+  "empty_streak_stats": {
+    "max_empty_trade_days": 1,
+    "latest_empty_trade_days": 1
+  },
+  "horizon_distribution": {
+    "T+1": {
+      "sample_count": 2,
+      "win_rate": 1.0,
+      "avg_return": 0.01669995928878376,
+      "min_return": 0.006759602372033768,
+      "max_return": 0.026640316205533754
+    },
+    "T+2": {
+      "sample_count": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "min_return": 0.0,
+      "max_return": 0.0
+    },
+    "T+3": {
+      "sample_count": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "min_return": 0.0,
+      "max_return": 0.0
+    }
+  },
+  "intraday_review_summary": {
+    "reviewed_signal_count": 4,
+    "buy_signal_count": 0,
+    "buy_signal_ratio": 0.0,
+    "not_pushed_count": 4,
+    "top_not_pushed_reasons": [
+      {
+        "reason": "缺少当日分钟数据",
+        "count": 4
+      }
+    ],
+    "top_blocker_tags": [
+      {
+        "tag": "unclassified",
+        "label": "未分类阻断",
+        "count": 4
+      }
+    ]
+  },
+  "details": [
+    {
+      "signal_date": "20260403",
+      "ts_code": "002810.SZ",
+      "name": "山东赫达",
+      "rank": 1,
+      "status": "跟踪中",
+      "observed_return": 0.026640316205533754,
+      "exit_date": "20260408",
+      "horizon_returns": {
+        "T+1": 0.026640316205533754,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260403",
+      "ts_code": "603826.SH",
+      "name": "坤彩科技",
+      "rank": 2,
+      "status": "跟踪中",
+      "observed_return": 0.006759602372033768,
+      "exit_date": "20260408",
+      "horizon_returns": {
+        "T+1": 0.006759602372033768,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260407",
+      "ts_code": "002675.SZ",
+      "name": "东诚药业",
+      "rank": 1,
+      "status": "跟踪中",
+      "observed_return": -0.025922707429556602,
+      "exit_date": "20260408",
+      "horizon_returns": {
+        "T+1": null,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260407",
+      "ts_code": "600066.SH",
+      "name": "宇通客车",
+      "rank": 2,
+      "status": "跟踪中",
+      "observed_return": 0.0029196098180495067,
+      "exit_date": "20260408",
+      "horizon_returns": {
+        "T+1": null,
+        "T+2": null,
+        "T+3": null
+      },
+      "has_buy_signal": false,
+      "signal_type": "",
+      "trigger_time": "",
+      "push_reason": "",
+      "not_pushed_reason": "缺少当日分钟数据",
+      "confidence": 0.0
+    },
+    {
+      "signal_date": "20260408",
+      "ts_code": "",
+      "name": "",
+      "rank": "",
+      "status": "无信号",
+      "observed_return": null,
+      "exit_date": ""
+    }
+  ]
+}
