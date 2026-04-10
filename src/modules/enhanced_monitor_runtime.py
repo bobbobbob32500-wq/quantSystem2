@@ -29,8 +29,9 @@ def detect_confirmation_signal(
     route_name: str,
     route_label: str,
 ) -> SignalOutput:
+    symbol = str(candidate.get("symbol", ""))
     intraday_data = system._get_intraday_data_for_signal(
-        symbol=str(candidate.get("symbol", "")),
+        symbol=symbol,
         current_price=system._to_float(quote.get("price")),
         current_volume=system._to_float(quote.get("volume")),
         high=system._to_float(quote.get("high"), default=system._to_float(quote.get("price"))),
@@ -48,7 +49,7 @@ def detect_confirmation_signal(
             route_blocked=True,
             extra_details={
                 "data_source": "missing_realtime_minute",
-                "symbol": str(candidate.get("symbol", "")),
+                "symbol": symbol,
             },
         )
     signal = system.signal_detector.mutual_exclusive_signal(
@@ -60,7 +61,7 @@ def detect_confirmation_signal(
         ),
         market_score=market_env.get("market_score", 50.0),
     )
-    return system._wrap_signal_metadata(
+    wrapped = system._wrap_signal_metadata(
         signal=signal,
         strategy_profile=system._resolve_candidate_strategy_profile(candidate),
         template_source=template_source,
@@ -68,6 +69,19 @@ def detect_confirmation_signal(
         route_label=route_label,
         debounce_window=int(system.config.get("debounce_window", 2)),
     )
+    source = "unknown"
+    source_state = getattr(system, "_last_intraday_source", None)
+    if isinstance(source_state, dict):
+        source = str(source_state.get(symbol, "unknown"))
+    details = wrapped.details if isinstance(wrapped.details, dict) else {}
+    details["data_source"] = source
+    if source == "quote_fallback":
+        details["degraded_mode"] = True
+        details["degraded_reason"] = "minute_unavailable_quote_fallback"
+        if wrapped.signal:
+            wrapped.confidence = max(0.0, min(1.0, float(wrapped.confidence) * 0.92))
+    wrapped.details = details
+    return wrapped
 
 
 def resolve_strategy_routed_signal(
@@ -181,9 +195,15 @@ def get_intraday_data_for_signal(
     minute_df = (minute_map or {}).get(symbol)
     intraday_data = system._build_intraday_from_minute(minute_df) if minute_df is not None else None
     if intraday_data is not None:
+        source_state = getattr(system, "_last_intraday_source", None)
+        if isinstance(source_state, dict):
+            source_state[symbol] = "minute"
         return intraday_data
 
     if not allow_quote_fallback:
+        source_state = getattr(system, "_last_intraday_source", None)
+        if isinstance(source_state, dict):
+            source_state[symbol] = "unavailable"
         return None
 
     # 兜底：分钟数据缺失时，用实时报价构造单点 IntradayData。
@@ -197,13 +217,20 @@ def get_intraday_data_for_signal(
         high_arr = np.array([max(current_price, high)], dtype=float)
         low_arr = np.array([min(current_price, low)], dtype=float)
         ts_arr = np.array([_dt.now()], dtype=object)
-        return _IntradayData(
+        intraday = _IntradayData(
             price=price_arr,
             volume=vol_arr,
             high=high_arr,
             low=low_arr,
             timestamp=ts_arr,
         )
+        source_state = getattr(system, "_last_intraday_source", None)
+        if isinstance(source_state, dict):
+            source_state[symbol] = "quote_fallback"
+        return intraday
+    source_state = getattr(system, "_last_intraday_source", None)
+    if isinstance(source_state, dict):
+        source_state[symbol] = "unavailable"
     return None
 
 

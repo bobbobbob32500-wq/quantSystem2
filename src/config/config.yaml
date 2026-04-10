@@ -118,6 +118,7 @@ monitor:
   intraday_circuit_breaker_enabled: true
   intraday_industry_cache_seconds: 30
   intraday_industry_confirm_enabled: true
+  allow_quote_fallback_when_minute_missing: true
   intraday_industry_lookback_bars: 15
   intraday_industry_min_symbols: 2
   intraday_industry_strong_threshold: 65.0
@@ -229,6 +230,11 @@ push:
   outbox_max_attempts: 5
   outbox_retry_batch_size: 30
   outbox_retry_delay_seconds: 60
+  retry_batch_pause_seconds: 0.35
+  webhook_min_interval_seconds: 0.7
+  webhook_rate_limit_retry_attempts: 2
+  webhook_rate_limit_backoff_seconds: 1.2
+  webhook_retry_jitter_seconds: 0.2
   position_event_cooldown_minutes: 30
   position_push_enabled: true
   position_retry_batch_size: 20
