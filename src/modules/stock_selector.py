@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 每日选股模块
-基于多因子策略（趋势+动量+量能+基本面+回调保护）进行选股
-针对小资金、短中线风格优化
-集成自动优化系统
+基于Alpha158 IC加权多因子策略进行选股
+15个高IC因子: MA30/MA60/MA5/ROC30/ROC60/ROC5/QTLU60/QTLD60/QTLU20/SUMN30/SUMN60/CNTN30/VSTD30/RSV60/RANK60
+优化: 波动率过滤 + 趋势确认 + 评分阈值 + 沪深主板
 """
 
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 
 from src.core.logger import get_logger
 from src.core.config import ConfigManager
@@ -37,9 +37,9 @@ ENHANCED_WEIGHT_CONFIG_MAP = {
     "quality": "quality_factor_weight",
 }
 
-LEGACY_BASE_PROFILE = "legacy"
-ENHANCED_PROFILE = "enhanced"
-SUPPORTED_STRATEGY_PROFILES = {LEGACY_BASE_PROFILE, ENHANCED_PROFILE}
+LEGACY_BASE_PROFILE = "alpha158"
+ENHANCED_PROFILE = "alpha158"
+SUPPORTED_STRATEGY_PROFILES = {LEGACY_BASE_PROFILE, ENHANCED_PROFILE, "legacy", "enhanced"}
 
 
 class StockSelector:
@@ -161,6 +161,15 @@ class StockSelector:
         self.prediction_period = int(config.get("stock_selection.prediction_period", 5))
         self.short_cycle_window = max(3, min(self.prediction_period, 5))
         self.min_avg_amount_20d = float(config.get("stock_selection.min_avg_amount_20d", 100000.0))
+        # Alpha158：TuShare stock_daily.amount 为「千元」，与 output/local_alpha158_backtest_v2 一致
+        self.alpha158_min_amount = float(
+            config.get("stock_selection.alpha158_min_amount", 100000.0)
+        )
+        self.alpha158_vol_max = float(config.get("stock_selection.alpha158_vol_max", 0.6))
+        self.alpha158_roc5_min = float(config.get("stock_selection.alpha158_roc5_min", -0.02))
+        self.alpha158_score_threshold = float(
+            config.get("stock_selection.alpha158_score_threshold", 0.5)
+        )
         self.max_recent_limit_up_count_20d = int(
             config.get("stock_selection.max_recent_limit_up_count_20d", 2)
         )
@@ -2966,6 +2975,8 @@ class StockSelector:
         P5: Z-score 标准化候选股评分，扩大 top_n 内部区分度。
         将原始 total_score 保留，同时生成 score_normalized 字段（映射至 [50, 100]）。
         """
+        if results is None:
+            return []
         if len(results) < 3:
             for r in results:
                 r["score_normalized"] = r["total_score"]
@@ -2982,215 +2993,315 @@ class StockSelector:
             r["score_normalized"] = round(float(np.clip(50.0 + z * 10.0, 0.0, 100.0)), 2)
         return results
 
-    def run_selection(self, market_score: float = None, end_date: str = None) -> List[Dict]:
-        """
-        执行 legacy 选股（原始5因子模型，含 P1~P5 全量优化）
+    # ========================================================================
+    # Alpha158 IC加权选股核心
+    # ========================================================================
 
-        Args:
-            market_score: 市场评分（可选，用于 adjust_by_market）
-            end_date: 结束日期（YYYYMMDD），默认为当天
+    # Alpha158 高IC因子权重 (12个长期 + 3个短期)
+    ALPHA158_WEIGHTS = {
+        'MA30':   +0.2335, 'MA60':   +0.2452,
+        'ROC30':  +0.2331, 'ROC60':  +0.1983,
+        'QTLU60': +0.2318, 'QTLD60': +0.2178,
+        'SUMN30': +0.1762, 'SUMN60': +0.1732,
+        'CNTN30': +0.1042, 'VSTD30': +0.0395,
+        'RSV60':  -0.1723, 'RANK60': -0.2007,
+        'MA5':    +0.15,   'ROC5':   +0.12,
+        'QTLU20': +0.10,
+    }
 
-        Returns:
-            经评分标准化、行业分散后的 TOP N 股票列表
-        """
-        if end_date is None:
-            end_date = datetime.now().strftime("%Y%m%d")
+    # Alpha158 硬过滤与评分阈值默认值在 __init__ 的 alpha158_*（勿用 1e8：amount 为千元）
 
-        logger.info("=" * 50)
-        logger.info("开始执行选股（Legacy 5因子模型）...")
-        logger.info("选股日期: %s", end_date)
-        logger.info("=" * 50)
+    def _compute_alpha158_factors(self, close, high, low, vol, amount, n):
+        """计算Alpha158因子"""
+        f = {}
 
-        if market_score is not None:
-            self.market_score = market_score
-            logger.info("市场评分: %s分", market_score)
+        if n >= 30:
+            ma = np.mean(close[-30:])
+            f['MA30'] = (close[-1] - ma) / (ma + 1e-8)
+        if n >= 60:
+            ma = np.mean(close[-60:])
+            f['MA60'] = (close[-1] - ma) / (ma + 1e-8)
+        if n >= 5:
+            ma = np.mean(close[-5:])
+            f['MA5'] = (close[-1] - ma) / (ma + 1e-8)
+        if n >= 31 and close[-31] > 1e-8:
+            f['ROC30'] = (close[-1] - close[-31]) / close[-31]
+        if n >= 61 and close[-61] > 1e-8:
+            f['ROC60'] = (close[-1] - close[-61]) / close[-61]
+        if n >= 6 and close[-6] > 1e-8:
+            f['ROC5'] = (close[-1] - close[-6]) / close[-6]
+        if n >= 60:
+            f['QTLU60'] = np.sum(close[-1] > close[-60:]) / 60.0
+            f['QTLD60'] = np.sum(close[-1] < close[-60:]) / 60.0
+        if n >= 20:
+            f['QTLU20'] = np.sum(close[-1] > close[-20:]) / 20.0
+        if n >= 31:
+            rets = np.diff(close[-31:]) / (close[-31:-1] + 1e-8)
+            f['SUMN30'] = float(np.sum(rets[rets < 0]))
+            f['CNTN30'] = float(np.sum(rets < 0)) / 30.0
+            f['_vol30'] = np.std(rets) * np.sqrt(252)
+        if n >= 61:
+            rets = np.diff(close[-61:]) / (close[-61:-1] + 1e-8)
+            f['SUMN60'] = float(np.sum(rets[rets < 0]))
+        if n >= 30:
+            v = vol[-30:]
+            vm = np.mean(v)
+            f['VSTD30'] = np.std(v) / vm if vm > 1e-8 else 0.0
+        if n >= 60:
+            f['RSV60'] = (close[-1] - np.min(low[-60:])) / (np.max(high[-60:]) - np.min(low[-60:]) + 1e-8)
+            f['RANK60'] = np.sum(close[-1] >= close[-60:]) / 60.0
 
-        # 预计算动态行业热度（P1b 基本面因子使用）
-        if self.use_dynamic_industry_strength:
-            industry_snapshot = self.get_dynamic_industry_strength(end_date=end_date, top_n=5)
-            if industry_snapshot:
-                top_desc = ", ".join(
-                    f"{item['industry']}({item['heat_score']:.1f})"
-                    for item in industry_snapshot
-                )
-                logger.info("盘前动态行业热度TOP5: %s", top_desc)
+        # 过滤用指标
+        if n >= 20:
+            f['_MA5'] = np.mean(close[-5:])
+            f['_MA20'] = np.mean(close[-20:])
+        if n >= 6 and close[-6] > 1e-8:
+            f['_ROC5'] = (close[-1] - close[-6]) / close[-6]
+        f['_amount'] = amount[-1] if len(amount) > 0 else 0
 
-        # 获取股票列表
+        return f
+
+    def _run_alpha158_selection(self, end_date: str) -> List[Dict]:
+        '''Alpha158 IC加权选股核心逻辑'''
         stock_list = self.get_stock_list(end_date=end_date, point_in_time=False)
         if stock_list.empty:
             logger.error("股票列表为空，请先更新数据")
             raise StockSelectionException("股票列表为空")
 
-        # 基本面初筛
-        stock_list = self._filter_basic_legacy(stock_list)
+        main_board_mask = (
+            stock_list["ts_code"].str.startswith("60") & stock_list["ts_code"].str.endswith(".SH")
+        ) | (
+            stock_list["ts_code"].str.startswith("00") & stock_list["ts_code"].str.endswith(".SZ")
+        ) | (
+            stock_list["ts_code"].str.startswith("001") & stock_list["ts_code"].str.endswith(".SZ")
+        )
+        stock_list = stock_list[main_board_mask]
 
-        # FeedbackGuard 防护（legacy 档也启用）
-        feedback_guard_profile = self._get_feedback_guard_profile(end_date=end_date)
-        effective_min_score = float(feedback_guard_profile.get("effective_min_score", self.min_score))
-        effective_top_n    = int(feedback_guard_profile.get("effective_top_n", self.top_n))
-        if feedback_guard_profile.get("active"):
-            logger.warning(
-                "闭环防护生效: level=%s reason=%s min_score %.1f -> %.1f top_n %d -> %d",
-                feedback_guard_profile.get("level", "normal"),
-                feedback_guard_profile.get("reason", ""),
-                float(self.min_score), effective_min_score,
-                int(self.top_n), effective_top_n,
-            )
+        # 与 filter_basic 一致：排除 ST/*ST/退市（Alpha158 原只走 get_stock_list，需显式过滤）
+        if self.exclude_st:
+            before_st = len(stock_list)
+            stock_list = stock_list[~stock_list["name"].str.contains("ST|st|退", na=False)]
+            logger.info("排除ST/退市后: %d 只（原 %d 只）", len(stock_list), before_st)
 
-        active_weights = self._get_active_weights()
         total_count = len(stock_list)
+        logger.info("沪深主板候选: %d 只", total_count)
+
+        all_factors = []
+        processed = 0
+        for _, row in stock_list.iterrows():
+            ts_code = row["ts_code"]
+            name = row.get("name", "")
+            industry = row.get("industry", "")
+
+            try:
+                rows = self.db.query(
+                    "SELECT close, open, high, low, vol, amount FROM stock_daily "
+                    "WHERE ts_code = ? AND trade_date <= ? ORDER BY trade_date DESC LIMIT 61",
+                    (ts_code, end_date),
+                )
+                if not rows or len(rows) < 61:
+                    continue
+                daily_df = pd.DataFrame(rows)
+                if daily_df.empty or len(daily_df) < 61:
+                    continue
+
+                daily_df = daily_df.iloc[::-1]
+                close = daily_df["close"].values.astype(float)
+                high = daily_df["high"].values.astype(float)
+                low = daily_df["low"].values.astype(float)
+                vol = daily_df["vol"].values.astype(float)
+                amount = daily_df["amount"].values.astype(float)
+                n = len(close)
+
+                if close[-1] <= 0:
+                    continue
+
+                f = self._compute_alpha158_factors(close, high, low, vol, amount, n)
+                if len(f) < 10:
+                    continue
+
+                if f.get("_amount", 0) < self.alpha158_min_amount:
+                    continue
+                if f.get("_vol30", 0) > self.alpha158_vol_max:
+                    continue
+                if f.get("_MA5", 0) <= f.get("_MA20", 0):
+                    continue
+                if f.get("_ROC5", 0) < self.alpha158_roc5_min:
+                    continue
+
+                f["ts_code"] = ts_code
+                f["name"] = name
+                f["industry"] = industry
+                all_factors.append(f)
+
+            except Exception as e:
+                logger.debug("计算 %s Alpha158因子失败: %s", ts_code, e)
+                continue
+
+            processed += 1
+            if processed % 500 == 0:
+                logger.info("已处理 %d/%d 只股票", processed, total_count)
+
+        if not all_factors:
+            logger.warning("无股票通过Alpha158过滤")
+            return []
+
+        logger.info("通过过滤: %d 只, 开始IC加权评分...", len(all_factors))
+
+        fdf = pd.DataFrame(all_factors)
+
+        factor_cols = [c for c in fdf.columns if c in self.ALPHA158_WEIGHTS]
+        for col in factor_cols:
+            vals = fdf[col].values.astype(float)
+            m = np.nanmean(vals)
+            s = np.nanstd(vals)
+            if s > 1e-8:
+                fdf[col] = (vals - m) / s
+            else:
+                fdf[col] = 0.0
+
+        score = np.zeros(len(fdf))
+        for fname, w in self.ALPHA158_WEIGHTS.items():
+            if fname in fdf.columns:
+                score += fdf[fname].fillna(0).values * w
+
+        fdf["alpha158_score"] = score
+
+        fdf = fdf[fdf["alpha158_score"] > self.alpha158_score_threshold]
+        fdf = fdf.sort_values("alpha158_score", ascending=False)
+
         logger.info(
-            "开始计算 %d 只股票的得分... 因子权重: 趋势%.0f%% 动量%.0f%% 量能%.0f%% 基本面%.0f%% 回调%.0f%%",
-            total_count,
-            active_weights['trend'] * 100,
-            active_weights['momentum'] * 100,
-            active_weights['volume'] * 100,
-            active_weights['fundamental'] * 100,
-            active_weights['pullback'] * 100,
+            "超阈值候选: %d 只 (阈值=%.1f)", len(fdf), self.alpha158_score_threshold
         )
 
         results = []
-        processed_count = 0
-        for _, row in stock_list.iterrows():
-            ts_code  = row['ts_code']
-            name     = row.get('name', '')
-            industry = row.get('industry', '')
-            list_date = row.get('list_date', '')
-            try:
-                result = self._calculate_stock_score_legacy_exact(
-                    ts_code=ts_code,
-                    name=name,
-                    industry=industry,
-                    end_date=end_date,
-                )
-                if result and result['total_score'] >= effective_min_score:
-                    result["feedback_guard_level"] = str(feedback_guard_profile.get("level", "normal"))
-                    result["feedback_guard_active"] = bool(feedback_guard_profile.get("active", False))
-                    results.append(result)
-                processed_count += 1
-                if processed_count % 500 == 0:
-                    logger.info("已处理 %d/%d 只股票", processed_count, total_count)
-            except Exception as e:
-                logger.debug("计算 %s 得分失败: %s", ts_code, e)
-                continue
+        for _, row in fdf.iterrows():
+            score_val = float(row["alpha158_score"])
+            mapped_score = max(0, min(100, 50 + score_val * 10))
 
-        # P5: Z-score 标准化，扩大候选池内区分度
+            results.append(
+                {
+                    "ts_code": row["ts_code"],
+                    "name": row.get("name", ""),
+                    "industry": row.get("industry", ""),
+                    "total_score": mapped_score,
+                    "level": "strong"
+                    if score_val > 1.0
+                    else ("medium" if score_val > 0.7 else "weak"),
+                    "alpha158_raw": score_val,
+                    "feedback_guard_level": "normal",
+                    "feedback_guard_active": False,
+                }
+            )
+
+        for i, r in enumerate(results[:10], 1):
+            logger.info(
+                "  %d. %s %s - Alpha158=%.2f 映射=%.1f [%s]",
+                i,
+                r["ts_code"],
+                r["name"],
+                r["alpha158_raw"],
+                r["total_score"],
+                r.get("industry", ""),
+            )
+
+        return results
+
+    def run_selection(self, market_score: float = None, end_date: str = None) -> List[Dict]:
+        if end_date is None:
+            end_date = datetime.now().strftime("%Y%m%d")
+
+        logger.info("=" * 50)
+        logger.info("开始执行选股（Alpha158 IC加权模型）...")
+        logger.info("选股日期: %s", end_date)
+        logger.info("=" * 50)
+
+        if market_score is not None:
+            self.market_score = market_score
+
+        feedback_guard_profile = self._get_feedback_guard_profile(end_date=end_date)
+        effective_top_n = int(feedback_guard_profile.get("effective_top_n", self.top_n))
+
+        results = self._run_alpha158_selection(end_date=end_date)
         results = self._zscore_normalize_scores(results)
 
-        # 按标准化分排序
-        results.sort(key=lambda x: x.get('score_normalized', x['total_score']), reverse=True)
+        results.sort(
+            key=lambda x: x.get("score_normalized", x["total_score"]), reverse=True
+        )
 
-        # 行业分散
         diversified_results = self.diversify_by_industry(results)
 
-        # 取 TOP N
         top_results = diversified_results[:effective_top_n]
 
         industry_dist: Dict[str, int] = {}
         for stock in top_results:
-            ind = stock.get('industry', '未知')
+            ind = stock.get("industry", "未知")
             industry_dist[ind] = industry_dist.get(ind, 0) + 1
 
         logger.info("=" * 50)
         logger.info("选股完成，共筛选出 %d 只符合条件的股票", len(results))
-        logger.info("行业分散后: %d 只（每行业最多 %d 只）", len(diversified_results), self.max_per_industry)
+        logger.info(
+            "行业分散后: %d 只（每行业最多 %d 只）",
+            len(diversified_results),
+            self.max_per_industry,
+        )
         logger.info("行业分布: %s", industry_dist)
         logger.info("TOP %d 股票:", len(top_results))
         for i, stock in enumerate(top_results, 1):
             logger.info(
                 "  %d. %s %s - 原始%.1f分 标准%.1f分 (%s) [%s]",
-                i, stock['ts_code'], stock['name'],
-                stock['total_score'], stock.get('score_normalized', stock['total_score']),
-                stock['level'], stock.get('industry', '未知'),
+                i,
+                stock["ts_code"],
+                stock["name"],
+                stock["total_score"],
+                stock.get("score_normalized", stock["total_score"]),
+                stock["level"],
+                stock.get("industry", "未知"),
             )
         logger.info("=" * 50)
 
         return top_results
 
     def generate_report(self, results: List[Dict]) -> str:
-        """
-        生成选股报告
-        
-        Args:
-            results: 选股结果
-        
-        Returns:
-            报告文本
-        """
-        active_weights = self._get_active_weights()
         report_lines = [
             "=" * 70,
-            "每日选股报告（Legacy 5因子模型）",
+            "每日选股报告（Alpha158 IC加权）",
             f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"市场环境: {self.market_score}分",
             f"策略档位: {self.strategy_profile}",
             "=" * 70,
             "",
-            "因子权重配置:",
-            f"  趋势因子:   {active_weights['trend']*100:.0f}%",
-            f"  动量因子:   {active_weights['momentum']*100:.0f}%",
-            f"  量能因子:   {active_weights['volume']*100:.0f}%",
-            f"  基本面因子: {active_weights['fundamental']*100:.0f}%",
-            f"  回调保护:   {active_weights['pullback']*100:.0f}%",
-            "",
         ]
-        
+
         if not results:
             report_lines.append("未筛选出符合条件的股票")
             return "\n".join(report_lines)
-        
-        # 行业分布统计
+
         industry_dist = {}
         for stock in results:
-            ind = stock.get('industry', '未知')
+            ind = stock.get("industry", "未知")
             industry_dist[ind] = industry_dist.get(ind, 0) + 1
-        
-        report_lines.append(f"共筛选出 {len(results)} 只股票（每行业最多{self.max_per_industry}只）")
-        report_lines.append(f"行业分布: {dict(sorted(industry_dist.items(), key=lambda x: -x[1]))}")
-        report_lines.append("")
-        
-        for i, stock in enumerate(results, 1):
-            fd = stock.get('fundamental_detail', {})
-            pd_detail = stock.get('pullback_detail', {})
-            qd_detail = stock.get('quality_detail', {})
-            industry_dynamic = fd.get("industry_dynamic", {}) or {}
-            raw_heat_score = industry_dynamic.get("industry_heat_score")
-            if raw_heat_score is None:
-                industry_heat_display = "-"
-            else:
-                try:
-                    industry_heat_display = f"{float(raw_heat_score):.1f}"
-                except Exception:
-                    industry_heat_display = "-"
-            industry_heat_level = industry_dynamic.get("industry_heat_level", "neutral")
 
-            if is_legacy:
-                report_lines.extend([
+        report_lines.append(
+            f"共筛选出 {len(results)} 只股票（每行业最多{self.max_per_industry}只）"
+        )
+        report_lines.append(
+            f"行业分布: {dict(sorted(industry_dist.items(), key=lambda x: -x[1]))}"
+        )
+        report_lines.append("")
+
+        for i, stock in enumerate(results, 1):
+            sn = stock.get("score_normalized", stock.get("total_score"))
+            raw = stock.get("alpha158_raw")
+            report_lines.extend(
+                [
                     f"【{i}】{stock['ts_code']} {stock['name']} [{stock.get('industry', '未知')}]",
-                    f"    综合得分: {stock['total_score']}分 (标准化:{stock.get('score_normalized', stock['total_score'])}分) ({stock['level']})",
-                    f"    ├─ 趋势因子: {stock['trend_score']}分 (权重{active_weights['trend']*100:.0f}%)",
-                    f"    ├─ 动量因子: {stock['momentum_score']}分 (权重{active_weights['momentum']*100:.0f}%)",
-                    f"    ├─ 量能因子: {stock['volume_score']}分 (权重{active_weights['volume']*100:.0f}%)",
-                    f"    ├─ 基本面因子: {stock['fundamental_score']}分 (权重{active_weights['fundamental']*100:.0f}%)",
-                    f"    │   └─ 行业:{fd.get('industry', '未知')} 上市:{fd.get('days_listed', 0)}天",
-                    f"    │      行业热度:{industry_heat_display}({industry_heat_level})",
-                    f"    └─ 回调保护: {stock['pullback_score']}分 (权重{active_weights['pullback']*100:.0f}%)",
-                    f"        └─ 回撤:{pd_detail.get('pullback_pct', 0):.1f}% 距MA20:{pd_detail.get('dist_to_ma20', 0):.1f}%",
-                    ""
-                ])
-            else:
-                report_lines.extend([
-                    f"【{i}】{stock['ts_code']} {stock['name']} [{stock.get('industry', '未知')}]",
-                    f"    综合得分: {stock['total_score']}分 ({stock['level']})",
-                    f"    ├─ 趋势因子: {stock['trend_score']}分",
-                    f"    ├─ 动量因子: {stock['momentum_score']}分",
-                    f"    ├─ 量能因子: {stock['volume_score']}分",
-                    f"    ├─ 基本面因子: {stock['fundamental_score']}分",
-                    f"    ├─ 回调保护: {stock['pullback_score']}分",
-                    f"    └─ 质量稳定: {stock['quality_score']}分",
-                    ""
-                ])
-        
+                    f"    综合得分: {stock['total_score']}分 (标准化:{sn}分) ({stock['level']})",
+                ]
+            )
+            if raw is not None:
+                report_lines.append(f"    Alpha158 原始复合分(z后加权): {raw:.4f}")
+            report_lines.append("")
+
         report_lines.append("=" * 70)
         return "\n".join(report_lines)
-

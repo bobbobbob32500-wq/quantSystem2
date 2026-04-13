@@ -80,11 +80,15 @@ except ImportError as e:
 
 # 导入突破选股模块（选强→等突破→跟强留强）
 try:
-    from src.modules.breakout_selector_menu import breakout_selector_menu
+    from src.modules.breakout_selector_menu import (
+        breakout_selector_menu,
+        wide_breakout_selector_menu as wide_breakout_menu_entry,
+    )
     BREAKOUT_SELECTOR_AVAILABLE = True
 except ImportError as e:
     print(f"警告: 突破选股模块导入失败: {e}")
     BREAKOUT_SELECTOR_AVAILABLE = False
+    wide_breakout_menu_entry = None  # type: ignore[misc, assignment]
 
 
 def print_banner():
@@ -185,16 +189,16 @@ class QuantSystem:
 
     def _apply_strategy_profile(self, profile: str, save: bool = True):
         """
-        应用选股策略档位（固定为 legacy，其他选项已删除）。
+        应用选股策略档位（Alpha158 IC加权模型）。
         """
-        self.config.set("stock_selection.strategy_profile", "legacy", save=save)
+        self.config.set("stock_selection.strategy_profile", "alpha158", save=save)
         selector = StockSelector(self.config, self.db)
         self.stock_selector = selector
         if hasattr(self.daily_report, "stock_selector"):
             self.daily_report.stock_selector = selector
         if hasattr(self.trade_plan, "stock_selector"):
             self.trade_plan.stock_selector = selector
-        self.logger.info("选股策略已固定为: legacy")
+        self.logger.info("选股策略已切换为: Alpha158 IC加权")
 
     def render_home_dashboard(self):
         """渲染终端首页仪表盘。"""
@@ -206,23 +210,50 @@ class QuantSystem:
             print("    ==================================================")
 
     def print_grouped_main_menu(self):
-        """打印重新整理的分组主菜单。"""
+        """打印新的分组主菜单。"""
         menu = """
-    ======================== 量化交易系统 ========================
-    |  1. 交易执行          |  2. 策略研究              |
-    |  3. 数据管理          |  4. 系统运维              |
+    ======================== 主导航 ========================
+    |  1. 快捷操作          |  2. 交易执行              |
+    |  3. 研究与策略        |  4. 系统运维              |
     |  5. 刷新首页          |  0. 退出系统              |
-    =============================================================
-    
-    说明：
-    - 交易执行：日常交易操作，选股，持仓管理，风控
-    - 策略研究：策略回测，效果评测，优化功能
-    - 数据管理：数据更新，校验，清理
-    - 系统运维：系统状态，监控，配置
+    ========================================================
         """
         print(menu)
 
+    def quick_actions_menu(self):
+        """快捷操作菜单。"""
+        while True:
+            print("\n    ==================== 快捷操作 ====================")
+            print("    |  1. Alpha158选股      |  2. 突破选股(写候选池)  |")
+            print("    |  3. 宽进突破选股      |  4. 一键日报            |")
+            print("    |  5. 风控检测          |  6. 交易计划            |")
+            print("    |  7. 盘后作业          |  8. 二次启动自检        |")
+            print("    |  9. 二次启动近日报表  |  0. 返回首页            |")
+            print("    ==================================================")
+            choice = input("    请选择: ").strip()
 
+            if choice == "1":
+                self.run_primary_selection()
+            elif choice == "2":
+                self.run_breakout_selection_today()
+            elif choice == "3":
+                self.run_wide_breakout_selection_today()
+            elif choice == "4":
+                self.daily_report_menu()
+            elif choice == "5":
+                self.risk_check_menu()
+            elif choice == "6":
+                self.trade_plan_menu()
+            elif choice == "7":
+                self.post_market_menu()
+            elif choice == "8":
+                self.secondary_launch_menu_handler.run_persistence_self_check()
+            elif choice == "9":
+                self.secondary_launch_menu_handler.run_recent_tracking_report()
+            elif choice == "0":
+                return
+            else:
+                print("    无效选择，请重新输入")
 
     def trading_execution_menu(self):
         """交易执行菜单。"""
@@ -258,8 +289,8 @@ class QuantSystem:
             print("\n    ==================== 研究与策略 ====================")
             print("    |  1. 策略回测          |  2. 效果评测            |")
             print("    |  3. 二次启动策略      |  4. P0优化功能          |")
-            print("    |  5. 自动优化管理      |  6. 突破选股策略 ★新    |")
-            print("    |  0. 返回首页                                     |")
+            print("    |  5. 自动优化管理      |  6. 突破选股策略 ★      |")
+            print("    |  7. 宽进突破策略 ★    |  0. 返回首页            |")
             print("    ==================================================")
             choice = input("    请选择: ").strip()
 
@@ -275,6 +306,8 @@ class QuantSystem:
                 self.auto_optimization_menu()
             elif choice == "6":
                 self.breakout_selector_menu()
+            elif choice == "7":
+                self.wide_breakout_selector_menu()
             elif choice == "0":
                 return
             else:
@@ -290,6 +323,17 @@ class QuantSystem:
         except Exception as e:
             print(f"    突破选股模块异常: {e}")
             self.logger.exception("突破选股模块异常")
+
+    def wide_breakout_selector_menu(self):
+        """宽进突破策略菜单（宽选股 + 最严买点，独立候选池 wide_breakout）"""
+        if not BREAKOUT_SELECTOR_AVAILABLE or wide_breakout_menu_entry is None:
+            print("    宽进突破选股模块不可用，请检查依赖")
+            return
+        try:
+            wide_breakout_menu_entry(config=self.config, db=self.db)
+        except Exception as e:
+            print(f"    宽进突破选股模块异常: {e}")
+            self.logger.exception("宽进突破选股模块异常")
 
     def system_ops_menu(self):
         """系统运维菜单。"""
@@ -518,7 +562,7 @@ class QuantSystem:
         payload = {
             "report_date": datetime.now().strftime("%Y-%m-%d"),
             "report_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "strategy_label": "基准原策略（legacy / 5因子）",
+            "strategy_label": "Alpha158 IC加权动量策略",
             "market_analysis": market_analysis,
             "stock_selection": results,
             "stock_selection_meta": selection_meta,
@@ -530,19 +574,21 @@ class QuantSystem:
             print("    推送失败")
 
     def run_primary_selection(self, end_date: str | None = None):
-        """运行原策略选股。"""
-        print("\n    正在执行原策略选股...")
+        """运行主选股（当前为 StockSelector：Alpha158 IC加权）。"""
+        print("\n    正在执行 Alpha158 动量策略选股...")
         try:
             results = self.stock_selector.run_selection(end_date=end_date)
             sync_count = 0
             print(f"\n    ==================== 选股结果 ====================")
-            print("    使用策略: 原策略日常选股")
+            print("    使用策略: Alpha158 IC加权动量策略")
             print(f"    共筛选出 {len(results)} 只股票:")
             print(f"    已同步到候选池缓存 {sync_count} 只")
             print("    --------------------------------------------------")
             for i, stock in enumerate(results[:10], 1):
                 print(f"    {i}. {stock['ts_code']} {stock['name']}")
                 print(f"       得分: {stock['total_score']}分 ({stock['level']})")
+                if stock.get("alpha158_raw") is not None:
+                    print(f"       Alpha158复合(z后加权): {float(stock['alpha158_raw']):.4f}")
                 print(f"       行业: {stock.get('industry', '未知')}")
             print("    ==================================================")
 
@@ -651,19 +697,14 @@ class QuantSystem:
             return
         print("\n    正在执行突破选股（选强→等突破）...")
         try:
-            from src.modules.breakout_strategy import BreakoutStrategy, BreakoutParams
+            from src.modules.breakout_strategy import build_breakout_strategy_from_config
             from src.modules.breakout_selector_menu import (
                 offer_breakout_wechat_push,
                 print_breakout_watch_list,
                 sync_breakout_watchlist_to_system_cache,
             )
 
-            params = BreakoutParams()
-            params.min_amt_ma20 = 8e4
-            params.rs_quantile_max = 0.97
-            params.min_signal_score = 60.0
-            params.top_k = 15
-            strategy = BreakoutStrategy(db=self.db, params=params)
+            strategy = build_breakout_strategy_from_config(self.db, self.config)
             items = strategy.run(end_date=end_date)
             print(f"\n    ==================== 选股结果 ====================")
             print("    使用策略: 突破观察池（盘前选强，盘中待突破确认）")
@@ -675,6 +716,47 @@ class QuantSystem:
         except Exception as e:
             print(f"    突破选股失败: {e}")
             self.logger.exception("突破选股失败")
+
+    def run_wide_breakout_selection_today(self, end_date: str | None = None):
+        """宽进突破策略选股，写入候选池 strategy_profile=wide_breakout。"""
+        if not BREAKOUT_SELECTOR_AVAILABLE:
+            print("    突破选股模块不可用，请检查 src.modules.breakout_selector_menu")
+            return
+        print("\n    正在执行宽进突破选股（宽选股 + 最严买点）...")
+        try:
+            from src.modules.breakout_strategy import build_wide_breakout_strategy_from_config
+            from src.modules.breakout_selector_menu import (
+                offer_breakout_wechat_push,
+                print_breakout_watch_list,
+                sync_breakout_watchlist_to_system_cache,
+            )
+
+            strategy = build_wide_breakout_strategy_from_config(self.db, self.config)
+            items = strategy.run(end_date=end_date)
+            print(f"\n    ==================== 选股结果 ====================")
+            print("    使用策略: 宽进突破观察池（preset wide_pool_strict_entry_v2）")
+            print_breakout_watch_list(items)
+            wd = items[0].watch_date if items else strategy._resolve_end_date(end_date)
+            sync_breakout_watchlist_to_system_cache(
+                items,
+                wd,
+                strategy_profile="wide_breakout",
+                strategy_name="wide_breakout_watchlist",
+                level_label="宽进突破观察池",
+                source="wide_breakout_strategy",
+            )
+            offer_breakout_wechat_push(
+                self.config,
+                self.db,
+                items,
+                wd,
+                pool_level_label="宽进突破观察池",
+                strategy_label="宽进突破策略（观察池）",
+            )
+            print("    ==================================================")
+        except Exception as e:
+            print(f"    宽进突破选股失败: {e}")
+            self.logger.exception("宽进突破选股失败")
 
     def run_secondary_selection_today(self):
         """一键运行二次启动策略今日选股。"""
@@ -720,39 +802,32 @@ class QuantSystem:
             print(f"    二次启动策略选股失败: {e}")
     
     def stock_selection_menu(self):
-        """选股菜单"""
+        """选股菜单（Alpha158 / 突破 / 宽进突破）"""
         print("\n    ==================== 每日选股 ====================")
-        print("    |  1. 原策略今日选股      |  2. 原策略指定日期      |")
-        print("    |  3. 二次启动策略        |  4. 突破选股★写入候选池 |")
+        print("    |  1. Alpha158动量策略    |  2. 突破选股★写入候选池 |")
+        print("    |  3. 宽进突破选股★写入候选池  |  0. 返回            |")
         print("    ==================================================")
 
         choice = input(
-            "    请选择(1今日/2指定/3二次启动/4突破，回车默认1): "
+            "    请选择(1 Alpha158/2突破/3宽进突破/0返回，回车默认1): "
         ).strip()
-        
-        end_date = None
+
         if choice in {"", "1"}:
-            print("    已选择: 今日选股")
-        elif choice == "2":
-            print("    已选择: 指定日期选股")
-            date_input = input("    请输入日期(如20260320): ").strip()
-            if date_input:
-                date_input = date_input.replace("-", "").replace("/", "")
-                if len(date_input) == 8:
-                    end_date = date_input
-                else:
-                    print("    日期格式错误，使用今日数据")
-        elif choice == "3":
-            print("    已选择: 二次启动策略")
-            self.run_secondary_selection_today()
+            print("    已选择: Alpha158动量策略（IC加权）")
+            self.run_primary_selection()
             return
-        elif choice == "4":
+        if choice == "2":
             print("    已选择: 突破选股（选强→等突破，结果写入候选池）")
             self.run_breakout_selection_today()
             return
-        else:
-            print(f"    无效输入({choice})，已按今日选股处理")
-        self.run_primary_selection(end_date=end_date)
+        if choice == "3":
+            print("    已选择: 宽进突破选股（结果写入候选池）")
+            self.run_wide_breakout_selection_today()
+            return
+        if choice == "0":
+            print("    已返回")
+            return
+        print(f"    无效输入({choice})，请重试")
     
     def hold_management_menu(self):
         """持仓管理菜单"""
@@ -933,7 +1008,8 @@ class QuantSystem:
         print("    |================================================|")
         print("    |  1. 盘后选股(加入候选池)  |  2. 启动实时监控      |")
         print("    |  3. 查看候选池           |  4. 清空候选池        |")
-        print("    |  5. 单次买点检测         |  0. 返回主菜单        |")
+        print("    |  5. 单次买点检测         |  6. 盘中买点路由自检  |")
+        print("    |  0. 返回主菜单                                    |")
         print("    ==================================================")
         
         while True:
@@ -1008,6 +1084,20 @@ class QuantSystem:
                         print("    请先执行盘后选股")
                 except Exception as e:
                     print(f"    检测失败: {e}")
+
+            elif choice == "6":
+                # 各策略盘中买点路由冒烟（不依赖候选池是否有票）
+                print("\n    执行盘中买点路由自检...")
+                try:
+                    from src.modules.enhanced_hybrid_system import EnhancedHybridSystem
+                    from src.modules.enhanced_monitor_runtime import print_intraday_buy_router_healthcheck_report
+
+                    system = EnhancedHybridSystem()
+                    rows = system.run_intraday_buy_router_healthcheck()
+                    print_intraday_buy_router_healthcheck_report(rows)
+                except Exception as e:
+                    print(f"    自检失败: {e}")
+                    self.logger.exception("盘中买点路由自检失败")
             
             elif choice == "0":
                 break
@@ -1653,11 +1743,11 @@ class QuantSystem:
             choice = input("    请选择: ").strip()
             
             if choice == "1":
-                self.trading_execution_menu()
+                self.quick_actions_menu()
             elif choice == "2":
-                self.research_strategy_menu()
+                self.trading_execution_menu()
             elif choice == "3":
-                self.data_management_menu()
+                self.research_strategy_menu()
             elif choice == "4":
                 self.system_ops_menu()
             elif choice == "5":

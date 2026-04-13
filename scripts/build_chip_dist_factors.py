@@ -156,6 +156,9 @@ def _preset_params(preset: str) -> StrongStartParams:
         return StrongStartParams.tradeable_v2()
     if name == "tradeable_v3_research":
         return StrongStartParams.tradeable_v3_research()
+    if name == "tradeable_v4_parameter_reverse_loose":
+        # 与 v4 选股阈值一致；筹码峰 profile_key 仍用 v3 表时可与 v3 共用物化
+        return StrongStartParams.tradeable_v4_parameter_reverse_loose()
     return StrongStartParams()
 
 
@@ -169,7 +172,14 @@ def main() -> None:
         "--preset",
         type=str,
         default="tradeable_v2",
-        choices=["default", "tradeable_v1", "tradeable_v2", "tradeable_v3_research", "custom"],
+        choices=[
+            "default",
+            "tradeable_v1",
+            "tradeable_v2",
+            "tradeable_v3_research",
+            "tradeable_v4_parameter_reverse_loose",
+            "custom",
+        ],
         help="preset for chip-factor thresholds",
     )
     parser.add_argument("--profile-key", type=str, default="", help="custom factor profile key")

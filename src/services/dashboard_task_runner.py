@@ -13,12 +13,13 @@ from src.core.database import DatabaseManager
 from src.core.logger import get_logger
 from src.modules.auto_push_manager import AutoPushManager
 from src.modules.breakout_selector_menu import merge_breakout_watchlist_to_candidate_cache
-from src.modules.breakout_strategy import BreakoutParams, BreakoutStrategy
+from src.modules.breakout_strategy import (
+    build_breakout_strategy_from_config,
+    build_wide_breakout_strategy_from_config,
+)
 from src.modules.daily_report import DailyReportGenerator
 from src.modules.secondary_launch_menu import SecondaryLaunchMenu
 from src.modules.data_updater import DataUpdater
-from src.modules.strong_start_selector_menu import merge_strong_start_candidates_to_candidate_cache
-from src.modules.strong_start_strategy import StrongStartParams, StrongStartStrategy
 from src.services.dashboard_action_record_service import DashboardActionRecordService
 from src.services.dashboard_process_manager import DashboardProcessManager
 
@@ -135,45 +136,91 @@ class DashboardTaskRunner:
                 else None
             ) or self.db.get_latest_trade_date("stock_daily")
             strategy_key = str(strategy or "secondary_launch").strip().lower()
+            if strategy_key in {"legacy", "legacy_opt", "enhanced", "both", "strong_start"}:
+                raise ValueError(
+                    "已屏蔽基准原策略、enhanced、融合与强势股刚启动选股；"
+                    "仅支持 secondary_launch、breakout、wide_breakout"
+                )
             secondary = list(report.get("secondary_launch_selection") or [])
-            legacy = list(report.get("stock_selection") or [])
             selected_count = 0
             sync_count = 0
+            fallback_used = False
+            fallback_reason = ""
+
+            def _select_secondary_with_fallback(primary_trade_date: str | None) -> tuple[list[dict], str | None, bool, str]:
+                attempted_dates: list[str] = []
+                selected_rows: list[dict] = []
+                selected_trade_date = str(primary_trade_date or "").strip() or None
+                reason = ""
+
+                def _try_date(day: str | None) -> bool:
+                    nonlocal selected_rows, selected_trade_date
+                    day_text = str(day or "").strip()
+                    if not day_text or day_text in attempted_dates:
+                        return False
+                    attempted_dates.append(day_text)
+                    rows = list(self.secondary_launch.get_daily_selection(day_text) or [])
+                    if rows:
+                        selected_rows = rows
+                        selected_trade_date = day_text
+                        return True
+                    return False
+
+                if selected_rows:
+                    return selected_rows, selected_trade_date, False, reason
+
+                if _try_date(selected_trade_date):
+                    return selected_rows, selected_trade_date, True, "daily_report_empty_retried_same_date"
+
+                latest_signal_date = self.secondary_launch._find_latest_signal_trade_date(lookback_days=240)
+                if _try_date(latest_signal_date):
+                    return selected_rows, selected_trade_date, True, "fallback_latest_signal_trade_date"
+
+                try:
+                    self.data_updater.ensure_latest_market_data()
+                    synced_latest = self.db.get_latest_trade_date("stock_daily")
+                    if _try_date(synced_latest):
+                        return selected_rows, selected_trade_date, True, "fallback_after_market_sync"
+                    latest_signal_after_sync = self.secondary_launch._find_latest_signal_trade_date(lookback_days=240)
+                    if _try_date(latest_signal_after_sync):
+                        return selected_rows, selected_trade_date, True, "fallback_latest_signal_after_sync"
+                except Exception as exc:
+                    logger.warning("选股空结果回退时触发数据同步失败: %s", exc)
+
+                reason = f"empty_after_attempts:{','.join(attempted_dates) if attempted_dates else 'none'}"
+                return selected_rows, selected_trade_date, True, reason
 
             if strategy_key in {"secondary_launch", "secondary"}:
+                if not secondary:
+                    secondary, trade_date, fallback_used, fallback_reason = _select_secondary_with_fallback(trade_date)
+                    if secondary and trade_date:
+                        # 回退成功后补落库，确保历史记录与候选池来源一致。
+                        self.secondary_launch.persist_daily_selection(trade_date=trade_date, selections=secondary)
                 selected_count = len(secondary)
                 if trade_date and secondary:
-                    sync_count = self.secondary_launch.sync_to_candidate_pool(
-                        trade_date=trade_date,
-                        selections=secondary,
-                    )
-            elif strategy_key == "legacy":
-                selected_count = len(legacy)
-                if trade_date and legacy:
-                    sync_count = self._sync_legacy_to_candidate_pool(
-                        trade_date=trade_date,
-                        selections=legacy,
-                    )
-            elif strategy_key == "both":
-                selected_count = len(secondary) + len(legacy)
-                if trade_date:
-                    sync_count = self._sync_combined_to_candidate_pool(
-                        trade_date=trade_date,
-                        secondary=secondary,
-                        legacy=legacy,
+                    sync_count = self.secondary_launch.sync_to_candidate_pool(trade_date=trade_date, selections=secondary)
+                if selected_count <= 0:
+                    detail = fallback_reason or "no_candidates_generated"
+                    raise ValueError(
+                        "选股结果为空。请先确认服务器端已同步最新行情/基础数据，"
+                        f"并检查二次启动策略筛选条件。详情：{detail}"
                     )
             elif strategy_key == "breakout":
                 selected_count, sync_count, trade_date = self._run_breakout_selection(trade_date)
-            elif strategy_key == "strong_start":
-                selected_count, sync_count, trade_date = self._run_strong_start_selection(trade_date)
+            elif strategy_key in {"wide_breakout", "wide_breakout_strategy"}:
+                selected_count, sync_count, trade_date = self._run_wide_breakout_selection(trade_date)
             else:
                 raise ValueError(f"Unsupported stock selection strategy: {strategy_key}")
-            return {
+            payload = {
                 "selected_count": selected_count,
                 "sync_count": sync_count,
                 "trade_date": trade_date,
                 "strategy": strategy_key,
             }
+            if fallback_used:
+                payload["fallback_used"] = True
+                payload["fallback_reason"] = fallback_reason or "fallback_applied"
+            return payload
 
         return self.submit_background_task(
             action_key="run_stock_selection",
@@ -181,100 +228,8 @@ class DashboardTaskRunner:
             target=_task,
         )
 
-    def _sync_legacy_to_candidate_pool(self, trade_date: str, selections: list[dict]) -> int:
-        if not trade_date or not selections:
-            return 0
-        candidates = []
-        for row in selections:
-            symbol_raw = str(row.get("ts_code") or row.get("symbol") or row.get("code") or "").strip()
-            if not symbol_raw:
-                continue
-            symbol = symbol_raw.split(".")[0]
-            score = row.get("total_score", row.get("signal_score", row.get("score", 0.0)))
-            try:
-                score_value = float(score or 0.0)
-            except Exception:
-                score_value = 0.0
-            candidates.append(
-                {
-                    "symbol": symbol,
-                    "name": str(row.get("name") or ""),
-                    "score": score_value,
-                    "level": str(row.get("recommendation_level") or "原策略候选"),
-                    "industry": str(row.get("industry") or "未知"),
-                    "pool_type": "core",
-                    "strategy_profile": "legacy",
-                    "strategy_name": str(row.get("strategy_name") or "legacy"),
-                    "source": "daily_report_legacy",
-                    "trade_date": str(trade_date),
-                }
-            )
-        return self._write_candidate_pool_cache(trade_date=trade_date, candidates=candidates)
-
-    def _sync_combined_to_candidate_pool(self, trade_date: str, secondary: list[dict], legacy: list[dict]) -> int:
-        merged: Dict[str, Dict[str, Any]] = {}
-        for row in secondary or []:
-            ts_code = str(row.get("ts_code", "") or "").strip()
-            if not ts_code:
-                continue
-            symbol = ts_code.split(".")[0]
-            merged[symbol] = {
-                "symbol": symbol,
-                "name": str(row.get("name", "") or ""),
-                "score": float(row.get("signal_score", row.get("total_score", 0.0)) or 0.0),
-                "level": str(row.get("level", "二次启动候选") or "二次启动候选"),
-                "industry": str(row.get("industry", "未知") or "未知"),
-                "pool_type": "core",
-                "strategy_profile": "secondary_launch",
-                "strategy_name": str(row.get("strategy_name", "secondary_launch_walkforward")),
-                "source": "secondary_launch_menu",
-                "trade_date": str(trade_date),
-            }
-        for row in legacy or []:
-            symbol_raw = str(row.get("ts_code") or row.get("symbol") or row.get("code") or "").strip()
-            if not symbol_raw:
-                continue
-            symbol = symbol_raw.split(".")[0]
-            score = row.get("total_score", row.get("signal_score", row.get("score", 0.0)))
-            try:
-                score_value = float(score or 0.0)
-            except Exception:
-                score_value = 0.0
-            current = merged.get(symbol)
-            if current and float(current.get("score", 0.0) or 0.0) >= score_value:
-                continue
-            merged[symbol] = {
-                "symbol": symbol,
-                "name": str(row.get("name") or ""),
-                "score": score_value,
-                "level": str(row.get("recommendation_level") or "原策略候选"),
-                "industry": str(row.get("industry") or "未知"),
-                "pool_type": "core",
-                "strategy_profile": "legacy",
-                "strategy_name": str(row.get("strategy_name") or "legacy"),
-                "source": "daily_report_legacy",
-                "trade_date": str(trade_date),
-            }
-        return self._write_candidate_pool_cache(trade_date=trade_date, candidates=list(merged.values()))
-
-    def _write_candidate_pool_cache(self, trade_date: str, candidates: list[dict]) -> int:
-        payload = {
-            "date": str(trade_date),
-            "candidates": candidates,
-            "created_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        cache_path = self.project_root / "data" / "cache" / "candidate_pool.json"
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-        return len(candidates)
-
     def _run_breakout_selection(self, trade_date: str | None) -> tuple[int, int, str | None]:
-        params = BreakoutParams()
-        params.min_amt_ma20 = 8e4
-        params.rs_quantile_max = 0.97
-        params.min_signal_score = 60.0
-        params.top_k = 15
-        strategy = BreakoutStrategy(db=self.db, params=params)
+        strategy = build_breakout_strategy_from_config(self.db, self.config)
         watch_items = strategy.run(end_date=trade_date) if trade_date else strategy.run()
         watch_date = (
             watch_items[0].watch_date
@@ -288,25 +243,25 @@ class DashboardTaskRunner:
         )
         return len(watch_items), int(sync_count), watch_date
 
-    def _run_strong_start_selection(self, trade_date: str | None) -> tuple[int, int, str | None]:
-        resolved_trade_date = str(trade_date or self.db.get_latest_trade_date("stock_daily") or "").strip()
-        if resolved_trade_date:
-            self.data_updater.sync_chip_perf_with_latest_data(reference_trade_date=resolved_trade_date)
-
-        params = StrongStartParams.tradeable_v2()
-        strategy = StrongStartStrategy(db=self.db, params=params)
-        candidates = strategy.run(end_date=resolved_trade_date) if resolved_trade_date else strategy.run()
+    def _run_wide_breakout_selection(self, trade_date: str | None) -> tuple[int, int, str | None]:
+        """宽进突破策略（wide_pool_strict_entry_v2），候选池 strategy_profile=wide_breakout。"""
+        strategy = build_wide_breakout_strategy_from_config(self.db, self.config)
+        watch_items = strategy.run(end_date=trade_date) if trade_date else strategy.run()
         watch_date = (
-            candidates[0].watch_date
-            if candidates
-            else (resolved_trade_date or datetime.now().strftime("%Y%m%d"))
+            watch_items[0].watch_date
+            if watch_items
+            else (str(trade_date) if trade_date else datetime.now().strftime("%Y%m%d"))
         )
-        sync_count = merge_strong_start_candidates_to_candidate_cache(
-            candidates=candidates,
-            trade_date=watch_date,
+        sync_count = merge_breakout_watchlist_to_candidate_cache(
+            watch_items=watch_items,
+            watch_date=watch_date,
             project_root=self.project_root,
+            strategy_profile="wide_breakout",
+            strategy_name="wide_breakout_watchlist",
+            level_label="宽进突破观察池",
+            source="wide_breakout_strategy",
         )
-        return len(candidates), int(sync_count), watch_date
+        return len(watch_items), int(sync_count), watch_date
 
     def run_push_selection_wecom(self, strategy: str = "secondary_launch") -> Dict[str, Any]:
         return self.submit_background_task(
@@ -456,7 +411,11 @@ class DashboardTaskRunner:
         if payload.get("message"):
             return str(payload.get("message"))
         if "selected_count" in payload:
-            return f"选股完成，产出 {int(payload.get('selected_count', 0) or 0)} 只。"
+            base = f"选股完成，产出 {int(payload.get('selected_count', 0) or 0)} 只。"
+            if payload.get("fallback_used"):
+                reason = str(payload.get("fallback_reason") or "fallback_applied")
+                return f"{base}（已启用回退：{reason}）"
+            return base
         if "daily_data_count" in payload:
             return (
                 f"数据更新完成，日线 {int(payload.get('daily_data_count', 0) or 0)} 条，"

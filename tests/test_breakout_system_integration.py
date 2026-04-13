@@ -6,6 +6,87 @@ import json
 import pytest
 
 
+def test_get_breakout_params_for_backtest_relaxed():
+    """放宽预设：选股更宽，买点相关字段与 baseline 一致。"""
+    from src.modules.breakout_strategy import get_breakout_params_for_backtest
+
+    b = get_breakout_params_for_backtest("baseline", True)
+    r = get_breakout_params_for_backtest("selection_relaxed_v1", True)
+    assert b.rs_quantile_min > r.rs_quantile_min
+    assert b.min_signal_score > r.min_signal_score
+    assert b.top_k < r.top_k
+    assert b.breakout_buffer == r.breakout_buffer
+    assert b.volume_confirm_ratio == r.volume_confirm_ratio
+
+
+def test_get_breakout_params_win_rate_priority():
+    """胜率优先：选股同 baseline，买点更严。"""
+    from src.modules.breakout_strategy import get_breakout_params_for_backtest
+
+    b = get_breakout_params_for_backtest("baseline", True)
+    w = get_breakout_params_for_backtest("win_rate_priority", True)
+    assert w.rs_quantile_min == b.rs_quantile_min
+    assert w.min_signal_score == b.min_signal_score
+    assert w.top_k == b.top_k
+    assert w.volume_confirm_ratio > b.volume_confirm_ratio
+    assert w.volume_normal_ratio > b.volume_normal_ratio
+    assert w.breakout_buffer > b.breakout_buffer
+
+
+def test_get_breakout_params_buy_tuning_v1_stricter_than_win_rate():
+    """buy_tuning_v1：选股同 baseline，买点比 win_rate_priority 更严。"""
+    from src.modules.breakout_strategy import get_breakout_params_for_backtest
+
+    b = get_breakout_params_for_backtest("baseline", True)
+    w = get_breakout_params_for_backtest("win_rate_priority", True)
+    t = get_breakout_params_for_backtest("buy_tuning_v1", True)
+    assert t.rs_quantile_min == b.rs_quantile_min
+    assert t.top_k == b.top_k
+    assert t.breakout_buffer >= w.breakout_buffer
+    assert t.breakout_max_chase <= w.breakout_max_chase
+    assert t.volume_confirm_ratio >= w.volume_confirm_ratio
+    assert t.volume_normal_ratio >= w.volume_normal_ratio
+    assert t.max_intraday_gain <= w.max_intraday_gain
+
+
+def test_get_breakout_params_wide_pool_strict_entry_v1():
+    """宽池严买点：选股同 relaxed，买点同 win_rate_priority。"""
+    from src.modules.breakout_strategy import get_breakout_params_for_backtest
+
+    r = get_breakout_params_for_backtest("selection_relaxed_v1", True)
+    w = get_breakout_params_for_backtest("win_rate_priority", True)
+    c = get_breakout_params_for_backtest("wide_pool_strict_entry_v1", True)
+    assert c.rs_quantile_min == r.rs_quantile_min
+    assert c.min_signal_score == r.min_signal_score
+    assert c.top_k == r.top_k
+    assert c.atr_quantile_max == r.atr_quantile_max
+    assert c.box_max_range == r.box_max_range
+    assert c.breakout_buffer == w.breakout_buffer
+    assert c.breakout_max_chase == w.breakout_max_chase
+    assert c.volume_confirm_ratio == w.volume_confirm_ratio
+    assert c.volume_normal_ratio == w.volume_normal_ratio
+    assert c.max_intraday_gain == w.max_intraday_gain
+
+
+def test_get_breakout_params_wide_pool_strict_entry_v2():
+    """宽池最严买点：选股同 relaxed，买点同 buy_tuning_v1。"""
+    from src.modules.breakout_strategy import get_breakout_params_for_backtest
+
+    r = get_breakout_params_for_backtest("selection_relaxed_v1", True)
+    t = get_breakout_params_for_backtest("buy_tuning_v1", True)
+    c = get_breakout_params_for_backtest("wide_pool_strict_entry_v2", True)
+    assert c.rs_quantile_min == r.rs_quantile_min
+    assert c.min_signal_score == r.min_signal_score
+    assert c.top_k == r.top_k
+    assert c.atr_quantile_max == r.atr_quantile_max
+    assert c.box_max_range == r.box_max_range
+    assert c.breakout_buffer == t.breakout_buffer
+    assert c.breakout_max_chase == t.breakout_max_chase
+    assert c.volume_confirm_ratio == t.volume_confirm_ratio
+    assert c.volume_normal_ratio == t.volume_normal_ratio
+    assert c.max_intraday_gain == t.max_intraday_gain
+
+
 def test_breakout_strategy_core_api():
     from src.modules.breakout_strategy import (
         BreakoutParams,
@@ -84,6 +165,30 @@ def test_src_modules_exports_breakout():
     assert m.BreakoutStrategy is not None
     assert m.BreakoutParams is not None
     assert m.breakout_selector_menu is not None
+    assert m.wide_breakout_selector_menu is not None
+    assert m.build_breakout_strategy_from_config is not None
+    assert m.build_wide_breakout_strategy_from_config is not None
+    assert m.resolve_breakout_preset_from_config is not None
+
+
+def test_resolve_breakout_preset_from_config():
+    from src.core.config import ConfigManager
+    from src.modules.breakout_strategy import resolve_breakout_preset_from_config
+
+    assert resolve_breakout_preset_from_config(None) == "baseline"
+
+    cm = ConfigManager()
+    cm.set("stock_selection.breakout.params_preset", "nope_unknown", save=False)
+    assert resolve_breakout_preset_from_config(cm) == "baseline"
+
+    cm.set("stock_selection.breakout.params_preset", "win_rate_priority", save=False)
+    assert resolve_breakout_preset_from_config(cm) == "win_rate_priority"
+
+    cm.set("stock_selection.breakout.params_preset", "wide_pool_strict_entry_v1", save=False)
+    assert resolve_breakout_preset_from_config(cm) == "wide_pool_strict_entry_v1"
+
+    cm.set("stock_selection.breakout.params_preset", "wide_pool_strict_entry_v2", save=False)
+    assert resolve_breakout_preset_from_config(cm) == "wide_pool_strict_entry_v2"
 
 
 def test_backtest_menu_has_breakout_runner():
@@ -156,3 +261,68 @@ def test_merge_breakout_candidate_cache_preserves_other_strategies(tmp_path):
     assert "breakout" in profiles
     assert sum(1 for x in cands if x.get("strategy_profile") == "breakout") == 1
     assert any(x.get("name") == "保留股" for x in cands)
+
+
+def test_merge_wide_breakout_candidate_cache_preserves_breakout(tmp_path):
+    """宽进突破写入时保留原 breakout 条目。"""
+    from src.modules.breakout_selector_menu import merge_breakout_watchlist_to_candidate_cache
+    from src.modules.breakout_strategy import WatchItem
+
+    cache_dir = tmp_path / "data" / "cache"
+    cache_dir.mkdir(parents=True)
+    pool_path = cache_dir / "candidate_pool.json"
+    pool_path.write_text(
+        json.dumps(
+            {
+                "date": "20240101",
+                "candidates": [
+                    {
+                        "symbol": "600000",
+                        "ts_code": "600000.SH",
+                        "name": "原突破",
+                        "strategy_profile": "breakout",
+                        "score": 70.0,
+                    },
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    item = WatchItem(
+        ts_code="000001.SZ",
+        name="宽进",
+        watch_date="20240103",
+        close=10.0,
+        pivot=9.9,
+        trigger_price=10.0,
+        stop_loss=9.0,
+        atr14=0.1,
+        rs20=1.0,
+        rs20_xsec_q=0.9,
+        atr_ratio_q60=0.2,
+        box_range=3.0,
+        ma20=10.0,
+        ma60=9.0,
+        ma120=8.0,
+        signal_score=72.0,
+        score_detail="",
+        industry="银行",
+    )
+    n = merge_breakout_watchlist_to_candidate_cache(
+        [item],
+        "20240103",
+        project_root=tmp_path,
+        strategy_profile="wide_breakout",
+        strategy_name="wide_breakout_watchlist",
+        level_label="宽进突破观察池",
+        source="wide_breakout_strategy",
+    )
+    assert n == 1
+    data = json.loads(pool_path.read_text(encoding="utf-8"))
+    cands = data["candidates"]
+    profiles = {x.get("strategy_profile") for x in cands}
+    assert "breakout" in profiles
+    assert "wide_breakout" in profiles
+    assert sum(1 for x in cands if x.get("strategy_profile") == "wide_breakout") == 1

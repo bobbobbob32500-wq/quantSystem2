@@ -296,6 +296,22 @@ def test_tradeable_preset_is_relaxed():
     assert preset.min_signal_score < base.min_signal_score
 
 
+def test_tradeable_v4_parameter_reverse_loose_maps_report_loose_bands():
+    """v4：反推报告宽松档 → 可交易字段（相对 v3 收紧 RS/胜率/突破确认）。"""
+    from src.modules.strong_start_strategy import StrongStartParams
+
+    v3 = StrongStartParams.tradeable_v3_research()
+    v4 = StrongStartParams.tradeable_v4_parameter_reverse_loose()
+
+    assert v4.rs_quantile_min > v3.rs_quantile_min
+    assert v4.winner_rate_min > v3.winner_rate_min
+    assert v4.breakout_volume_ratio > v3.breakout_volume_ratio
+    assert v4.breakout_close_pos_min > v3.breakout_close_pos_min
+    assert v4.min_signal_score > v3.min_signal_score
+    assert v4.top_k < v3.top_k
+    assert v4.chip_factor_profile_key == "tradeable_v3_research"
+
+
 def test_tradeable_v2_preset_is_conservative():
     from src.modules.strong_start_strategy import StrongStartParams
 

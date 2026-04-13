@@ -27,7 +27,11 @@ import pandas as pd
 
 from src.core.logger import get_logger
 from src.modules.breakout_strategy import (
-    BreakoutStrategy, BreakoutParams, WatchItem, BreakoutSignal
+    BreakoutStrategy,
+    BreakoutParams,
+    WatchItem,
+    BreakoutSignal,
+    build_breakout_strategy_from_config,
 )
 
 logger = get_logger("breakout_intraday_monitor")
@@ -354,7 +358,7 @@ def breakout_monitor_menu(
     if db is None:
         db = DatabaseManager(config)
     if strategy is None:
-        strategy = BreakoutStrategy(db=db, params=BreakoutParams())
+        strategy = build_breakout_strategy_from_config(db, config)
 
     while True:
         print(f"\n{'═' * 60}")

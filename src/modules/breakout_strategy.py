@@ -122,6 +122,182 @@ class BreakoutParams:
     )
 
 
+def get_breakout_params_for_backtest(preset: str, use_ma120: bool) -> BreakoutParams:
+    """
+    回测脚本用参数预设。
+
+    预设说明：
+      - baseline：选股 + 买点均与历史主报告默认一致。
+      - selection_relaxed_v1：仅放宽选股；买点与 baseline 相同（用于拉频率）。
+      - win_rate_priority：选股与 baseline **完全相同**；仅收紧买点（提高纯度/胜率倾向，
+        成交频率通常下降）。
+      - wide_pool_strict_entry_v1：**选股**同 selection_relaxed_v1（池更大），**买点**同
+        win_rate_priority（确认更严）；用于在「机会面」与「成交质量」之间折中，需回测验证。
+      - wide_pool_strict_entry_v2：选股同 selection_relaxed_v1，**买点**同 buy_tuning_v1（比 v1
+        更严一档）；用于检验「宽池 + 最严买点」是否优于 v1 / baseline。
+      - buy_tuning_v1：选股同 baseline；在 win_rate_priority 基础上 **进一步收紧** 缓冲、量能与
+        日内涨幅，用于买点专项优化（成交频率通常再降，需样本外验证）。
+
+    Args:
+        preset: baseline / selection_relaxed_v1 / win_rate_priority /
+            wide_pool_strict_entry_v1 / wide_pool_strict_entry_v2 / buy_tuning_v1
+        use_ma120: 是否使用 MA120 趋势过滤（与回测脚本入参对齐）
+    """
+    key = (preset or "baseline").strip().lower()
+    p = BreakoutParams()
+    p.min_amt_ma20 = 8e4
+    p.rs_quantile_max = 0.97
+    p.volume_confirm_ratio = 1.2
+    p.volume_normal_ratio = 1.0
+
+    if key == "baseline":
+        p.rs_quantile_min = 0.80
+        p.min_signal_score = 60.0
+        p.top_k = 20
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        return p
+
+    if key == "selection_relaxed_v1":
+        p.rs_quantile_min = 0.78
+        p.min_signal_score = 58.0
+        p.top_k = 28
+        p.atr_quantile_max = 0.55
+        p.box_max_range = 0.095
+        return p
+
+    if key == "win_rate_priority":
+        # 选股与 baseline 一致
+        p.rs_quantile_min = 0.80
+        p.min_signal_score = 60.0
+        p.top_k = 20
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        # 买点收紧：减少假突破与缩量跟风
+        p.breakout_buffer = 0.003
+        p.breakout_max_chase = 0.006
+        p.volume_confirm_ratio = 1.35
+        p.volume_normal_ratio = 1.05
+        p.max_intraday_gain = 0.04
+        return p
+
+    if key == "buy_tuning_v1":
+        p.rs_quantile_min = 0.80
+        p.min_signal_score = 60.0
+        p.top_k = 20
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        p.breakout_buffer = 0.004
+        p.breakout_max_chase = 0.005
+        p.volume_confirm_ratio = 1.42
+        p.volume_normal_ratio = 1.08
+        p.max_intraday_gain = 0.035
+        return p
+
+    if key == "wide_pool_strict_entry_v1":
+        # 选股层：selection_relaxed_v1
+        p.rs_quantile_min = 0.78
+        p.min_signal_score = 58.0
+        p.top_k = 28
+        p.atr_quantile_max = 0.55
+        p.box_max_range = 0.095
+        # 买点层：win_rate_priority
+        p.breakout_buffer = 0.003
+        p.breakout_max_chase = 0.006
+        p.volume_confirm_ratio = 1.35
+        p.volume_normal_ratio = 1.05
+        p.max_intraday_gain = 0.04
+        return p
+
+    if key == "wide_pool_strict_entry_v2":
+        # 选股层：selection_relaxed_v1
+        p.rs_quantile_min = 0.78
+        p.min_signal_score = 58.0
+        p.top_k = 28
+        p.atr_quantile_max = 0.55
+        p.box_max_range = 0.095
+        # 买点层：buy_tuning_v1
+        p.breakout_buffer = 0.004
+        p.breakout_max_chase = 0.005
+        p.volume_confirm_ratio = 1.42
+        p.volume_normal_ratio = 1.08
+        p.max_intraday_gain = 0.035
+        return p
+
+    raise ValueError(
+        f"未知回测预设: {preset!r}，支持: baseline, selection_relaxed_v1, "
+        f"win_rate_priority, wide_pool_strict_entry_v1, wide_pool_strict_entry_v2, buy_tuning_v1"
+    )
+
+
+_BREAKOUT_PRESET_KEYS = frozenset(
+    {
+        "baseline",
+        "selection_relaxed_v1",
+        "win_rate_priority",
+        "wide_pool_strict_entry_v1",
+        "wide_pool_strict_entry_v2",
+        "buy_tuning_v1",
+    }
+)
+
+
+def resolve_breakout_preset_from_config(config: Optional[ConfigManager]) -> str:
+    """
+    从 config.yaml 的 stock_selection.breakout.params_preset 读取预设名。
+
+    未配置或非法值时回退 baseline，并打日志。
+    """
+    if config is None:
+        return "baseline"
+    raw = config.get("stock_selection.breakout", {}) or {}
+    if not isinstance(raw, dict):
+        return "baseline"
+    preset = str(raw.get("params_preset") or "baseline").strip().lower()
+    if preset not in _BREAKOUT_PRESET_KEYS:
+        logger.warning("未知突破参数预设 %s，已回退 baseline", preset)
+        return "baseline"
+    return preset
+
+
+def _resolve_use_ma120_for_breakout(db: DatabaseManager) -> bool:
+    """与回测脚本对齐：样本交易日足够时传入 use_ma120=True（预设内部可扩展分支）。"""
+    row = db.query_one("SELECT COUNT(DISTINCT trade_date) AS c FROM stock_daily")
+    ntd = int(row["c"]) if row and row.get("c") is not None else 0
+    return ntd >= 180
+
+
+def build_breakout_strategy_from_config(
+    db: DatabaseManager,
+    config: Optional[ConfigManager] = None,
+) -> BreakoutStrategy:
+    """
+    按配置构建突破策略实例（菜单、主程序一键选股、看板后台任务共用）。
+
+    配置路径：stock_selection.breakout.params_preset
+    """
+    preset = resolve_breakout_preset_from_config(config)
+    use_ma120 = _resolve_use_ma120_for_breakout(db)
+    params = get_breakout_params_for_backtest(preset, use_ma120)
+    return BreakoutStrategy(db=db, params=params)
+
+
+def build_wide_breakout_strategy_from_config(
+    db: DatabaseManager,
+    config: Optional[ConfigManager] = None,
+) -> BreakoutStrategy:
+    """
+    宽进突破策略：选股层同「放宽选股」、买点层同 buy_tuning_v1（回测预设 wide_pool_strict_entry_v2）。
+
+    与 `build_breakout_strategy_from_config` 独立，不读取 params_preset，供专用菜单与一键选股入口。
+    config 参数预留与主程序签名对齐，当前未参与参数分支。
+    """
+    _ = config
+    use_ma120 = _resolve_use_ma120_for_breakout(db)
+    params = get_breakout_params_for_backtest("wide_pool_strict_entry_v2", use_ma120)
+    return BreakoutStrategy(db=db, params=params)
+
+
 # ═══════════════════════════════════════════════════════════════
 # 选股结果数据类
 # ═══════════════════════════════════════════════════════════════

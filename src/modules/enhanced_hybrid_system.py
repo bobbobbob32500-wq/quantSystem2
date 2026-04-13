@@ -29,6 +29,7 @@ from src.modules.enhanced_monitor_runtime import (
     get_intraday_data_for_signal as runtime_get_intraday_data_for_signal,
     monitor_candidates as runtime_monitor_candidates,
     resolve_strategy_routed_signal as runtime_resolve_strategy_routed_signal,
+    run_intraday_buy_router_healthcheck as runtime_run_intraday_buy_router_healthcheck,
     show_buy_signals as runtime_show_buy_signals,
 )
 from src.modules.enhanced_optimization_bridge import (
@@ -739,7 +740,17 @@ class EnhancedHybridSystem:
     @staticmethod
     def _normalize_strategy_profile(profile: Any) -> str:
         text = str(profile or "").strip().lower()
-        if text in {"legacy", "legacy_opt", "enhanced", "secondary_launch", "breakout"}:
+        # 与候选池 strategy_profile、resolve_strategy_routed_signal 分支一致；未列出的回退 legacy
+        known = {
+            "legacy",
+            "legacy_opt",
+            "enhanced",
+            "secondary_launch",
+            "breakout",
+            "wide_breakout",
+            "strong_start",
+        }
+        if text in known:
             return text
         return "legacy"
 
@@ -768,6 +779,9 @@ class EnhancedHybridSystem:
             "legacy_opt": "原策略优化版",
             "enhanced": "增强策略",
             "secondary_launch": "二次启动策略",
+            "breakout": "突破策略",
+            "wide_breakout": "宽进突破策略",
+            "strong_start": "强势股刚启动",
         }
         return mapping.get(str(profile or "").lower(), "原策略")
 
@@ -1848,6 +1862,7 @@ class EnhancedHybridSystem:
         template_source: str,
         route_name: str,
         route_label: str,
+        breakout_intraday_param_key: str = "breakout",
     ) -> SignalOutput:
         return runtime_detect_confirmation_signal(
             system=self,
@@ -1859,6 +1874,7 @@ class EnhancedHybridSystem:
             template_source=template_source,
             route_name=route_name,
             route_label=route_label,
+            breakout_intraday_param_key=breakout_intraday_param_key,
         )
 
     def _detect_legacy_gap_signal(
@@ -1975,6 +1991,10 @@ class EnhancedHybridSystem:
     def monitor_candidates(self) -> List[Dict]:
         """Use realtime minute bars only; missing minute data downgrades to observe/skip."""
         return runtime_monitor_candidates(self)
+
+    def run_intraday_buy_router_healthcheck(self) -> List[Dict[str, Any]]:
+        """盘中买点路由冒烟：各 strategy_profile 调用一次 resolve 不抛异常即视为链路可用。"""
+        return runtime_run_intraday_buy_router_healthcheck(self)
 
     def _default_strategy_for_optimization(self, bar):
         """Default strategy hook for auto optimization with realtime minute input only."""

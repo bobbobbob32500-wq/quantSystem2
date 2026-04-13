@@ -3,6 +3,9 @@
 突破选股策略历史回测脚本
 计算 T+1 / T+2 / T+3 的收益和胜率
 
+参数来源：与实盘「普通突破」一致，使用 build_breakout_strategy_from_config，
+即 config.yaml 中 stock_selection.breakout.params_preset（见 resolve_breakout_preset_from_config）。
+
 入场规则（与策略设计一致）：
   信号日 T 收盘后产生观察池；仅在下一交易日 T+1 出现「突破 pivot×(1+缓冲) + 量能≥阈值」时，
   以触发价入场（日线近似）；缩量突破一律不计入成交。
@@ -22,7 +25,10 @@ import pandas as pd
 from datetime import datetime, timedelta
 from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
-from src.modules.breakout_strategy import BreakoutStrategy, BreakoutParams
+from src.modules.breakout_strategy import (
+    build_breakout_strategy_from_config,
+    resolve_breakout_preset_from_config,
+)
 
 
 def main():
@@ -69,19 +75,15 @@ def main():
     print(f"  回测窗口: {signal_dates[0]} -> {signal_dates[-1]}, 共 {len(signal_dates)} 个信号日", flush=True)
     print(f"  Warmup跳过前 {warmup_skip} 天", flush=True)
 
-    # 2. 初始化策略（与网格搜索结论对齐 + 成交额单位千元）
-    params = BreakoutParams()
-    params.min_amt_ma20 = 8e4  # 约8000万元（Tushare amount=千元）
-    params.rs_quantile_max = 0.97  # 过滤极端强势妖股
-    params.min_signal_score = 60.0  # 回测显示<60分段均收为负
-    params.top_k = 15
-    # 与 BreakoutParams 默认一致：A 级放量 ≥1.2×20 日均量；B 级 ≥1.0×
-    params.volume_confirm_ratio = 1.2
-    params.volume_normal_ratio = 1.0
-    if not use_ma120:
-        params.atr_quantile_max = 0.50
-        params.box_max_range = 0.08
-    strategy = BreakoutStrategy(db=db, params=params)
+    # 2. 初始化策略（与实盘普通突破同源：build_breakout_strategy_from_config）
+    preset = resolve_breakout_preset_from_config(config)
+    strategy = build_breakout_strategy_from_config(db, config)
+    params = strategy.params
+    print(
+        f"  突破参数预设: {preset}（config: stock_selection.breakout.params_preset；"
+        f"MA120={'开' if use_ma120 else '关(降级)'}）",
+        flush=True,
+    )
 
     # 3. 预计算特征（只计算一次，覆盖全部日期）
     print("\n  [步骤1/2] 正在计算全量因子...", flush=True)

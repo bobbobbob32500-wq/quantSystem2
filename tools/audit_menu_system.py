@@ -60,6 +60,7 @@ AVAILABLE_MODULES = {
     'market_position_menu': True,
     'web_dashboard_menu': True,
     'breakout_selector_menu': True,
+    'wide_breakout_selector_menu': True,
     'secondary_launch_menu': True,
     'refresh_home': True,  # 实际上是 continue 操作
     'exit_system': True,   # 实际上是 break 操作

@@ -48,6 +48,7 @@ def _resolve_backtest_window(
     start_date: Optional[str],
     end_date: Optional[str],
     years: int,
+    min_window_days: int = 30,
 ) -> Tuple[List[str], str, str]:
     if not all_dates:
         return [], "", ""
@@ -61,7 +62,8 @@ def _resolve_backtest_window(
         start = approx_start
 
     selected = [d for d in all_dates if start <= d <= end]
-    if len(selected) < 30:
+    min_need = max(int(min_window_days), 1)
+    if len(selected) < min_need:
         return [], start, end
     return selected, start, end
 
@@ -241,8 +243,20 @@ def main() -> None:
         "--preset",
         type=str,
         default="tradeable_v1",
-        choices=["default", "tradeable_v1", "tradeable_v2", "tradeable_v3_research"],
+        choices=[
+            "default",
+            "tradeable_v1",
+            "tradeable_v2",
+            "tradeable_v3_research",
+            "tradeable_v4_parameter_reverse_loose",
+        ],
         help="parameter preset",
+    )
+    parser.add_argument(
+        "--min-window-days",
+        type=int,
+        default=30,
+        help="区间内最少交易日数（样本外仅两自然月时可能不足 30，可改为 20）",
     )
     args = parser.parse_args()
 
@@ -255,6 +269,8 @@ def main() -> None:
         strategy_params = StrongStartParams.tradeable_v2()
     elif args.preset == "tradeable_v3_research":
         strategy_params = StrongStartParams.tradeable_v3_research()
+    elif args.preset == "tradeable_v4_parameter_reverse_loose":
+        strategy_params = StrongStartParams.tradeable_v4_parameter_reverse_loose()
     else:
         strategy_params = StrongStartParams()
     strategy_params.top_k = max(int(args.top_k), 1)
@@ -269,6 +285,7 @@ def main() -> None:
         start_date=args.start_date,
         end_date=args.end_date,
         years=int(args.years),
+        min_window_days=int(args.min_window_days),
     )
     if not test_dates:
         print("No enough trade dates in requested window.")

@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
@@ -19,6 +19,7 @@ from src.services.stock_service import HoldStockService
 from src.services.terminal_runtime_service import TerminalRuntimeService
 
 logger = get_logger("dashboard_action_service")
+_RUNNER_DEFAULT_MISSING = object()
 
 
 class DashboardActionService:
@@ -118,7 +119,12 @@ class DashboardActionService:
             raise
 
     def retry_background_task(self, task_id: str) -> Dict[str, Any]:
-        task = self.task_runner.get_task(task_id)
+        task = self._call_runner_method(
+            method_name="get_task",
+            fallback_message="任务系统暂不可用，请稍后重试。",
+            method_args=(task_id,),
+            default_value=None,
+        )
         if not task:
             raise LookupError("任务不存在")
         action_key = str(task.get("action_key") or "").strip()
@@ -304,21 +310,12 @@ class DashboardActionService:
         }
 
     def _submit_generate_plan(self) -> Dict[str, Any]:
-        task = self.task_runner.submit_background_task(
+        return self._submit_task_with_fallback(
             action_key="generate_plan",
-            action_label="生成今日计划",
+            action_label="Generate Plan",
+            stage_target="preMarketSection",
             target=self._generate_plan,
         )
-        return {
-            "success": True,
-            "action": "generate_plan",
-            "task_id": task.get("task_id"),
-            "message": "生成计划任务已提交，正在后台执行，请稍后在历史记录查看结果。",
-            "payload": {
-                "stage_target": "preMarketSection",
-                "task": task,
-            },
-        }
 
     def _enter_current_stage(self) -> Dict[str, Any]:
         now = datetime.now()
@@ -425,21 +422,12 @@ class DashboardActionService:
         }
 
     def _submit_generate_post_market_review(self) -> Dict[str, Any]:
-        task = self.task_runner.submit_background_task(
+        return self._submit_task_with_fallback(
             action_key="generate_post_market_review",
-            action_label="生成收盘复盘",
+            action_label="Generate Review",
+            stage_target="postMarketSection",
             target=self._generate_post_market_review,
         )
-        return {
-            "success": True,
-            "action": "generate_post_market_review",
-            "task_id": task.get("task_id"),
-            "message": "收盘复盘任务已提交，正在后台执行，请稍后在历史记录查看结果。",
-            "payload": {
-                "stage_target": "postMarketSection",
-                "task": task,
-            },
-        }
 
     def _refresh_intraday_status(self) -> Dict[str, Any]:
         session = self.monitor_session.refresh_session()
@@ -578,12 +566,16 @@ class DashboardActionService:
         }
 
     def _clear_candidate_pool(self, confirmed: bool) -> Dict[str, Any]:
-        self._require_confirmed(confirmed, "清空候选池前请先确认。")
-        result = self.task_runner.clear_candidate_pool()
+        self._require_confirmed(confirmed, "Confirmation required before clearing candidate pool")
+        result = self._call_runner_method(
+            method_name="clear_candidate_pool",
+            fallback_message="Failed to clear candidate pool, please retry later",
+            local_fallback=self._clear_candidate_pool_inline,
+        )
         return {
             "success": True,
             "action": "clear_candidate_pool",
-            "message": f"候选池已清空，数据库清理 {int(result.get('deleted_rows', 0) or 0)} 条。",
+            "message": f"Candidate pool cleared, deleted {int(result.get('deleted_rows', 0) or 0)} rows.",
             "payload": {
                 "stage_target": "preMarketSection",
                 **result,
@@ -591,12 +583,15 @@ class DashboardActionService:
         }
 
     def _clear_history_records(self, confirmed: bool) -> Dict[str, Any]:
-        self._require_confirmed(confirmed, "清理历史推荐/跟踪记录前请先确认。")
-        result = self.task_runner.clear_history_records()
+        self._require_confirmed(confirmed, "Confirmation required before clearing history records")
+        result = self._call_runner_method(
+            method_name="clear_history_records",
+            fallback_message="Failed to clear history records, please retry later",
+        )
         return {
             "success": True,
             "action": "clear_history_records",
-            "message": f"历史记录已清理，共删除 {int(result.get('total_deleted', 0) or 0)} 条。",
+            "message": f"History records cleared, deleted {int(result.get('total_deleted', 0) or 0)} rows.",
             "payload": {
                 "stage_target": "preMarketSection",
                 **result,
@@ -604,18 +599,155 @@ class DashboardActionService:
         }
 
     def _clear_virtual_trades(self, confirmed: bool) -> Dict[str, Any]:
-        self._require_confirmed(confirmed, "清理虚拟交易记录前请先确认。")
-        result = self.task_runner.clear_virtual_trades()
+        self._require_confirmed(confirmed, "Confirmation required before clearing virtual trades")
+        result = self._call_runner_method(
+            method_name="clear_virtual_trades",
+            fallback_message="Failed to clear virtual trades, please retry later",
+        )
         total_deleted = int(result.get("open_count", 0) or 0) + int(result.get("closed_count", 0) or 0)
         return {
             "success": True,
             "action": "clear_virtual_trades",
-            "message": f"虚拟交易记录已清理，共移除 {total_deleted} 笔。",
+            "message": f"Virtual trades cleared, removed {total_deleted} entries.",
             "payload": {
                 "stage_target": "todayBoardSection",
                 **result,
             },
         }
+
+    def _submit_task_with_fallback(
+        self,
+        action_key: str,
+        action_label: str,
+        stage_target: str,
+        target: Callable[[], Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        submitter = getattr(self.task_runner, "submit_background_task", None)
+        fallback_reason = "missing_submit_background_task"
+        if callable(submitter):
+            try:
+                task = submitter(
+                    action_key=action_key,
+                    action_label=action_label,
+                    target=target,
+                )
+                if isinstance(task, dict):
+                    return {
+                        "success": True,
+                        "action": action_key,
+                        "task_id": task.get("task_id"),
+                        "message": f"{action_label} task submitted and running in background.",
+                        "payload": {
+                            "stage_target": stage_target,
+                            "task": task,
+                        },
+                    }
+                logger.warning(
+                    "Task runner returned non-dict task object, fallback to inline execution: %s",
+                    type(task).__name__,
+                )
+                fallback_reason = "invalid_submit_result"
+            except Exception:
+                logger.exception(
+                    "submit_background_task failed, fallback to inline execution: %s",
+                    type(self.task_runner).__name__,
+                )
+                fallback_reason = "submit_background_task_exception"
+
+        logger.warning(
+            "Task fallback to inline execution (%s): %s",
+            fallback_reason,
+            type(self.task_runner).__name__,
+        )
+        return self._build_inline_task_result(
+            action_key=action_key,
+            action_label=action_label,
+            stage_target=stage_target,
+            inline_result=target() or {},
+        )
+
+    def _build_inline_task_result(
+        self,
+        action_key: str,
+        action_label: str,
+        stage_target: str,
+        inline_result: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        return {
+            "success": bool(inline_result.get("success", True)),
+            "action": action_key,
+            "task_id": None,
+            "message": str(inline_result.get("message") or f"{action_label} executed."),
+            "payload": {
+                "stage_target": stage_target,
+                "task": {
+                    "task_id": "inline_fallback",
+                    "status": "success",
+                    "action_key": action_key,
+                    "action_label": action_label,
+                },
+                "result": inline_result,
+            },
+        }
+
+    def _clear_candidate_pool_inline(self) -> Dict[str, Any]:
+        deleted_rows = 0
+        cache_path = self.project_root / "data" / "cache" / "candidate_pool.json"
+        if cache_path.exists():
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_text(
+                json.dumps(
+                    {
+                        "date": datetime.now().strftime("%Y%m%d"),
+                        "candidates": [],
+                        "created_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+        try:
+            if self.db.query_one(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='candidate_pool'"
+            ):
+                deleted_rows = int(self.db.execute("DELETE FROM candidate_pool") or 0)
+        except Exception:
+            logger.exception("Inline clear candidate pool failed")
+            raise ValueError("Failed to clear candidate pool, please retry later")
+        return {"deleted_rows": deleted_rows, "cache_path": str(cache_path)}
+
+    def _call_runner_method(
+        self,
+        method_name: str,
+        fallback_message: str,
+        local_fallback: Optional[Callable[[], Dict[str, Any]]] = None,
+        method_args: tuple[Any, ...] = (),
+        method_kwargs: Optional[Dict[str, Any]] = None,
+        default_value: Any = _RUNNER_DEFAULT_MISSING,
+    ) -> Any:
+        method = getattr(self.task_runner, method_name, None)
+        if not callable(method):
+            if callable(local_fallback):
+                return local_fallback() or {}
+            if default_value is not _RUNNER_DEFAULT_MISSING:
+                return default_value
+            raise ValueError(fallback_message)
+        kwargs = method_kwargs or {}
+        try:
+            result = method(*method_args, **kwargs)
+            if result is None:
+                return default_value
+            return result
+        except ValueError:
+            raise
+        except Exception:
+            logger.exception("Runner method failed: %s", method_name)
+            if callable(local_fallback):
+                return local_fallback() or {}
+            if default_value is not _RUNNER_DEFAULT_MISSING:
+                return default_value
+            raise ValueError(fallback_message)
 
     def _get_runtime_state(self) -> Dict[str, Any]:
         latest = self.monitoring_store.get_latest_snapshot(source="service")
@@ -722,10 +854,13 @@ class DashboardActionService:
         mapping = {
             "secondary_launch": "二次启动策略",
             "secondary": "二次启动策略",
-            "legacy": "原策略",
-            "both": "双推送",
             "breakout": "突破策略",
-            "strong_start": "强势股刚启动",
+            "wide_breakout": "宽进突破策略",
+            "wide_breakout_strategy": "宽进突破策略",
+            "legacy": "原策略(已停用)",
+            "both": "双推送(已停用)",
+            "enhanced": "增强策略(已停用)",
+            "strong_start": "强势股刚启动(已停用)",
         }
         return mapping.get(str(strategy or "").strip().lower(), str(strategy or "默认策略"))
 

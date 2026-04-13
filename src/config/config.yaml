@@ -10,7 +10,7 @@ data_source:
   minute_batch_timeout_seconds: 2.8
   startup_auto_update_enabled: true
   startup_refresh_stock_basic: true
-  startup_sync_chip_data_enabled: true
+  startup_sync_chip_data_enabled: false
   full_update_sync_chip_data_enabled: false
   startup_update_ready_time: "17:30"
   startup_trade_calendar_lookback_days: 14
@@ -396,7 +396,12 @@ stock_selection:
     weak_market_min_score_boost: 6.0
     weak_market_ret5_threshold: -0.02
   short_cycle_score_weight: 0.16
-  strategy_profile: enhanced
+  strategy_profile: alpha158
+  # Alpha158：TuShare 日线 amount 为千元；10 万千元 ≈ 1 亿元日成交额（与 local_alpha158 回测一致）
+  alpha158_min_amount: 100000
+  alpha158_vol_max: 0.6
+  alpha158_roc5_min: -0.02
+  alpha158_score_threshold: 0.5
   strong_up_day_threshold: 6.0
   top_n: 5
   tradeability_penalty_weight: 0.18
@@ -406,6 +411,11 @@ stock_selection:
   use_dynamic_tradeability_thresholds: true
   use_point_in_time_universe: true
   volume_factor_weight: 0.0148
+  # 突破策略（选强→等突破）：与 get_breakout_params_for_backtest 预设对齐
+  breakout:
+    # baseline | selection_relaxed_v1 | win_rate_priority | wide_pool_strict_entry_v1 | wide_pool_strict_entry_v2 | buy_tuning_v1
+    # 注：「宽进突破策略」为独立菜单/任务，固定 wide_pool_strict_entry_v2，不依赖本项
+    params_preset: win_rate_priority
 system:
   log_level: INFO
   name: A股量化交易辅助系统

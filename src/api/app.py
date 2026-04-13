@@ -20,6 +20,9 @@ sys.path.insert(0, str(project_root))
 
 from src.core.config import ConfigManager
 from src.core.logger import get_logger
+from src.services.execution_journal_service import ExecutionJournalService
+from src.services.notification_center_service import NotificationCenterService
+from src.services.startup_self_check_service import StartupSelfCheckService
 from src.services.dashboard_action_record_service import DashboardActionRecordService
 from src.services.dashboard_action_service import DashboardActionService
 from src.services.dashboard_service import DashboardDataService
@@ -49,6 +52,23 @@ release_meta_path = release_dir / "android-latest.json"
 release_apk_path = release_dir / "android-latest.apk"
 virtual_trades_path = project_root / "data" / "cache" / "virtual_trades.json"
 virtual_trades_lock = Lock()
+execution_journal_path = project_root / "data" / "cache" / "execution_journal.json"
+notification_center_ack_path = project_root / "data" / "cache" / "notification_center_ack.json"
+execution_journal_service = ExecutionJournalService(
+    journal_path=execution_journal_path,
+    max_entries=int(config.get("mobile_api.execution_journal_max_entries", 2000) or 2000),
+)
+notification_center_service = NotificationCenterService(
+    db=action_service.db,
+    config=config,
+    ack_state_path=notification_center_ack_path,
+    max_scan_items=int(config.get("mobile_api.notification_center_max_scan_items", 5000) or 5000),
+)
+startup_self_check_service = StartupSelfCheckService(
+    project_root=project_root,
+    config=config,
+    stale_days_threshold=int(config.get("mobile_api.startup_self_check_data_stale_days", 5) or 5),
+)
 watchlist_path = project_root / "data" / "cache" / "mobile_watchlist.json"
 watchlist_lock = Lock()
 startup_market_sync_lock = Lock()
@@ -69,12 +89,24 @@ class VirtualTradeUpsertRequest(BaseModel):
     buy_time: Optional[str] = None
 
 
+class VirtualTradeCloseRequest(BaseModel):
+    sell_price: float
+    quantity: int = 0
+    sell_time: Optional[str] = None
+    reason: Optional[str] = None
+    note: Optional[str] = None
+
+
 class StrategyRunRequest(BaseModel):
     params: Optional[Dict[str, Any]] = None
 
 
 class WatchlistUpdateRequest(BaseModel):
     symbols: List[str]
+
+
+class NotificationAckAllRequest(BaseModel):
+    status: Optional[str] = None
 
 
 def _load_virtual_trades_payload() -> Dict[str, Any]:
@@ -114,6 +146,56 @@ def _normalize_trade_payload(raw: VirtualTradeUpsertRequest) -> Dict[str, Any]:
     }
 
 
+def _normalize_trade_close_payload(raw: VirtualTradeCloseRequest) -> Dict[str, Any]:
+    if raw.sell_price <= 0:
+        raise ValueError("sell_price must be greater than 0")
+    quantity = int(raw.quantity or 0)
+    if quantity < 0:
+        raise ValueError("quantity must be greater than or equal to 0")
+    reason = str(raw.reason or "").strip() or "manual_close"
+    note = str(raw.note or "").strip() or None
+    return {
+        "sell_price": float(raw.sell_price),
+        "quantity": quantity,
+        "sell_time": str(raw.sell_time or "").strip() or datetime.now().isoformat(),
+        "reason": reason,
+        "note": note,
+    }
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _recompute_virtual_trade_stats(payload: Dict[str, Any]) -> Dict[str, Any]:
+    open_trades = list(payload.get("open_trades") or [])
+    closed_trades = list(payload.get("closed_trades") or [])
+    pnl_values = [
+        _safe_float(item.get("pnl_pct"), 0.0)
+        for item in closed_trades
+        if item.get("pnl_pct") is not None
+    ]
+    win_count = sum(1 for value in pnl_values if value > 0)
+    loss_count = sum(1 for value in pnl_values if value < 0)
+    stats = dict(payload.get("statistics") or {})
+    stats.update(
+        {
+            "open_trades": len(open_trades),
+            "total_closed": len(closed_trades),
+            "total_signals": len(open_trades) + len(closed_trades),
+            "win_count": win_count,
+            "loss_count": loss_count,
+            "win_rate": (win_count / len(pnl_values)) if pnl_values else 0.0,
+            "avg_pnl_pct": (sum(pnl_values) / len(pnl_values)) if pnl_values else 0.0,
+        }
+    )
+    payload["statistics"] = stats
+    return payload
+
+
 def _load_watchlist_payload() -> Dict[str, Any]:
     if not watchlist_path.exists():
         return {"symbols": [], "updated_at": None}
@@ -146,6 +228,45 @@ def _normalize_symbols(raw_symbols: List[str]) -> List[str]:
         normalized.append(text)
     # Preserve order while deduplicating.
     return list(dict.fromkeys(normalized))
+
+
+def _record_execution_journal(
+    action: str,
+    status: str,
+    message: Optional[str] = None,
+    symbol: Optional[str] = None,
+    trade_id: Optional[str] = None,
+    details: Optional[Dict[str, Any]] = None,
+) -> None:
+    try:
+        execution_journal_service.append_event(
+            action=action,
+            status=status,
+            message=message,
+            symbol=symbol,
+            trade_id=trade_id,
+            source="mobile_api",
+            channel="android_app",
+            details=details or {},
+        )
+    except Exception:
+        logger.exception("Failed to record execution journal event: %s", action)
+
+
+def _to_user_facing_action_error(action: str, exc: Exception) -> str:
+    raw = str(exc or "").strip()
+    lowered = raw.lower()
+    if (
+        "submit_background_task" in lowered
+        or "stubtaskrunner" in lowered
+        or ("has no attribute" in lowered and "taskrunner" in lowered)
+    ):
+        return "后台任务通道暂不可用，已自动切换为同步执行，请重试。"
+    if "clear_candidate_pool" in lowered:
+        return "清空候选池失败，请稍后重试。"
+    if raw:
+        return raw
+    return f"动作 {action} 执行失败，请稍后重试。"
 
 
 def _schedule_startup_market_data_sync() -> Optional[Dict[str, Any]]:
@@ -184,13 +305,6 @@ def _strategy_catalog() -> List[Dict[str, Any]]:
             "default_params": {"top_k": 15, "min_score": 60},
         },
         {
-            "id": "legacy",
-            "name": "原策略",
-            "description": "保持历史兼容的选股逻辑，用于稳定对照。",
-            "scene": "稳健模式、历史对比",
-            "default_params": {"top_k": 15, "min_score": 55},
-        },
-        {
             "id": "breakout",
             "name": "突破策略",
             "description": "面向强势突破形态，聚焦趋势延续票。",
@@ -198,18 +312,11 @@ def _strategy_catalog() -> List[Dict[str, Any]]:
             "default_params": {"top_k": 15, "min_score": 60},
         },
         {
-            "id": "strong_start",
-            "name": "强势股刚启动",
-            "description": "结合筹码集中、平台收敛、放量突破与缩量回踩的启动临界点筛选。",
-            "scene": "低位吸筹末端、突破启动、回踩确认",
-            "default_params": {"top_k": 12, "min_score": 62},
-        },
-        {
-            "id": "both",
-            "name": "融合策略",
-            "description": "合并二次启动与原策略结果，扩大候选覆盖。",
-            "scene": "盘前全量扫描",
-            "default_params": {"top_k": 20, "min_score": 55},
+            "id": "wide_breakout",
+            "name": "宽进突破策略",
+            "description": "放宽选股覆盖面，买点采用最严档（与回测预设 wide_pool_strict_entry_v2 一致）。",
+            "scene": "提高观察池覆盖、以突破确认过滤入场",
+            "default_params": {"preset": "wide_pool_strict_entry_v2"},
         },
     ]
 
@@ -231,6 +338,16 @@ async def startup_event() -> None:
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "service": "mobile_api"}
+
+
+@app.get("/api/system/startup_self_check")
+async def get_startup_self_check():
+    try:
+        payload = startup_self_check_service.run_check()
+        return {"success": True, "data": payload}
+    except Exception as exc:
+        logger.exception("Failed to run startup self-check")
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.get("/api/dashboard")
@@ -264,7 +381,10 @@ async def execute_action(request: ActionRequest):
         return {"success": True, "data": result}
     except Exception as exc:
         logger.exception("Failed to execute action: %s", request.action)
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail=_to_user_facing_action_error(request.action, exc),
+        )
 
 
 @app.get("/api/candidate_pool")
@@ -297,6 +417,96 @@ async def get_virtual_trades():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.get("/api/execution_journal")
+async def get_execution_journal(
+    limit: int = 50,
+    action: Optional[str] = None,
+    status: Optional[str] = None,
+    symbol: Optional[str] = None,
+):
+    try:
+        safe_limit = max(1, min(int(limit), 500))
+        payload = execution_journal_service.get_journal(
+            limit=safe_limit,
+            action=action,
+            status=status,
+            symbol=symbol,
+        )
+        return {"success": True, "data": payload}
+    except Exception as exc:
+        logger.exception("Failed to load execution journal")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/execution_journal/summary")
+async def get_execution_journal_summary(limit: int = 20):
+    try:
+        safe_limit = max(1, min(int(limit), 200))
+        payload = execution_journal_service.build_snapshot(recent_limit=safe_limit)
+        return {"success": True, "data": payload}
+    except Exception as exc:
+        logger.exception("Failed to load execution journal summary")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/notifications")
+async def get_notifications(
+    limit: int = 50,
+    status: Optional[str] = None,
+    unread_only: bool = False,
+):
+    try:
+        safe_limit = max(1, min(int(limit), 200))
+        payload = notification_center_service.list_notifications(
+            limit=safe_limit,
+            status=status,
+            unread_only=bool(unread_only),
+        )
+        return {"success": True, "data": payload}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Failed to load notifications")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/notifications/summary")
+async def get_notification_summary(limit: int = 20):
+    try:
+        safe_limit = max(1, min(int(limit), 100))
+        payload = notification_center_service.build_summary(recent_limit=safe_limit)
+        return {"success": True, "data": payload}
+    except Exception as exc:
+        logger.exception("Failed to load notification summary")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/notifications/{notification_id}/ack")
+async def ack_notification(notification_id: str):
+    try:
+        payload = notification_center_service.ack_notification(notification_id=notification_id)
+        return {"success": True, "data": payload}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Failed to ack notification: %s", notification_id)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/notifications/ack_all")
+async def ack_all_notifications(request: NotificationAckAllRequest):
+    try:
+        payload = notification_center_service.ack_all(status=request.status)
+        return {"success": True, "data": payload}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Failed to ack all notifications")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.post("/api/virtual_trades")
 async def create_virtual_trade(request: VirtualTradeUpsertRequest):
     try:
@@ -321,16 +531,38 @@ async def create_virtual_trade(request: VirtualTradeUpsertRequest):
             )
             payload["open_trades"] = open_trades
             payload.setdefault("closed_trades", [])
-            stats = dict(payload.get("statistics") or {})
-            stats["open_trades"] = len(open_trades)
-            stats["total_signals"] = len(open_trades) + len(payload.get("closed_trades") or [])
-            payload["statistics"] = stats
+            _recompute_virtual_trade_stats(payload)
             _persist_virtual_trades_payload(payload)
+        _record_execution_journal(
+            action="virtual_trade_create",
+            status="success",
+            message="Virtual trade created from mobile app",
+            symbol=normalized["symbol"],
+            trade_id=trade_id,
+            details={
+                "quantity": normalized["quantity"],
+                "buy_price": normalized["buy_price"],
+            },
+        )
         return {"success": True, "data": {"trade_id": trade_id}}
     except ValueError as exc:
+        _record_execution_journal(
+            action="virtual_trade_create",
+            status="failed",
+            message=str(exc),
+            symbol=request.symbol,
+            details={"stage": "validate"},
+        )
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
         logger.exception("Failed to create virtual trade")
+        _record_execution_journal(
+            action="virtual_trade_create",
+            status="failed",
+            message=str(exc),
+            symbol=request.symbol,
+            details={"stage": "persist"},
+        )
         raise HTTPException(status_code=500, detail=str(exc))
 
 
@@ -358,14 +590,173 @@ async def update_virtual_trade(trade_id: str, request: VirtualTradeUpsertRequest
             if not matched:
                 raise HTTPException(status_code=404, detail="未找到对应的虚拟持仓")
             payload["open_trades"] = open_trades
+            _recompute_virtual_trade_stats(payload)
             _persist_virtual_trades_payload(payload)
+        _record_execution_journal(
+            action="virtual_trade_update",
+            status="success",
+            message="Virtual trade updated from mobile app",
+            symbol=normalized["symbol"],
+            trade_id=trade_id,
+            details={
+                "quantity": normalized["quantity"],
+                "buy_price": normalized["buy_price"],
+            },
+        )
         return {"success": True, "data": {"trade_id": trade_id}}
-    except HTTPException:
+    except HTTPException as exc:
+        _record_execution_journal(
+            action="virtual_trade_update",
+            status="failed",
+            message=str(exc.detail),
+            symbol=request.symbol,
+            trade_id=trade_id,
+            details={"status_code": exc.status_code},
+        )
         raise
     except ValueError as exc:
+        _record_execution_journal(
+            action="virtual_trade_update",
+            status="failed",
+            message=str(exc),
+            symbol=request.symbol,
+            trade_id=trade_id,
+            details={"stage": "validate"},
+        )
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
         logger.exception("Failed to update virtual trade: %s", trade_id)
+        _record_execution_journal(
+            action="virtual_trade_update",
+            status="failed",
+            message=str(exc),
+            symbol=request.symbol,
+            trade_id=trade_id,
+            details={"stage": "persist"},
+        )
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/virtual_trades/{trade_id}/close")
+async def close_virtual_trade(trade_id: str, request: VirtualTradeCloseRequest):
+    try:
+        normalized = _normalize_trade_close_payload(request)
+        with virtual_trades_lock:
+            payload = _load_virtual_trades_payload()
+            open_trades = list(payload.get("open_trades") or [])
+            closed_trades = list(payload.get("closed_trades") or [])
+
+            target_index = -1
+            target_trade: Optional[Dict[str, Any]] = None
+            for idx, item in enumerate(open_trades):
+                if str(item.get("trade_id") or "") == trade_id:
+                    target_index = idx
+                    target_trade = item
+                    break
+
+            if target_trade is None:
+                raise HTTPException(status_code=404, detail="virtual trade not found")
+
+            buy_price = _safe_float(target_trade.get("buy_price"), 0.0)
+            if buy_price <= 0:
+                raise ValueError("invalid buy_price in target trade")
+
+            sell_price = normalized["sell_price"]
+            pnl_abs = sell_price - buy_price
+            pnl_pct = pnl_abs / buy_price
+            sell_time = normalized["sell_time"]
+
+            details = (
+                target_trade.get("details")
+                if isinstance(target_trade.get("details"), dict)
+                else {}
+            )
+            close_quantity = normalized["quantity"] or int(details.get("quantity") or 0)
+            details.update(
+                {
+                    "quantity": close_quantity,
+                    "close_source": "android_app",
+                    "close_reason": normalized["reason"],
+                    "close_note": normalized["note"],
+                }
+            )
+
+            closed_trade = dict(target_trade)
+            closed_trade.update(
+                {
+                    "status": "closed",
+                    "sell_price": sell_price,
+                    "sell_time": sell_time,
+                    "sell_reason": normalized["reason"],
+                    "pnl": round(pnl_abs, 6),
+                    "pnl_pct": round(pnl_pct, 8),
+                    "details": details,
+                }
+            )
+
+            try:
+                buy_time_raw = str(target_trade.get("buy_time") or "").strip()
+                buy_time = datetime.fromisoformat(buy_time_raw) if buy_time_raw else None
+                close_time = datetime.fromisoformat(sell_time)
+                if buy_time is not None:
+                    closed_trade["hold_duration"] = int((close_time - buy_time).total_seconds() // 60)
+            except Exception:
+                pass
+
+            open_trades.pop(target_index)
+            closed_trades.insert(0, closed_trade)
+            payload["open_trades"] = open_trades
+            payload["closed_trades"] = closed_trades
+            _recompute_virtual_trade_stats(payload)
+            _persist_virtual_trades_payload(payload)
+
+        _record_execution_journal(
+            action="virtual_trade_close",
+            status="success",
+            message="Virtual trade closed from mobile app",
+            symbol=str(target_trade.get("symbol") or "").strip() or None,
+            trade_id=trade_id,
+            details={
+                "sell_price": sell_price,
+                "pnl_pct": round(pnl_pct * 100, 4),
+                "reason": normalized["reason"],
+            },
+        )
+        return {
+            "success": True,
+            "data": {
+                "trade_id": trade_id,
+                "sell_reason": normalized["reason"],
+                "sell_time": sell_time,
+            },
+        }
+    except HTTPException as exc:
+        _record_execution_journal(
+            action="virtual_trade_close",
+            status="failed",
+            message=str(exc.detail),
+            trade_id=trade_id,
+            details={"status_code": exc.status_code},
+        )
+        raise
+    except ValueError as exc:
+        _record_execution_journal(
+            action="virtual_trade_close",
+            status="failed",
+            message=str(exc),
+            trade_id=trade_id,
+            details={"stage": "validate"},
+        )
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Failed to close virtual trade: %s", trade_id)
+        _record_execution_journal(
+            action="virtual_trade_close",
+            status="failed",
+            message=str(exc),
+            trade_id=trade_id,
+            details={"stage": "persist"},
+        )
         raise HTTPException(status_code=500, detail=str(exc))
 
 
@@ -391,15 +782,34 @@ async def delete_virtual_trade(trade_id: str):
             if len(filtered) == len(open_trades):
                 raise HTTPException(status_code=404, detail="未找到对应的虚拟持仓")
             payload["open_trades"] = filtered
-            stats = dict(payload.get("statistics") or {})
-            stats["open_trades"] = len(filtered)
-            payload["statistics"] = stats
+            _recompute_virtual_trade_stats(payload)
             _persist_virtual_trades_payload(payload)
+        _record_execution_journal(
+            action="virtual_trade_delete",
+            status="success",
+            message="Virtual trade deleted from mobile app",
+            trade_id=trade_id,
+            details={"open_count_after": len(filtered)},
+        )
         return {"success": True, "data": {"trade_id": trade_id}}
-    except HTTPException:
+    except HTTPException as exc:
+        _record_execution_journal(
+            action="virtual_trade_delete",
+            status="failed",
+            message=str(exc.detail),
+            trade_id=trade_id,
+            details={"status_code": exc.status_code},
+        )
         raise
     except Exception as exc:
         logger.exception("Failed to delete virtual trade: %s", trade_id)
+        _record_execution_journal(
+            action="virtual_trade_delete",
+            status="failed",
+            message=str(exc),
+            trade_id=trade_id,
+            details={"stage": "persist"},
+        )
         raise HTTPException(status_code=500, detail=str(exc))
 
 
