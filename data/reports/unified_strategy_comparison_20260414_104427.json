@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "generated_at": "20260414_104427",
+    "signal_start": "20250919",
+    "signal_end": "20260402",
+    "signal_days": 126,
+    "warmup_skip": 125,
+    "forward_reserve": 6,
+    "alpha158_top_n": 5,
+    "secondary_hold_days": 5,
+    "round_trip_cost_approx": 0.00312
+  },
+  "strategies": {
+    "alpha158": {
+      "label": "Alpha158 IC加权（本地手算因子）",
+      "rec_count": 586,
+      "horizon_3": {
+        "label": "",
+        "sample_count": 508,
+        "trade_days": 119,
+        "mean_return": 0.011097868874405024,
+        "median_return": -0.002418400930744289,
+        "win_rate": 0.4921259842519685,
+        "sharpe_ratio": 2.2956985781716006,
+        "max_drawdown": -0.9464836987779941,
+        "total_return": 10.950712706556217,
+        "day_mean_return": 0.010403030222362566,
+        "day_win_rate": 0.4928571428571428,
+        "avg_mfe": 0.09422093886370317,
+        "avg_mae": -0.07113651467382577
+      },
+      "horizon_5": {
+        "label": "",
+        "sample_count": 501,
+        "trade_days": 117,
+        "mean_return": 0.012395994336120583,
+        "median_return": -0.009512485136741982,
+        "win_rate": 0.46706586826347307,
+        "sharpe_ratio": 2.2211162716918436,
+        "max_drawdown": -0.994350965765394,
+        "total_return": 1.5372846272782832,
+        "day_mean_return": 0.012121935243540698,
+        "day_win_rate": 0.46894586894586904,
+        "avg_mfe": 0.12364349429377035,
+        "avg_mae": -0.08898823041621354
+      }
+    },
+    "breakout": {
+      "label": "突破策略（win_rate_priority）",
+      "preset": "win_rate_priority",
+      "trades": 66,
+      "gate": {
+        "normal": 61,
+        "caution": 23,
+        "stop": 1
+      },
+      "ret_t3": {
+        "n": 66,
+        "win_rate": 0.6666666666666666,
+        "mean": 0.027291985009305415,
+        "median": 0.025427874291264585,
+        "pf": 4.225798598955084
+      },
+      "ret_t5": {
+        "n": 66,
+        "win_rate": 0.6363636363636364,
+        "mean": 0.03619508656689852,
+        "median": 0.023665483715943902,
+        "pf": 3.8760277188561876
+      },
+      "portfolio_ret_t3": {
+        "n_trades": 66.0,
+        "win_rate": 0.6666666666666666,
+        "mean_ret": 0.027291985009305415,
+        "pf": 4.225798598955084,
+        "port_total_ret": 1.754599212779946,
+        "port_mdd": -0.09123983129059055,
+        "port_sharpe": 8.126536140764617
+      },
+      "portfolio_ret_t5": {
+        "n_trades": 66.0,
+        "win_rate": 0.6363636363636364,
+        "mean_ret": 0.03619508656689852,
+        "pf": 3.8760277188561876,
+        "port_total_ret": 2.8036868444251586,
+        "port_mdd": -0.09135802535267379,
+        "port_sharpe": 8.683230255125299
+      }
+    },
+    "wide_breakout": {
+      "label": "宽进突破（wide_pool_strict_entry_v2）",
+      "trades": 125,
+      "gate": {
+        "normal": 74,
+        "caution": 31,
+        "stop": 2
+      },
+      "ret_t3": {
+        "n": 125,
+        "win_rate": 0.632,
+        "mean": 0.02860431727962702,
+        "median": 0.015126050420168013,
+        "pf": 3.454761886942658
+      },
+      "ret_t5": {
+        "n": 125,
+        "win_rate": 0.648,
+        "mean": 0.03354144509257998,
+        "median": 0.023255813953488413,
+        "pf": 3.199251183879039
+      },
+      "portfolio_ret_t3": {
+        "n_trades": 125.0,
+        "win_rate": 0.632,
+        "mean_ret": 0.02860431727962702,
+        "pf": 3.454761886942658,
+        "port_total_ret": 5.359696728801207,
+        "port_mdd": -0.1501828082768244,
+        "port_sharpe": 7.202686789630235
+      },
+      "portfolio_ret_t5": {
+        "n_trades": 125.0,
+        "win_rate": 0.648,
+        "mean_ret": 0.03354144509257998,
+        "pf": 3.199251183879039,
+        "port_total_ret": 5.736315896388376,
+        "port_mdd": -0.14947109039666862,
+        "port_sharpe": 7.131559826426928
+      }
+    },
+    "secondary_launch": {
+      "label": "主板二次启动（日线，净收益为主）",
+      "metrics": {
+        "total_trades": 132,
+        "total_signal_days": 71,
+        "win_rate": 0.4621212121212121,
+        "day_win_rate": 0.5492957746478874,
+        "annual_return": 2.212826506737129,
+        "sharpe_ratio": 1.8910534190285084,
+        "max_drawdown": -0.5254255866337912,
+        "total_return": 0.672136687207163,
+        "avg_return": 0.006286108651026384,
+        "std_return": 0.13336982204876502,
+        "avg_day_return": 0.012703075483201329,
+        "std_day_return": 0.10663636979064853,
+        "profit_factor": 1.1302510891071973,
+        "regime_bull_avg": -0.00028553628761029883,
+        "regime_sideways_avg": 0.010105459444999439,
+        "regime_bear_avg": -0.01254571067053398
+      },
+      "gross_stats": {
+        "n": 132,
+        "win_rate": 0.4621212121212121,
+        "mean": 0.007406108651026391,
+        "median": -0.0074666074504718405,
+        "pf": 1.1553977631054395
+      },
+      "trade_rows": 132
+    }
+  }
+}

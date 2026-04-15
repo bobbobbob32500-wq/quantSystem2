@@ -20,6 +20,13 @@ import com.quant.system.data.model.StockDetailPayload
 import com.quant.system.data.model.StrategyMeta
 import com.quant.system.data.model.VirtualTradeUpsertRequest
 import com.quant.system.data.model.WatchlistPayload
+import com.quant.system.data.model.AlertItem
+import com.quant.system.data.model.AlertSummary
+import com.quant.system.data.model.PriceAlertItem
+import com.quant.system.data.model.WatcherSummary
+import com.quant.system.data.model.DeepReviewResult
+import com.quant.system.data.model.KnowledgeTopic
+import com.quant.system.data.model.KnowledgeArticle
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.ConnectException
@@ -184,6 +191,58 @@ class DashboardRepository(private val context: Context) {
         val response = apiService.deleteVirtualTrade(tradeId)
         response.requireData("删除持仓失败")
         Unit
+    }
+
+    // ==================== 扩展功能API ====================
+
+    suspend fun getActiveAlerts(baseUrl: String): Result<List<AlertItem>> = safeApiCall(retryOnTransientNetwork = true) {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.getActiveAlerts().requireData("加载预警失败")
+    }
+
+    suspend fun getAlertSummary(baseUrl: String): Result<AlertSummary> = safeApiCall(retryOnTransientNetwork = true) {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.getAlertSummary().requireData("加载预警摘要失败")
+    }
+
+    suspend fun ackAlert(baseUrl: String, alertId: String): Result<Map<String, String>> = safeApiCall {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.ackAlert(alertId).requireData("确认预警失败")
+    }
+
+    suspend fun getWatcherAlerts(baseUrl: String): Result<List<PriceAlertItem>> = safeApiCall(retryOnTransientNetwork = true) {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.getWatcherAlerts().requireData("加载盯盘提醒失败")
+    }
+
+    suspend fun removeWatcherAlert(baseUrl: String, alertId: String): Result<Map<String, String>> = safeApiCall {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.removeWatcherAlert(alertId).requireData("移除提醒失败")
+    }
+
+    suspend fun getWatcherSummary(baseUrl: String): Result<WatcherSummary> = safeApiCall(retryOnTransientNetwork = true) {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.getWatcherSummary().requireData("加载盯盘摘要失败")
+    }
+
+    suspend fun deepReview(baseUrl: String, trades: List<Map<String, String>>): Result<DeepReviewResult> = safeApiCall {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.deepReview(mapOf("trades" to trades)).requireData("深度复盘失败")
+    }
+
+    suspend fun listKnowledgeTopics(baseUrl: String): Result<List<KnowledgeTopic>> = safeApiCall(retryOnTransientNetwork = true) {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.listKnowledgeTopics().requireData("加载知识主题失败")
+    }
+
+    suspend fun getKnowledgeCategories(baseUrl: String): Result<List<String>> = safeApiCall(retryOnTransientNetwork = true) {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.getKnowledgeCategories().requireData("加载知识分类失败")
+    }
+
+    suspend fun queryKnowledge(baseUrl: String, topic: String): Result<KnowledgeArticle> = safeApiCall {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        apiService.queryKnowledge(topic).requireData("查询知识失败")
     }
 
     private suspend fun <T> safeApiCall(

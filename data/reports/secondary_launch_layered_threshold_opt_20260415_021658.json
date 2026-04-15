@@ -1,0 +1,510 @@
+{
+  "generated_at": "2026-04-15 02:16:58",
+  "sample_count": 134,
+  "top_results": [
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 68,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 68,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 68,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.62
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 70,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 70,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 70,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.62
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 72,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 72,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 72,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.62
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 74,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 74,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 76,
+        "semi_score": 74,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.62
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 68,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 68,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 68,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.62
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 70,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 70,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 70,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.62
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 72,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.58
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    },
+    {
+      "params": {
+        "direct_score": 78,
+        "semi_score": 72,
+        "direct_conf": 0.5,
+        "semi_conf": 0.6,
+        "confirm_pullback_conf": 0.6
+      },
+      "trade_count": 119,
+      "entry_rate_pct": 88.81,
+      "metrics": {
+        "count": 119,
+        "win_rate": 56.3,
+        "avg_return_pct": 2.7,
+        "median_return_pct": 1.69,
+        "profit_factor": 2.48
+      },
+      "tier_count": {
+        "direct": 71,
+        "semi": 1,
+        "confirm": 47
+      },
+      "objective_score": 41.2321
+    }
+  ],
+  "best_result": {
+    "params": {
+      "direct_score": 76,
+      "semi_score": 68,
+      "direct_conf": 0.5,
+      "semi_conf": 0.6,
+      "confirm_pullback_conf": 0.58
+    },
+    "trade_count": 119,
+    "entry_rate_pct": 88.81,
+    "metrics": {
+      "count": 119,
+      "win_rate": 56.3,
+      "avg_return_pct": 2.7,
+      "median_return_pct": 1.69,
+      "profit_factor": 2.48
+    },
+    "tier_count": {
+      "direct": 71,
+      "semi": 1,
+      "confirm": 47
+    },
+    "objective_score": 41.2321
+  }
+}

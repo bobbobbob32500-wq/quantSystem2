@@ -20,12 +20,39 @@ sys.path.insert(0, str(project_root))
 
 from src.core.config import ConfigManager
 from src.core.logger import get_logger
-from src.services.execution_journal_service import ExecutionJournalService
-from src.services.notification_center_service import NotificationCenterService
-from src.services.startup_self_check_service import StartupSelfCheckService
 from src.services.dashboard_action_record_service import DashboardActionRecordService
 from src.services.dashboard_action_service import DashboardActionService
 from src.services.dashboard_service import DashboardDataService
+
+# 可选服务（可能不存在）
+try:
+    from src.services.execution_journal_service import ExecutionJournalService
+    _execution_journal_available = True
+except ImportError:
+    _execution_journal_available = False
+    ExecutionJournalService = None
+
+try:
+    from src.services.notification_center_service import NotificationCenterService
+    _notification_center_available = True
+except ImportError:
+    _notification_center_available = False
+    NotificationCenterService = None
+
+try:
+    from src.services.startup_self_check_service import StartupSelfCheckService
+    _startup_self_check_available = True
+except ImportError:
+    _startup_self_check_available = False
+    StartupSelfCheckService = None
+
+# AI管家服务（可选依赖）
+try:
+    from src.services.ai_butler_service import AIButlerService
+    from src.services.ai_service import AIService
+    _ai_available = True
+except ImportError:
+    _ai_available = False
 
 logger = get_logger("mobile_api")
 
@@ -1107,11 +1134,543 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     uvicorn.run(
         app,
-        host="0.0.0.0",
-        port=8000,
+        host=os.environ.get("MOBILE_API_HOST", "0.0.0.0"),
+        port=int(os.environ.get("MOBILE_API_PORT", "8000")),
         log_level="info",
         loop="asyncio",
         http="h11",
         timeout_keep_alive=15,
         proxy_headers=True,
     )
+
+
+# ==================== AI管家接口（移动端专用） ====================
+
+if _ai_available:
+    ai_service = AIService()
+    butler_service = AIButlerService()
+
+    class AIChatRequest(BaseModel):
+        message: str
+        context: Optional[Dict[str, Any]] = None
+
+    class AIQuickAskRequest(BaseModel):
+        key: str
+
+    class AIBriefingRequest(BaseModel):
+        yesterday_review: Optional[Dict[str, Any]] = None
+        today_selection: Optional[List[Dict[str, Any]]] = None
+        overnight_news: Optional[List[Dict[str, Any]]] = None
+        data_status: Optional[Dict[str, Any]] = None
+
+    class AIMonitorRequest(BaseModel):
+        holdings: Optional[List[Dict[str, Any]]] = None
+        signals: Optional[List[Dict[str, Any]]] = None
+        market_status: Optional[Dict[str, Any]] = None
+
+    class AIReviewRequest(BaseModel):
+        today_trades: Optional[List[Dict[str, Any]]] = None
+        today_signals: Optional[List[Dict[str, Any]]] = None
+        holdings: Optional[List[Dict[str, Any]]] = None
+        market_summary: Optional[Dict[str, Any]] = None
+
+    class AIRiskCheckRequest(BaseModel):
+        holdings: List[Dict[str, Any]] = []
+        market_data: Dict[str, Any] = {}
+
+    class AISignalAnalysisRequest(BaseModel):
+        signal: Dict[str, Any]
+        stock_info: Dict[str, Any]
+        position: Optional[Dict[str, Any]] = None
+
+    @app.get("/api/ai/status")
+    async def get_ai_status():
+        """获取AI服务状态"""
+        return ai_service.get_status()
+
+    @app.post("/api/ai/chat")
+    async def ai_chat(request: AIChatRequest):
+        """AI对话"""
+        try:
+            response = ai_service.chat(request.message, context=request.context)
+            return {"success": True, "response": response}
+        except Exception as exc:
+            logger.exception("AI chat failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/ai/quick_ask")
+    async def ai_quick_ask(request: AIQuickAskRequest):
+        """快速预设问答"""
+        try:
+            response = ai_service.quick_ask(request.key)
+            return {"success": True, "response": response}
+        except Exception as exc:
+            logger.exception("AI quick ask failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/butler/status")
+    async def get_butler_status():
+        """获取管家状态"""
+        return butler_service.get_status()
+
+    @app.post("/api/butler/start")
+    async def start_butler():
+        """启动管家服务"""
+        try:
+            butler_service.start()
+            return {"success": True, "message": "AI管家服务已启动"}
+        except Exception as exc:
+            logger.exception("Failed to start butler")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/butler/stop")
+    async def stop_butler():
+        """停止管家服务"""
+        butler_service.stop()
+        return {"success": True, "message": "AI管家服务已停止"}
+
+    @app.post("/api/butler/briefing")
+    async def generate_briefing(request: AIBriefingRequest):
+        """生成盘前简报"""
+        try:
+            result = butler_service.generate_briefing_now(
+                yesterday_review=request.yesterday_review,
+                today_selection=request.today_selection,
+                overnight_news=request.overnight_news,
+                data_status=request.data_status,
+            )
+            return {"success": True, "result": result}
+        except Exception as exc:
+            logger.exception("Failed to generate briefing")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/butler/monitor")
+    async def do_monitor(request: AIMonitorRequest):
+        """执行盘中监控"""
+        try:
+            result = butler_service.do_intraday_monitor_now(
+                holdings=request.holdings,
+                signals=request.signals,
+                market_status=request.market_status,
+            )
+            return {"success": True, "result": result}
+        except Exception as exc:
+            logger.exception("Failed to do monitor")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/butler/review")
+    async def generate_review(request: AIReviewRequest):
+        """生成盘后复盘"""
+        try:
+            result = butler_service.generate_review_now(
+                today_trades=request.today_trades,
+                today_signals=request.today_signals,
+                holdings=request.holdings,
+                market_summary=request.market_summary,
+            )
+            return {"success": True, "result": result}
+        except Exception as exc:
+            logger.exception("Failed to generate review")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/butler/risk_check")
+    async def do_risk_check(request: AIRiskCheckRequest):
+        """执行风险检查"""
+        try:
+            result = butler_service.do_risk_check_now(
+                holdings=request.holdings,
+                market_data=request.market_data,
+            )
+            return {"success": True, "result": result}
+        except Exception as exc:
+            logger.exception("Failed to do risk check")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/butler/signal_analysis")
+    async def analyze_signal(request: AISignalAnalysisRequest):
+        """信号实时分析"""
+        try:
+            result = butler_service.on_signal_triggered(
+                request.signal,
+                request.stock_info,
+                request.position,
+            )
+            return {"success": True, "result": result}
+        except Exception as exc:
+            logger.exception("Failed to analyze signal")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/butler/last_briefing")
+    async def get_last_briefing():
+        """获取最近盘前简报"""
+        return {"briefing": butler_service.get_last_briefing()}
+
+    @app.get("/api/butler/last_review")
+    async def get_last_review():
+        """获取最近盘后复盘"""
+        return {"review": butler_service.get_last_review()}
+
+    # ==================== 扩展功能接口 ====================
+
+    # --- 多维度预警 ---
+    try:
+        from src.modules.ai_integration.alert_system import MultiDimensionalAlertSystem
+        _alert_system = MultiDimensionalAlertSystem(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _alert_system = None
+
+    class AlertCheckRequest(BaseModel):
+        symbol: str
+        price_data: Dict[str, Any] = {}
+        indicators: Optional[Dict[str, Any]] = None
+        capital_data: Optional[Dict[str, Any]] = None
+
+    @app.post("/api/alerts/technical")
+    async def check_technical_alerts(request: AlertCheckRequest):
+        """技术面预警检查"""
+        if not _alert_system:
+            raise HTTPException(status_code=503, detail="预警系统不可用")
+        try:
+            alerts = _alert_system.check_technical_alerts(request.symbol, request.price_data, request.indicators)
+            return {"success": True, "data": alerts}
+        except Exception as exc:
+            logger.exception("Technical alert check failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/alerts/capital_flow")
+    async def check_capital_flow_alerts(request: AlertCheckRequest):
+        """资金面预警检查"""
+        if not _alert_system:
+            raise HTTPException(status_code=503, detail="预警系统不可用")
+        try:
+            alerts = _alert_system.check_capital_flow_alerts(request.symbol, request.capital_data or {})
+            return {"success": True, "data": alerts}
+        except Exception as exc:
+            logger.exception("Capital flow alert check failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/alerts/active")
+    async def get_active_alerts():
+        """获取活跃预警"""
+        if not _alert_system:
+            return {"success": True, "data": []}
+        return {"success": True, "data": _alert_system.get_active_alerts()}
+
+    @app.get("/api/alerts/summary")
+    async def get_alert_summary():
+        """获取预警摘要"""
+        if not _alert_system:
+            return {"success": True, "data": {"total_active": 0}}
+        return {"success": True, "data": _alert_system.get_alert_summary()}
+
+    @app.post("/api/alerts/{alert_id}/ack")
+    async def ack_alert(alert_id: str):
+        """确认预警"""
+        if not _alert_system:
+            raise HTTPException(status_code=503, detail="预警系统不可用")
+        if _alert_system.ack_alert(alert_id):
+            return {"success": True}
+        raise HTTPException(status_code=404, detail="预警不存在")
+
+    # --- 实时盯盘 ---
+    try:
+        from src.modules.ai_integration.realtime_watcher import RealTimeWatcher, WatchType
+        _watcher = RealTimeWatcher(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _watcher = None
+
+    class PriceAlertRequest(BaseModel):
+        symbol: str
+        watch_type: str  # price_above, price_below, support_break, resistance_break
+        target_value: float
+        label: Optional[str] = None
+
+    @app.post("/api/watcher/alerts")
+    async def set_price_alert(request: PriceAlertRequest):
+        """设置价位提醒"""
+        if not _watcher:
+            raise HTTPException(status_code=503, detail="盯盘系统不可用")
+        try:
+            wt = WatchType(request.watch_type)
+            alert = _watcher.set_price_alert(request.symbol, wt, request.target_value, request.label or "")
+            return {"success": True, "data": alert.to_dict()}
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"无效的watch_type: {request.watch_type}")
+        except Exception as exc:
+            logger.exception("Set price alert failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/watcher/alerts")
+    async def get_watcher_alerts():
+        """获取盯盘提醒列表"""
+        if not _watcher:
+            return {"success": True, "data": []}
+        return {"success": True, "data": _watcher.get_all_alerts()}
+
+    @app.delete("/api/watcher/alerts/{alert_id}")
+    async def remove_price_alert(alert_id: str):
+        """移除价位提醒"""
+        if not _watcher:
+            raise HTTPException(status_code=503, detail="盯盘系统不可用")
+        if _watcher.remove_price_alert(alert_id):
+            return {"success": True}
+        raise HTTPException(status_code=404, detail="提醒不存在")
+
+    @app.get("/api/watcher/summary")
+    async def get_watcher_summary():
+        """获取盯盘摘要"""
+        if not _watcher:
+            return {"success": True, "data": {}}
+        return {"success": True, "data": _watcher.get_summary()}
+
+    # --- 策略优化 ---
+    try:
+        from src.modules.ai_integration.strategy_optimizer import StrategyOptimizer
+        _strategy_optimizer = StrategyOptimizer(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _strategy_optimizer = None
+
+    class StrategyOptimizeRequest(BaseModel):
+        strategy_id: str
+        strategy_name: str
+        current_params: Dict[str, Any] = {}
+        performance: Dict[str, Any] = {}
+
+    @app.post("/api/strategy/optimize")
+    async def optimize_strategy(request: StrategyOptimizeRequest):
+        """策略参数优化建议"""
+        if not _strategy_optimizer:
+            raise HTTPException(status_code=503, detail="策略优化不可用")
+        try:
+            result = _strategy_optimizer.analyze_strategy_performance(
+                request.strategy_id, request.strategy_name, request.current_params, request.performance
+            )
+            return {"success": True, "data": result}
+        except Exception as exc:
+            logger.exception("Strategy optimize failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    class MarketAdaptiveRequest(BaseModel):
+        market_regime: str
+        current_params: Dict[str, Any] = {}
+
+    @app.post("/api/strategy/market_adaptive")
+    async def market_adaptive_params(request: MarketAdaptiveRequest):
+        """市场自适应参数建议"""
+        if not _strategy_optimizer:
+            raise HTTPException(status_code=503, detail="策略优化不可用")
+        try:
+            result = _strategy_optimizer.suggest_market_adaptive_params(request.market_regime, request.current_params)
+            return {"success": True, "data": result}
+        except Exception as exc:
+            logger.exception("Market adaptive failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    # --- 智能执行 ---
+    try:
+        from src.modules.ai_integration.execution_assistant import ExecutionAssistant
+        _execution_assistant = ExecutionAssistant(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _execution_assistant = None
+
+    class ExecutionPlanRequest(BaseModel):
+        signal: Dict[str, Any]
+        stock_info: Dict[str, Any]
+        current_position: Optional[Dict[str, Any]] = None
+        risk_config: Optional[Dict[str, Any]] = None
+
+    @app.post("/api/execution/plan")
+    async def generate_execution_plan(request: ExecutionPlanRequest):
+        """生成交易执行计划"""
+        if not _execution_assistant:
+            raise HTTPException(status_code=503, detail="执行助手不可用")
+        try:
+            plan = _execution_assistant.generate_trade_plan(
+                request.signal, request.stock_info, request.current_position, request.risk_config
+            )
+            return {"success": True, "data": plan.to_dict()}
+        except Exception as exc:
+            logger.exception("Generate execution plan failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/execution/plans")
+    async def get_execution_plans():
+        """获取交易计划列表"""
+        if not _execution_assistant:
+            return {"success": True, "data": []}
+        return {"success": True, "data": _execution_assistant.get_plans()}
+
+    # --- 深度复盘 ---
+    try:
+        from src.modules.ai_integration.deep_review import DeepReviewAnalyzer
+        _deep_review = DeepReviewAnalyzer(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _deep_review = None
+
+    class DeepReviewRequest(BaseModel):
+        trades: List[Dict[str, Any]] = []
+
+    @app.post("/api/review/deep")
+    async def deep_review(request: DeepReviewRequest):
+        """深度复盘分析"""
+        if not _deep_review:
+            raise HTTPException(status_code=503, detail="深度复盘不可用")
+        try:
+            mistakes = _deep_review.analyze_mistakes(request.trades)
+            profitable = [t for t in request.trades if t.get("pnl_pct", 0) > 0]
+            patterns = _deep_review.extract_success_patterns(profitable)
+            overall = {
+                "win_rate": len(profitable) / len(request.trades) if request.trades else 0,
+                "avg_return_pct": sum(t.get("pnl_pct", 0) for t in request.trades) / len(request.trades) if request.trades else 0,
+            }
+            improvement = _deep_review.generate_improvement_plan(mistakes, patterns, overall)
+            return {"success": True, "data": {
+                "mistakes": mistakes,
+                "success_patterns": patterns,
+                "improvement_plan": improvement,
+            }}
+        except Exception as exc:
+            logger.exception("Deep review failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    # --- 周报/月报 ---
+    try:
+        from src.modules.ai_integration.periodic_reporter import PeriodicReporter
+        _periodic_reporter = PeriodicReporter(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _periodic_reporter = None
+
+    class PeriodicReportRequest(BaseModel):
+        trades: List[Dict[str, Any]] = []
+        signals: List[Dict[str, Any]] = []
+        holdings: List[Dict[str, Any]] = []
+        report_type: str = "weekly"
+
+    @app.post("/api/reports/generate")
+    async def generate_report(request: PeriodicReportRequest):
+        """生成周期报告"""
+        if not _periodic_reporter:
+            raise HTTPException(status_code=503, detail="报告生成不可用")
+        try:
+            if request.report_type == "monthly":
+                result = _periodic_reporter.generate_monthly_report(request.trades, request.signals, request.holdings)
+            else:
+                result = _periodic_reporter.generate_weekly_report(request.trades, request.signals, request.holdings)
+            return {"success": True, "data": result}
+        except Exception as exc:
+            logger.exception("Report generation failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    # --- 交易风格 ---
+    try:
+        from src.modules.ai_integration.style_learner import TradingStyleLearner
+        _style_learner = TradingStyleLearner(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _style_learner = None
+
+    class StyleAnalyzeRequest(BaseModel):
+        trade_history: List[Dict[str, Any]] = []
+
+    @app.post("/api/style/analyze")
+    async def analyze_trading_style(request: StyleAnalyzeRequest):
+        """分析交易风格"""
+        if not _style_learner:
+            raise HTTPException(status_code=503, detail="风格学习不可用")
+        try:
+            style = _style_learner.analyze_user_pattern(request.trade_history)
+            return {"success": True, "data": style.to_dict()}
+        except Exception as exc:
+            logger.exception("Style analysis failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/style")
+    async def get_trading_style():
+        """获取当前交易风格"""
+        if not _style_learner:
+            return {"success": True, "data": {}}
+        return {"success": True, "data": _style_learner.get_style()}
+
+    # --- 上下文问答 ---
+    try:
+        from src.modules.ai_integration.context_qa import ContextAwareQA
+        _context_qa = ContextAwareQA(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _context_qa = None
+
+    class ContextQARequest(BaseModel):
+        question: str
+        current_page: str = ""
+        current_data: Optional[Dict[str, Any]] = None
+
+    @app.post("/api/ai/context_qa")
+    async def context_qa(request: ContextQARequest):
+        """上下文感知问答"""
+        if not _context_qa:
+            raise HTTPException(status_code=503, detail="上下文问答不可用")
+        try:
+            result = _context_qa.answer_with_context(request.question, request.current_page, request.current_data)
+            return {"success": True, "data": result}
+        except Exception as exc:
+            logger.exception("Context QA failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    # --- 知识库 ---
+    try:
+        from src.modules.ai_integration.knowledge_base import QuantKnowledgeBase
+        _knowledge_base = QuantKnowledgeBase(llm_client=butler_service.butler.llm if hasattr(butler_service, 'butler') else None)
+    except Exception:
+        _knowledge_base = None
+
+    @app.get("/api/knowledge/topics")
+    async def list_knowledge_topics(category: Optional[str] = None):
+        """列出知识主题"""
+        if not _knowledge_base:
+            return {"success": True, "data": []}
+        return {"success": True, "data": _knowledge_base.list_topics(category)}
+
+    @app.get("/api/knowledge/query")
+    async def query_knowledge(topic: str):
+        """查询知识"""
+        if not _knowledge_base:
+            raise HTTPException(status_code=503, detail="知识库不可用")
+        result = _knowledge_base.query(topic)
+        if result:
+            return {"success": True, "data": result}
+        raise HTTPException(status_code=404, detail="未找到相关知识")
+
+    @app.get("/api/knowledge/categories")
+    async def get_knowledge_categories():
+        """获取知识分类"""
+        if not _knowledge_base:
+            return {"success": True, "data": []}
+        return {"success": True, "data": _knowledge_base.get_categories()}
+
+    # --- 数据质量 ---
+    try:
+        from src.modules.ai_integration.data_quality import DataQualityMonitor
+        _data_quality = DataQualityMonitor()
+    except Exception:
+        _data_quality = None
+
+    class DataQualityRequest(BaseModel):
+        data_status: Dict[str, Any] = {}
+        expected_symbols: Optional[List[str]] = None
+
+    @app.post("/api/data_quality/check")
+    async def check_data_quality(request: DataQualityRequest):
+        """检查数据质量"""
+        if not _data_quality:
+            raise HTTPException(status_code=503, detail="数据质量监控不可用")
+        try:
+            result = _data_quality.check_data_quality(request.data_status, request.expected_symbols)
+            return {"success": True, "data": result}
+        except Exception as exc:
+            logger.exception("Data quality check failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/data_quality/summary")
+    async def get_data_quality_summary():
+        """获取数据质量摘要"""
+        if not _data_quality:
+            return {"success": True, "data": {}}
+        return {"success": True, "data": _data_quality.get_summary()}

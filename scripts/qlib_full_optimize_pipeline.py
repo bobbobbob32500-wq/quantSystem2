@@ -24,6 +24,7 @@ from src.core.logger import get_logger
 from src.core.database import DatabaseManager
 from src.core.config import ConfigManager
 from src.modules.stock_selector import StockSelector
+from src.modules.qlib_lgb_params import get_lgb_params_for_qlib
 
 logger = get_logger("qlib_pipeline")
 
@@ -279,7 +280,9 @@ def run_qlib_optimization() -> Dict:
     from qlib.data import D
     from scipy.stats import spearmanr
     
-    qlib.init(provider_uri='C:/Users/32519/.qlib/qlib_data/cn_data')
+    _cfg = ConfigManager()
+    _uri = os.path.expanduser(str(_cfg.get("qlib.provider_uri", "~/.qlib/qlib_data/cn_data")))
+    qlib.init(provider_uri=_uri)
     
     # Step 2a: Compute Alpha158 factors and IC
     print("\n  Computing Alpha158 factor IC...")
@@ -355,20 +358,10 @@ def run_qlib_optimization() -> Dict:
     print(f"\n  Total factors analyzed: {len(factor_ics)}")
     print(f"  Effective factors (|IC|>0.02, |ICIR|>0.3): {len(effective)}")
     
-    # Step 2b: Train LightGBM model
+    # Step 2b: Train LightGBM model（超参与 config.yaml 的 qlib 段及 Optuna JSON 对齐）
     print("\n  Training LightGBM model...")
     
-    model = LGBModel(
-        loss='mse',
-        colsample_bytree=0.8879,
-        learning_rate=0.0421,
-        subsample=0.8789,
-        lambda_l1=205.6999,
-        lambda_l2=580.5258,
-        max_depth=8,
-        num_leaves=210,
-        num_threads=4,
-    )
+    model = LGBModel(**get_lgb_params_for_qlib(_cfg))
     
     model.fit(dataset)
     print("  Model training complete!")

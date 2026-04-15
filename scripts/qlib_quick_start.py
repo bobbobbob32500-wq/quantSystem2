@@ -9,6 +9,9 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from src.core.config import ConfigManager
+from src.modules.qlib_lgb_params import get_lgb_params_for_qlib
+
 
 def check_qlib():
     """检查 Qlib 是否可用"""
@@ -28,8 +31,9 @@ def demo_qlib_factors():
     import qlib
     from qlib.data import D
     
-    # 初始化 Qlib
-    qlib.init(provider_uri='~/.qlib/qlib_data/cn_data')
+    cfg = ConfigManager()
+    uri = os.path.expanduser(str(cfg.get("qlib.provider_uri", "~/.qlib/qlib_data/cn_data")))
+    qlib.init(provider_uri=uri)
     print("\n[1] Qlib 初始化成功")
     
     # 查看可用股票
@@ -80,8 +84,9 @@ def demo_qlib_model():
     from qlib.contrib.model.gbdt import LGBModel
     from qlib.contrib.eval.meta import RiskModel
     
-    # 初始化
-    qlib.init(provider_uri='~/.qlib/qlib_data/cn_data')
+    cfg = ConfigManager()
+    uri = os.path.expanduser(str(cfg.get("qlib.provider_uri", "~/.qlib/qlib_data/cn_data")))
+    qlib.init(provider_uri=uri)
     
     # 创建数据集
     dataset = DatasetH(
@@ -108,18 +113,8 @@ def demo_qlib_model():
     print(f"    验证集: 2023-01-01 ~ 2023-06-30")
     print(f"    测试集: 2023-07-01 ~ 2023-12-31")
     
-    # 训练 LightGBM 模型
-    model = LGBModel(
-        loss='mse',
-        colsample_bytree=0.8879,
-        learning_rate=0.0421,
-        subsample=0.8789,
-        lambda_l1=205.6999,
-        lambda_l2=580.5258,
-        max_depth=8,
-        num_leaves=210,
-        num_threads=4,
-    )
+    # 训练 LightGBM 模型（与 config.yaml 中 qlib 段及 Optuna 结果一致）
+    model = LGBModel(**get_lgb_params_for_qlib(cfg))
     
     print("\n[2] 开始训练 LightGBM 模型...")
     model.fit(dataset)

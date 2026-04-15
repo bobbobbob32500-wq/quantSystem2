@@ -224,9 +224,27 @@ def get_breakout_params_for_backtest(preset: str, use_ma120: bool) -> BreakoutPa
         p.max_intraday_gain = 0.035
         return p
 
+    if key == "optuna_optimized_v1":
+        # Optuna三阶段优化后的最优参数（2026-04-14）
+        # 样本内: T1胜率50.31%, T1收益0.0473%
+        # 样本外: T1胜率59.62%, T1收益1.28%
+        p.rs_quantile_min = 0.80
+        p.rs_quantile_max = 0.97
+        p.min_signal_score = 60.0
+        p.top_k = 15
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        # 评分权重（优化后）
+        p.weight_rs = 35.0
+        p.weight_trend = 25.0
+        p.weight_stability = 20.0
+        p.weight_box = 12.0
+        p.weight_volume = 8.0
+        return p
+
     raise ValueError(
         f"未知回测预设: {preset!r}，支持: baseline, selection_relaxed_v1, "
-        f"win_rate_priority, wide_pool_strict_entry_v1, wide_pool_strict_entry_v2, buy_tuning_v1"
+        f"win_rate_priority, wide_pool_strict_entry_v1, wide_pool_strict_entry_v2, buy_tuning_v1, optuna_optimized_v1"
     )
 
 
@@ -238,6 +256,7 @@ _BREAKOUT_PRESET_KEYS = frozenset(
         "wide_pool_strict_entry_v1",
         "wide_pool_strict_entry_v2",
         "buy_tuning_v1",
+        "optuna_optimized_v1",
     }
 )
 

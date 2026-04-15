@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.core.logger import get_logger
 from src.core.database import DatabaseManager
 from src.core.config import ConfigManager
+from src.modules.qlib_lgb_params import get_lgb_params_for_qlib
 
 logger = get_logger("qlib_optimize_stock_selector")
 
@@ -37,10 +38,11 @@ class QlibStockSelectorOptimizer:
         self.config = ConfigManager()
         self.db = DatabaseManager(self.config)
         
-        # Qlib 初始化
+        # Qlib 初始化（数据路径与 config.yaml 的 qlib.provider_uri 一致）
         try:
             import qlib
-            qlib.init(provider_uri='C:/Users/32519/.qlib/qlib_data/cn_data')
+            _uri = os.path.expanduser(str(self.config.get("qlib.provider_uri", "~/.qlib/qlib_data/cn_data")))
+            qlib.init(provider_uri=_uri)
             self.qlib = qlib
             self.qlib_available = True
             logger.info("Qlib initialized successfully")
@@ -325,19 +327,9 @@ class QlibStockSelectorOptimizer:
             },
         )
         
-        # Train LightGBM
+        # Train LightGBM（与全系统 qlib 段及 Optuna 输出对齐）
         print("\n  Training LightGBM with Alpha158 features...")
-        model = LGBModel(
-            loss='mse',
-            colsample_bytree=0.8879,
-            learning_rate=0.0421,
-            subsample=0.8789,
-            lambda_l1=205.6999,
-            lambda_l2=580.5258,
-            max_depth=8,
-            num_leaves=210,
-            num_threads=4,
-        )
+        model = LGBModel(**get_lgb_params_for_qlib(self.config))
         
         model.fit(dataset)
         print("  Model training complete!")

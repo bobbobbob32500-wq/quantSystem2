@@ -188,7 +188,7 @@ def run_breakout_backtest_loop(
                 "signal_grade": sig.signal_grade,
                 "volume_ratio": float(sig.volume_ratio),
             }
-            for hold_n in [1, 2, 3]:
+            for hold_n in [1, 2, 3, 4, 5]:
                 target_idx = confirm_idx + hold_n
                 if target_idx < len(sub):
                     exit_close = float(sub.loc[target_idx, "close"])

@@ -46,9 +46,14 @@ class QlibFactorAdapter:
         self.config = config or ConfigManager()
         self.db = db or DatabaseManager(self.config)
         
-        # 初始化 Qlib（使用默认配置）
+        # 初始化 Qlib（数据路径与 config.yaml 的 qlib.provider_uri 一致）
         try:
-            qlib.init(provider_uri='~/.qlib/qlib_data/cn_data')
+            import os as _os
+
+            _uri = _os.path.expanduser(
+                str(self.config.get("qlib.provider_uri", "~/.qlib/qlib_data/cn_data"))
+            )
+            qlib.init(provider_uri=_uri)
             logger.info("Qlib 初始化成功")
         except Exception as e:
             logger.warning(f"Qlib 初始化失败（可能需要先下载数据）: {e}")

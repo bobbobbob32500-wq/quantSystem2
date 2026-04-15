@@ -33,6 +33,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from src.modules.alpha158_regime_router import Alpha158RegimeRouter
+
 
 def _load_qfp():
     """加载 qlib_full_optimize_pipeline 中的回测工具（避免重复粘贴大段代码）。"""
@@ -135,11 +137,37 @@ def per_trade_detail(
                     "ts_code": symbol,
                     "rank": row.get("rank"),
                     "score": row.get("score"),
+                    "regime": row.get("alpha158_regime", "unknown"),
                     "h": horizon,
                     "ret": ret,
                 }
             )
     return pd.DataFrame(rows)
+
+
+def summarize_by_regime(detail: pd.DataFrame) -> Dict[str, Dict[str, float]]:
+    """按市场状态分组汇总收益表现"""
+    out: Dict[str, Dict[str, float]] = {}
+    if detail.empty or "regime" not in detail.columns:
+        return out
+    for regime_name, sub in detail.groupby("regime"):
+        if sub.empty:
+            continue
+        rets = sub["ret"].astype(float).values
+        wins = float(np.mean(rets > 0)) if len(rets) > 0 else 0.0
+        mean_ret = float(np.mean(rets)) if len(rets) > 0 else 0.0
+        med_ret = float(np.median(rets)) if len(rets) > 0 else 0.0
+        gains = float(np.sum(rets[rets > 0])) if len(rets) > 0 else 0.0
+        losses = float(-np.sum(rets[rets < 0])) if len(rets) > 0 else 0.0
+        pf = gains / (losses + 1e-8)
+        out[str(regime_name)] = {
+            "n": int(len(sub)),
+            "win_rate": wins,
+            "mean_return": mean_ret,
+            "median_return": med_ret,
+            "profit_factor": float(pf),
+        }
+    return out
 
 
 def main() -> None:
@@ -178,6 +206,20 @@ def main() -> None:
 
     config = ConfigManager()
     db = DatabaseManager(config)
+    regime_router = Alpha158RegimeRouter(
+        db=db,
+        lookback=int(config.get("stock_selection.alpha158_regime_lookback", 30)),
+        trend_ret5_threshold=float(
+            config.get("stock_selection.alpha158_regime_trend_ret5_threshold", 0.015)
+        ),
+        weak_ret5_threshold=float(
+            config.get("stock_selection.alpha158_regime_weak_ret5_threshold", -0.02)
+        ),
+        ma_deviation_threshold=float(
+            config.get("stock_selection.alpha158_regime_ma_deviation_threshold", 0.01)
+        ),
+        enable=bool(config.get("stock_selection.alpha158_regime_router_enabled", True)),
+    )
     trade_dates = load_trade_dates(db)
     if len(trade_dates) < 20:
         print("数据库交易日过少，无法回测")
@@ -217,12 +259,18 @@ def main() -> None:
         config_overrides=overrides,
         top_n=args.top_n,
     )
+    if not rec_df.empty:
+        regime_map = {}
+        for td in sorted(rec_df["rec_date"].astype(str).unique().tolist()):
+            regime_map[str(td)] = regime_router.decide(end_date=str(td)).regime
+        rec_df["alpha158_regime"] = rec_df["rec_date"].astype(str).map(regime_map).fillna("unknown")
 
     non_empty_days = rec_df["rec_date"].nunique() if not rec_df.empty else 0
     print(f"\n  有推荐记录交易日: {non_empty_days}/{len(signal_dates)}")
     print(f"  推荐条数合计: {len(rec_df)}")
 
     summaries = []
+    regime_summaries = {}
     for h in args.horizons:
         res = qfp.evaluate_recommendations(rec_df, db, trade_dates, h)
         qfp.print_backtest_result(f"Alpha158 T+1 入 T+{h} 出", res, h)
@@ -233,6 +281,15 @@ def main() -> None:
                 f"    分位: P25={_quantile_np(rets, 0.25):.4f}  P50={_quantile_np(rets, 0.50):.4f}  "
                 f"P75={_quantile_np(rets, 0.75):.4f}"
             )
+            by_regime = summarize_by_regime(detail)
+            regime_summaries[str(h)] = by_regime
+            if by_regime:
+                print("    分状态表现:")
+                for regime_name, stats in by_regime.items():
+                    print(
+                        f"      {regime_name:<9} n={stats['n']:>4} 胜率={stats['win_rate']:.1%} "
+                        f"均收={stats['mean_return']:.2%} 中位={stats['median_return']:.2%} PF={stats['profit_factor']:.2f}"
+                    )
         summaries.append(
             {
                 "horizon": h,
@@ -265,6 +322,7 @@ def main() -> None:
         "signal_days": len(signal_dates),
         "top_n": args.top_n,
         "horizons": summaries,
+        "regime_stats": regime_summaries,
         "recommendation_rows": int(len(rec_df)),
         "days_with_picks": int(non_empty_days),
     }

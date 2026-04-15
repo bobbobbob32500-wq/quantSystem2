@@ -18,6 +18,10 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,6 +63,11 @@ private enum class ScreenDestination(val title: String) {
     Strategy("策略中心"),
     Analytics("复盘统计"),
     NotificationLogs("通知日志"),
+    AIAssistant("AI管家"),
+    AlertCenter("预警中心"),
+    RealtimeWatcher("盯盘助手"),
+    DeepReview("深度复盘"),
+    KnowledgeBase("知识库"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,6 +167,18 @@ fun MainScreen() {
                     },
                     actions = {
                         if (extraScreen == null) {
+                            IconButton(onClick = { extraScreen = ScreenDestination.AlertCenter }) {
+                                Icon(Icons.Filled.Warning, contentDescription = "预警中心")
+                            }
+                            IconButton(onClick = { extraScreen = ScreenDestination.RealtimeWatcher }) {
+                                Icon(Icons.Filled.Visibility, contentDescription = "盯盘助手")
+                            }
+                            IconButton(onClick = { extraScreen = ScreenDestination.AIAssistant }) {
+                                Icon(Icons.Filled.SmartToy, contentDescription = "AI管家")
+                            }
+                            IconButton(onClick = { extraScreen = ScreenDestination.KnowledgeBase }) {
+                                Icon(Icons.Filled.MenuBook, contentDescription = "知识库")
+                            }
                             IconButton(onClick = { extraScreen = ScreenDestination.History }) {
                                 Icon(Icons.Filled.History, contentDescription = "执行历史")
                             }
@@ -338,6 +359,46 @@ fun MainScreen() {
                             scope.launch { snackbarHostState.showSnackbar("日志已复制到剪贴板") }
                         },
                         onRefreshHint = viewModel::sendTestNotification,
+                    )
+
+                    ScreenDestination.AIAssistant -> AIAssistantScreen(
+                        aiAvailable = state.aiAvailable,
+                        butlerStatus = state.butlerStatus,
+                        onSendMessage = viewModel::sendAIMessage,
+                        onQuickAsk = viewModel::aiQuickAsk,
+                        onStartButler = viewModel::startButler,
+                        onStopButler = viewModel::stopButler,
+                        messages = state.aiMessages,
+                        inputText = state.aiInputText,
+                        onInputTextChange = viewModel::updateAIInputText,
+                        onClearHistory = viewModel::clearAIHistory,
+                    )
+
+                    ScreenDestination.AlertCenter -> AlertCenterScreen(
+                        alerts = state.activeAlerts,
+                        summary = state.alertSummary,
+                        onAckAlert = viewModel::ackAlert,
+                        onRefresh = { viewModel.refreshAlerts(true) },
+                    )
+
+                    ScreenDestination.RealtimeWatcher -> RealtimeWatcherScreen(
+                        alerts = state.watcherAlerts,
+                        summary = state.watcherSummary,
+                        onRemoveAlert = viewModel::removeWatcherAlert,
+                        onRefresh = { viewModel.refreshWatcherAlerts(true) },
+                    )
+
+                    ScreenDestination.DeepReview -> DeepReviewScreen(
+                        result = state.deepReviewResult,
+                        onRefresh = { viewModel.executeDeepReview() },
+                    )
+
+                    ScreenDestination.KnowledgeBase -> KnowledgeBaseScreen(
+                        topics = state.knowledgeTopics,
+                        categories = state.knowledgeCategories,
+                        selectedArticle = state.selectedKnowledgeArticle,
+                        onQueryTopic = viewModel::queryKnowledge,
+                        onRefresh = { viewModel.refreshKnowledgeTopics(true) },
                     )
 
                     null -> when (selectedTab) {

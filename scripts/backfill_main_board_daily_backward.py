@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-从当前库中「最早交易日」起，再向前补沪深主板日线（默认 3 个自然月内的交易日）。
+从当前库中「最早个股交易日」起，再向前补沪深主板日线。
 
 写入表：stock_daily（与 DataUpdater.update_daily_data 同结构）。
 同时补上证指数 000001.SH 同一区间（突破策略 BreakoutStrategy 需指数序列）。
@@ -8,8 +8,10 @@
 用法:
   python scripts/backfill_main_board_daily_backward.py
   python scripts/backfill_main_board_daily_backward.py --months 3 --dry-run
+  # 将最早数据推到不晚于 20250101（从该日起的首个交易日补到当前库最早日之前）
+  python scripts/backfill_main_board_daily_backward.py --target-start 20250101
 
-依赖: Tushare Pro（config 中 data_source.tushare_token）
+依赖: Tushare Pro（环境变量 TUSHARE_TOKEN 或 config 中 data_source.tushare_token）
 """
 
 from __future__ import annotations
@@ -102,13 +104,33 @@ def _rows_from_index_df(df: pd.DataFrame, create_time: str) -> list[tuple]:
     return params_list
 
 
+def _normalize_yyyymmdd(s: str) -> str:
+    """接受 YYYYMMDD 或 YYYY-MM-DD，返回 8 位数字串。"""
+    raw = str(s).strip().replace("-", "")
+    if len(raw) != 8 or not raw.isdigit():
+        raise ValueError(f"日期格式无效: {s}")
+    return raw
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="向前补沪深主板日线 + 上证指数")
     parser.add_argument(
         "--months",
         type=int,
         default=3,
-        help="从最早数据日再往前覆盖的自然月数（默认 3）",
+        help="从最早数据日再往前覆盖的自然月数（默认 3；与 --target-start 二选一生效）",
+    )
+    parser.add_argument(
+        "--target-start",
+        type=str,
+        default=None,
+        help="目标最早窗口：补全从该日起（含当日或之后首个交易日）到当前库最早个股日之前的主板日线，例如 20250101",
+    )
+    parser.add_argument(
+        "--sleep",
+        type=float,
+        default=0.45,
+        help="每个交易日请求后的休眠秒数，降频防限流（默认 0.45）",
     )
     parser.add_argument(
         "--dry-run",
@@ -119,9 +141,12 @@ def main() -> None:
 
     config = ConfigManager()
     db = DatabaseManager(config)
-    token = config.get("data_source.tushare_token", "")
+    token = (config.get("data_source.tushare_token", "") or "").strip()
     if not token or "your_tushare_token" in str(token).lower():
-        print("错误: 请在配置中设置有效的 data_source.tushare_token")
+        print(
+            "错误: 请设置 Tushare Token：环境变量 TUSHARE_TOKEN，"
+            "或在项目根目录 .env 中配置，或写入 config 的 data_source.tushare_token"
+        )
         sys.exit(1)
 
     row = db.query_one(
@@ -138,38 +163,77 @@ def main() -> None:
         print(f"无法解析最早交易日: {anchor}")
         sys.exit(1)
 
-    anchor_dt = datetime.strptime(anchor_str, "%Y%m%d")
-    start_hint = (anchor_dt - relativedelta(months=max(1, args.months))).strftime("%Y%m%d")
-
     ts = TushareDataSource(config)
     pro = ts._init_pro()
-    cal_before = pro.trade_cal(
-        exchange="SSE",
-        start_date=start_hint,
-        end_date=anchor_str,
-        is_open="1",
-    )
-    if cal_before is None or cal_before.empty:
-        print("无法获取交易日历")
-        sys.exit(1)
 
-    prev_open = [str(x) for x in cal_before["cal_date"].tolist() if str(x) < anchor_str]
-    if not prev_open:
-        print(f"锚点 {anchor_str} 之前无交易日，无需向前补数")
+    trade_dates: list[str]
+
+    if args.target_start:
+        try:
+            target_str = _normalize_yyyymmdd(args.target_start)
+        except ValueError as e:
+            print(f"错误: {e}")
+            sys.exit(1)
+
+        if anchor_str <= target_str:
+            print(
+                f"当前个股最早日 {anchor_str} 已不晚于目标 {target_str}，无需向前补数"
+            )
+            sys.exit(0)
+
+        cal_range = pro.trade_cal(
+            exchange="SSE",
+            start_date=target_str,
+            end_date=anchor_str,
+            is_open="1",
+        )
+        if cal_range is None or cal_range.empty:
+            print("无法获取交易日历")
+            sys.exit(1)
+
+        trade_dates = sorted(
+            str(x) for x in cal_range["cal_date"].tolist() if str(x) < anchor_str
+        )
+        trade_dates = [d for d in trade_dates if d >= target_str]
+    else:
+        anchor_dt = datetime.strptime(anchor_str, "%Y%m%d")
+        start_hint = (anchor_dt - relativedelta(months=max(1, args.months))).strftime(
+            "%Y%m%d"
+        )
+
+        cal_before = pro.trade_cal(
+            exchange="SSE",
+            start_date=start_hint,
+            end_date=anchor_str,
+            is_open="1",
+        )
+        if cal_before is None or cal_before.empty:
+            print("无法获取交易日历")
+            sys.exit(1)
+
+        prev_open = [str(x) for x in cal_before["cal_date"].tolist() if str(x) < anchor_str]
+        if not prev_open:
+            print(f"锚点 {anchor_str} 之前无交易日，无需向前补数")
+            sys.exit(0)
+
+        end_backfill = max(prev_open)
+        cal_window = pro.trade_cal(
+            exchange="SSE",
+            start_date=start_hint,
+            end_date=end_backfill,
+            is_open="1",
+        )
+        trade_dates = sorted(str(x) for x in cal_window["cal_date"].tolist())
+
+    if not trade_dates:
+        print("拟补交易日列表为空，无需写入")
         sys.exit(0)
-
-    end_backfill = max(prev_open)
-    cal_window = pro.trade_cal(
-        exchange="SSE",
-        start_date=start_hint,
-        end_date=end_backfill,
-        is_open="1",
-    )
-    trade_dates = sorted(str(x) for x in cal_window["cal_date"].tolist())
 
     print("=" * 60)
     print("向前补沪深主板日线 + 上证指数")
     print(f"  锚点(当前最早个股交易日): {anchor_str}")
+    if args.target_start:
+        print(f"  目标起始: {_normalize_yyyymmdd(args.target_start)}（含该日及之后、早于锚点的交易日）")
     print(f"  拟补区间: {trade_dates[0]} -> {trade_dates[-1]}  共 {len(trade_dates)} 个交易日")
     print("=" * 60)
 
@@ -199,7 +263,7 @@ def main() -> None:
         n = db.execute_many(sql_daily, params) if params else 0
         total_stocks += n
         print(f"  [{i}/{len(trade_dates)}] {td} 主板写入约 {len(params)} 条 (executemany 返回 {n})")
-        time.sleep(0.45)
+        time.sleep(max(0.05, float(args.sleep)))
 
     # 上证指数同区间
     idx_df = ts.get_index_daily(INDEX_CODE, trade_dates[0], trade_dates[-1])

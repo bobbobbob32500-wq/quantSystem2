@@ -96,6 +96,9 @@ def build_buy_signal(
         signal_subtype=signal_subtype,
     )
 
+    execution_tier = str(signal_details.get("execution_tier", "") or "").strip().lower()
+    execution_note = str(signal_details.get("execution_note", "") or "").strip()
+
     buy_signal = {
         "symbol": candidate["symbol"],
         "name": candidate["name"],
@@ -110,6 +113,8 @@ def build_buy_signal(
         "signal_type": signal.reason,
         "signal_subtype": signal_subtype,
         "signal_details": signal_details,
+        "execution_tier": execution_tier,
+        "execution_note": execution_note,
         "buy_template_source": buy_template_source,
         "buy_route": buy_route,
         "buy_route_label": buy_route_label,

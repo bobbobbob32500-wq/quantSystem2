@@ -51,7 +51,7 @@ def launch_dashboard_in_new_console() -> tuple[bool, str]:
             )
         else:
             subprocess.Popen(cmd, cwd=str(root), start_new_session=True)
-        host = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
+        host = os.environ.get("DASHBOARD_HOST", "0.0.0.0")
         port = os.environ.get("DASHBOARD_PORT", "8501")
         return (
             True,

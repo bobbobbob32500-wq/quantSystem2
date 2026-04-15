@@ -6,6 +6,7 @@
 优化: 波动率过滤 + 趋势确认 + 评分阈值 + 沪深主板
 """
 
+import json
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -15,6 +16,7 @@ from src.core.logger import get_logger
 from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
 from src.core.exceptions import StockSelectionException
+from src.modules.alpha158_regime_router import Alpha158RegimeRouter
 from src.modules.factor_cache import FactorValueStorage
 from src.modules.feedback_guard import FeedbackPerformanceGuard
 
@@ -169,6 +171,71 @@ class StockSelector:
         self.alpha158_roc5_min = float(config.get("stock_selection.alpha158_roc5_min", -0.02))
         self.alpha158_score_threshold = float(
             config.get("stock_selection.alpha158_score_threshold", 0.5)
+        )
+        self.alpha158_weak_filter_enabled = bool(
+            config.get("stock_selection.alpha158_weak_filter_enabled", True)
+        )
+        self.alpha158_max_rsi14 = float(
+            config.get("stock_selection.alpha158_max_rsi14", 62.0)
+        )
+        self.alpha158_max_vol_ratio5 = float(
+            config.get("stock_selection.alpha158_max_vol_ratio5", 1.80)
+        )
+        self.alpha158_max_boll_pos = float(
+            config.get("stock_selection.alpha158_max_boll_pos", 1.00)
+        )
+        self.alpha158_max_vstd30 = float(
+            config.get("stock_selection.alpha158_max_vstd30", 0.55)
+        )
+        self.alpha158_max_roc5_chase = float(
+            config.get("stock_selection.alpha158_max_roc5_chase", 0.04)
+        )
+        self.alpha158_regime_router_enabled = bool(
+            config.get("stock_selection.alpha158_regime_router_enabled", True)
+        )
+        self.alpha158_regime_lookback = int(
+            config.get("stock_selection.alpha158_regime_lookback", 30)
+        )
+        self.alpha158_regime_trend_ret5_threshold = float(
+            config.get("stock_selection.alpha158_regime_trend_ret5_threshold", 0.015)
+        )
+        self.alpha158_regime_weak_ret5_threshold = float(
+            config.get("stock_selection.alpha158_regime_weak_ret5_threshold", -0.02)
+        )
+        self.alpha158_regime_ma_deviation_threshold = float(
+            config.get("stock_selection.alpha158_regime_ma_deviation_threshold", 0.01)
+        )
+        self.alpha158_regime_trend_score_threshold_delta = float(
+            config.get("stock_selection.alpha158_regime_trend_score_threshold_delta", 0.03)
+        )
+        self.alpha158_regime_sideways_score_threshold_delta = float(
+            config.get("stock_selection.alpha158_regime_sideways_score_threshold_delta", 0.06)
+        )
+        self.alpha158_regime_weak_score_threshold_delta = float(
+            config.get("stock_selection.alpha158_regime_weak_score_threshold_delta", 0.10)
+        )
+        self.alpha158_regime_trend_top_n_multiplier = float(
+            config.get("stock_selection.alpha158_regime_trend_top_n_multiplier", 1.00)
+        )
+        self.alpha158_regime_sideways_top_n_multiplier = float(
+            config.get("stock_selection.alpha158_regime_sideways_top_n_multiplier", 0.70)
+        )
+        self.alpha158_regime_weak_top_n_multiplier = float(
+            config.get("stock_selection.alpha158_regime_weak_top_n_multiplier", 0.45)
+        )
+        self.alpha158_regime_router = Alpha158RegimeRouter(
+            db=self.db,
+            lookback=self.alpha158_regime_lookback,
+            trend_ret5_threshold=self.alpha158_regime_trend_ret5_threshold,
+            weak_ret5_threshold=self.alpha158_regime_weak_ret5_threshold,
+            ma_deviation_threshold=self.alpha158_regime_ma_deviation_threshold,
+            trend_score_threshold_delta=self.alpha158_regime_trend_score_threshold_delta,
+            sideways_score_threshold_delta=self.alpha158_regime_sideways_score_threshold_delta,
+            weak_score_threshold_delta=self.alpha158_regime_weak_score_threshold_delta,
+            trend_top_n_multiplier=self.alpha158_regime_trend_top_n_multiplier,
+            sideways_top_n_multiplier=self.alpha158_regime_sideways_top_n_multiplier,
+            weak_top_n_multiplier=self.alpha158_regime_weak_top_n_multiplier,
+            enable=self.alpha158_regime_router_enabled,
         )
         self.max_recent_limit_up_count_20d = int(
             config.get("stock_selection.max_recent_limit_up_count_20d", 2)
@@ -2999,6 +3066,7 @@ class StockSelector:
 
     # Alpha158 高IC因子权重 (12个长期 + 3个短期)
     ALPHA158_WEIGHTS = {
+        # ── 原有15因子 ──
         'MA30':   +0.2335, 'MA60':   +0.2452,
         'ROC30':  +0.2331, 'ROC60':  +0.1983,
         'QTLU60': +0.2318, 'QTLD60': +0.2178,
@@ -3007,12 +3075,29 @@ class StockSelector:
         'RSV60':  -0.1723, 'RANK60': -0.2007,
         'MA5':    +0.15,   'ROC5':   +0.12,
         'QTLU20': +0.10,
+        # ── 扩展因子（量价、波动、动量）──
+        'VOL_RATIO5':  +0.08,   # 5日量比
+        'VOL_RATIO20': +0.06,   # 20日量比
+        'VWAP_DEV':    +0.10,   # 成交量加权均价偏离
+        'AMP20':       -0.08,   # 20日振幅（反向：低波动更优）
+        'AMP5':        -0.05,   # 5日振幅
+        'TURN20':      +0.07,   # 20日换手率均值
+        'BOLL_POS':    +0.09,   # 布林带位置
+        'MACD_NORM':   +0.08,   # 归一化MACD
+        'RSI14':       +0.10,   # 14日RSI
+        'KDJ_K':       +0.06,   # KDJ-K值
+        'OBV_NORM':    +0.07,   # 归一化OBV
+        'HIGH_LOW_RATIO': -0.05, # 60日高低比（反向：不追高）
+        'MA_CROSS':    +0.08,   # 均线多头排列强度
+        'VOL_PRICE_CORR': +0.06, # 量价相关性
+        'ROC10':       +0.09,   # 10日动量
+        'MA10':        +0.07,   # 10日均线偏离
     }
 
     # Alpha158 硬过滤与评分阈值默认值在 __init__ 的 alpha158_*（勿用 1e8：amount 为千元）
 
     def _compute_alpha158_factors(self, close, high, low, vol, amount, n):
-        """计算Alpha158因子"""
+        """计算Alpha158因子（扩展版：30+因子）"""
         f = {}
 
         if n >= 30:
@@ -3024,12 +3109,17 @@ class StockSelector:
         if n >= 5:
             ma = np.mean(close[-5:])
             f['MA5'] = (close[-1] - ma) / (ma + 1e-8)
+        if n >= 10:
+            ma = np.mean(close[-10:])
+            f['MA10'] = (close[-1] - ma) / (ma + 1e-8)
         if n >= 31 and close[-31] > 1e-8:
             f['ROC30'] = (close[-1] - close[-31]) / close[-31]
         if n >= 61 and close[-61] > 1e-8:
             f['ROC60'] = (close[-1] - close[-61]) / close[-61]
         if n >= 6 and close[-6] > 1e-8:
             f['ROC5'] = (close[-1] - close[-6]) / close[-6]
+        if n >= 11 and close[-11] > 1e-8:
+            f['ROC10'] = (close[-1] - close[-11]) / close[-11]
         if n >= 60:
             f['QTLU60'] = np.sum(close[-1] > close[-60:]) / 60.0
             f['QTLD60'] = np.sum(close[-1] < close[-60:]) / 60.0
@@ -3051,6 +3141,111 @@ class StockSelector:
             f['RSV60'] = (close[-1] - np.min(low[-60:])) / (np.max(high[-60:]) - np.min(low[-60:]) + 1e-8)
             f['RANK60'] = np.sum(close[-1] >= close[-60:]) / 60.0
 
+        # ── 扩展因子 ──
+
+        # 量比因子
+        if n >= 6 and np.mean(vol[-20:]) > 1e-8:
+            f['VOL_RATIO5'] = vol[-1] / np.mean(vol[-5:]) if np.mean(vol[-5:]) > 1e-8 else 1.0
+        if n >= 21 and np.mean(vol[-20:]) > 1e-8:
+            f['VOL_RATIO20'] = np.mean(vol[-5:]) / np.mean(vol[-20:])
+
+        # VWAP偏离
+        if n >= 5:
+            v5 = vol[-5:]
+            vp5 = amount[-5:]  # amount = close * vol (千元)
+            total_vp = np.sum(vp5)
+            if total_vp > 1e-8:
+                vwap = total_vp / np.sum(v5)
+                f['VWAP_DEV'] = (close[-1] - vwap) / (vwap + 1e-8)
+
+        # 振幅因子
+        if n >= 20:
+            amp20 = (np.max(high[-20:]) - np.min(low[-20:])) / (np.mean(close[-20:]) + 1e-8)
+            f['AMP20'] = amp20
+        if n >= 5:
+            amp5 = (np.max(high[-5:]) - np.min(low[-5:])) / (np.mean(close[-5:]) + 1e-8)
+            f['AMP5'] = amp5
+
+        # 换手率（用vol近似）
+        if n >= 20:
+            f['TURN20'] = np.mean(vol[-20:]) / (np.mean(vol[-60:]) + 1e-8) if n >= 60 else 0.0
+
+        # 布林带位置
+        if n >= 20:
+            ma20 = np.mean(close[-20:])
+            std20 = np.std(close[-20:])
+            if std20 > 1e-8:
+                f['BOLL_POS'] = (close[-1] - ma20) / (2 * std20)
+
+        # MACD归一化
+        if n >= 35:
+            # EMA12, EMA26
+            ema12 = close[-1]
+            ema26 = close[-1]
+            alpha12 = 2.0 / 13.0
+            alpha26 = 2.0 / 27.0
+            for i in range(min(26, n - 1)):
+                idx = -(i + 1)
+                ema12 = close[idx] * alpha12 + ema12 * (1 - alpha12)
+                ema26 = close[idx] * alpha26 + ema26 * (1 - alpha26)
+            dif = ema12 - ema26
+            dea = dif * 0.2 + dif * 0.8  # 简化DEA
+            macd = 2 * (dif - dea)
+            f['MACD_NORM'] = macd / (close[-1] + 1e-8)
+
+        # RSI14
+        if n >= 15:
+            diffs = np.diff(close[-15:])
+            gains = np.where(diffs > 0, diffs, 0)
+            losses = np.where(diffs < 0, -diffs, 0)
+            avg_gain = np.mean(gains)
+            avg_loss = np.mean(losses)
+            if avg_loss > 1e-8:
+                rs = avg_gain / avg_loss
+                f['RSI14'] = 100 - 100 / (1 + rs)
+            else:
+                f['RSI14'] = 100.0 if avg_gain > 1e-8 else 50.0
+
+        # KDJ-K
+        if n >= 9:
+            low9 = np.min(low[-9:])
+            high9 = np.max(high[-9:])
+            if high9 - low9 > 1e-8:
+                rsv = (close[-1] - low9) / (high9 - low9) * 100
+                f['KDJ_K'] = 2 / 3 * 50 + 1 / 3 * rsv  # 简化K
+
+        # OBV归一化
+        if n >= 20:
+            obv = 0.0
+            for i in range(1, min(20, n)):
+                if close[-i] > close[-i - 1]:
+                    obv += vol[-i]
+                elif close[-i] < close[-i - 1]:
+                    obv -= vol[-i]
+            f['OBV_NORM'] = obv / (np.sum(vol[-20:]) + 1e-8)
+
+        # 60日高低比
+        if n >= 60:
+            h60 = np.max(high[-60:])
+            l60 = np.min(low[-60:])
+            if h60 > 1e-8:
+                f['HIGH_LOW_RATIO'] = (close[-1] - l60) / (h60 - l60 + 1e-8)
+
+        # 均线多头排列强度
+        if n >= 60:
+            ma5 = np.mean(close[-5:])
+            ma20_val = np.mean(close[-20:])
+            ma60_val = np.mean(close[-60:])
+            if ma60_val > 1e-8:
+                f['MA_CROSS'] = ((ma5 / ma20_val - 1) + (ma20_val / ma60_val - 1)) / 2
+
+        # 量价相关性
+        if n >= 20:
+            rets20 = np.diff(close[-21:]) / (close[-21:-1] + 1e-8)
+            vol_chg = np.diff(vol[-21:]) / (vol[-21:-1] + 1e-8)
+            if np.std(rets20) > 1e-8 and np.std(vol_chg) > 1e-8:
+                f['VOL_PRICE_CORR'] = np.corrcoef(rets20, vol_chg)[0, 1]
+
         # 过滤用指标
         if n >= 20:
             f['_MA5'] = np.mean(close[-5:])
@@ -3063,6 +3258,8 @@ class StockSelector:
 
     def _run_alpha158_selection(self, end_date: str) -> List[Dict]:
         '''Alpha158 IC加权选股核心逻辑'''
+        regime_decision = self.alpha158_regime_router.decide(end_date=end_date)
+
         stock_list = self.get_stock_list(end_date=end_date, point_in_time=False)
         if stock_list.empty:
             logger.error("股票列表为空，请先更新数据")
@@ -3124,10 +3321,19 @@ class StockSelector:
                     continue
                 if f.get("_vol30", 0) > self.alpha158_vol_max:
                     continue
-                if f.get("_MA5", 0) <= f.get("_MA20", 0):
+                # 趋势过滤：回调企稳逻辑（实证：追涨股T+1低开且胜率低）
+                # 1. 排除过度追涨：MA5超过MA20 3%以上
+                ma5 = f.get("_MA5", 0)
+                ma20 = f.get("_MA20", 1)
+                if ma20 > 0 and ma5 / ma20 > 1.03:
                     continue
-                if f.get("_ROC5", 0) < self.alpha158_roc5_min:
+                # 2. 排除极端下跌：5日跌幅超8%
+                roc5 = f.get("_ROC5", 0)
+                if roc5 < -0.08:
                     continue
+                # 3. 要求有流动性：20日均量过滤已在amount中
+                # 4. 偏好回调股：ROC5在-8%~0%的回调区间加分
+                #    （通过评分权重实现，不在硬过滤中）
 
                 f["ts_code"] = ts_code
                 f["name"] = name
@@ -3146,7 +3352,7 @@ class StockSelector:
             logger.warning("无股票通过Alpha158过滤")
             return []
 
-        logger.info("通过过滤: %d 只, 开始IC加权评分...", len(all_factors))
+        logger.info("通过过滤: %d 只, 开始评分...", len(all_factors))
 
         fdf = pd.DataFrame(all_factors)
 
@@ -3160,24 +3366,165 @@ class StockSelector:
             else:
                 fdf[col] = 0.0
 
-        score = np.zeros(len(fdf))
-        for fname, w in self.ALPHA158_WEIGHTS.items():
-            if fname in fdf.columns:
-                score += fdf[fname].fillna(0).values * w
+        # 尝试使用LightGBM模型评分
+        lgb_score = None
+        try:
+            import os
+            # 从项目根目录查找模型
+            _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            model_path = os.path.join(_root, "models", "alpha158_lgb_model.txt")
+            config_path = os.path.join(_root, "models", "alpha158_lgb_config.json")
+            if os.path.exists(model_path) and os.path.exists(config_path):
+                import lightgbm as lgb
+                with open(config_path, "r", encoding="utf-8") as f:
+                    lgb_config = json.load(f)
+                lgb_feature_cols = lgb_config.get("feature_cols", [])
+                lgb_model = lgb.Booster(model_file=model_path)
+                # 准备特征矩阵
+                X_pred = pd.DataFrame(index=fdf.index)
+                for c in lgb_feature_cols:
+                    if c in fdf.columns:
+                        X_pred[c] = fdf[c].fillna(0.0)
+                    else:
+                        X_pred[c] = 0.0
+                lgb_score = lgb_model.predict(X_pred)
+                logger.info("使用LightGBM模型评分 (AUC=%.4f)", lgb_config.get("best_auc", 0))
+        except Exception as e:
+            logger.debug("LightGBM评分失败，回退到IC加权: %s", e)
 
-        fdf["alpha158_score"] = score
+        if lgb_score is not None:
+            # LightGBM概率作为评分（0~1映射到评分）
+            fdf["alpha158_score"] = lgb_score
+        else:
+            # 回退到IC加权
+            score = np.zeros(len(fdf))
+            for fname, w in self.ALPHA158_WEIGHTS.items():
+                if fname in fdf.columns:
+                    score += fdf[fname].fillna(0).values * w
+            fdf["alpha158_score"] = score
 
-        fdf = fdf[fdf["alpha158_score"] > self.alpha158_score_threshold]
+        # 双引擎状态融合（趋势 / 回调）
+        fdf["_end_date"] = end_date
+        fdf["alpha158_score"] = self.alpha158_regime_router.apply_dual_engine_score(
+            fdf=fdf,
+            base_score_col="alpha158_score",
+        )
+
+        # 回调偏好加分：ROC5在-8%~0%的回调区间加分（实证：回调股T+1高开且胜率高）
+        if "_ROC5" in fdf.columns or "ROC5" in fdf.columns:
+            roc5_col = "ROC5" if "ROC5" in fdf.columns else "_ROC5"
+            if roc5_col in fdf.columns:
+                roc5_vals = fdf[roc5_col].fillna(0).values
+                # 回调区间(-0.06, -0.01)加分，追涨区间(>0.03)减分
+                pullback_bonus = np.where(
+                    (roc5_vals > -0.06) & (roc5_vals < -0.01), 0.3,  # 回调加分
+                    np.where(roc5_vals > 0.03, -0.2, 0.0)  # 追涨减分
+                )
+                fdf["alpha158_score"] = fdf["alpha158_score"] + pullback_bonus
+
+        # 去弱留强过滤：剔除过热追涨与高波动弱质样本
+        if self.alpha158_weak_filter_enabled and not fdf.empty:
+            before_weak_filter = len(fdf)
+            keep_mask = pd.Series(True, index=fdf.index)
+
+            if "RSI14" in fdf.columns:
+                keep_mask &= fdf["RSI14"].fillna(50.0) <= self.alpha158_max_rsi14
+            if "VOL_RATIO5" in fdf.columns:
+                keep_mask &= fdf["VOL_RATIO5"].fillna(1.0) <= self.alpha158_max_vol_ratio5
+            if "BOLL_POS" in fdf.columns:
+                keep_mask &= fdf["BOLL_POS"].fillna(0.0) <= self.alpha158_max_boll_pos
+            if "VSTD30" in fdf.columns:
+                keep_mask &= fdf["VSTD30"].fillna(0.0) <= self.alpha158_max_vstd30
+
+            if "ROC5" in fdf.columns and "RSI14" in fdf.columns:
+                chase_mask = (fdf["ROC5"].fillna(0.0) > self.alpha158_max_roc5_chase) & (
+                    fdf["RSI14"].fillna(50.0) > (self.alpha158_max_rsi14 - 2.0)
+                )
+                keep_mask &= ~chase_mask
+
+            # 震荡/弱势下进一步收紧，避免“弱势假反弹+追高”
+            if regime_decision.regime in ("sideways", "weak"):
+                if "RSI14" in fdf.columns:
+                    keep_mask &= fdf["RSI14"].fillna(50.0) <= (self.alpha158_max_rsi14 - 2.0)
+                if "VOL_RATIO5" in fdf.columns:
+                    keep_mask &= fdf["VOL_RATIO5"].fillna(1.0) <= (self.alpha158_max_vol_ratio5 - 0.1)
+
+            fdf = fdf[keep_mask]
+            logger.info(
+                "去弱留强过滤: %d -> %d (状态=%s)",
+                before_weak_filter,
+                len(fdf),
+                regime_decision.regime,
+            )
+
+        dynamic_score_threshold = self.alpha158_score_threshold + regime_decision.score_threshold_delta
+        fdf = fdf[fdf["alpha158_score"] > dynamic_score_threshold]
+
+        # 行业周期权重调整
+        try:
+            from src.modules.industry_cycle import IndustryCycleDetector
+            trade_dates_all = [
+                r["trade_date"] for r in self.db.query(
+                    "SELECT DISTINCT trade_date FROM stock_daily ORDER BY trade_date ASC"
+                )
+            ]
+            trade_dates_str = [
+                d.strftime("%Y%m%d") if hasattr(d, "strftime") else str(d) for d in trade_dates_all
+            ]
+            detector = IndustryCycleDetector(self.db, lookback=20, trend_window=5)
+            ind_weights = detector.get_industry_weights(end_date, trade_dates_str)
+            if ind_weights:
+                fdf["ind_weight"] = fdf["industry"].map(ind_weights).fillna(1.0)
+                fdf["alpha158_score"] = fdf["alpha158_score"] * fdf["ind_weight"]
+                n_rising = sum(1 for v in ind_weights.values() if v > 1.05)
+                n_falling = sum(1 for v in ind_weights.values() if v < 0.7)
+                logger.info(
+                    "行业周期调整: %d 行业上升, %d 行业下降",
+                    n_rising, n_falling,
+                )
+        except Exception as e:
+            logger.debug("行业周期调整失败: %s", e)
+
+        # 大盘过滤：大盘低于20日均线时标记，供上层减少选股数量
+        market_below_ma20 = False
+        try:
+            idx_rows = self.db.query(
+                "SELECT trade_date, AVG(close) as avg_close FROM stock_daily "
+                "WHERE trade_date <= ? AND close > 0 AND (ts_code LIKE '60%.SH') "
+                "GROUP BY trade_date ORDER BY trade_date DESC LIMIT 21",
+                (end_date,),
+            )
+            if len(idx_rows) >= 20:
+                idx_closes = [float(r["avg_close"]) for r in reversed(idx_rows)]
+                idx_ma20 = np.mean(idx_closes[:20])
+                idx_current = idx_closes[-1]
+                if idx_ma20 > 0 and idx_current < idx_ma20:
+                    market_below_ma20 = True
+                    logger.info(
+                        "大盘过滤: 均价%.2f < MA20 %.2f, 标记弱市",
+                        idx_current, idx_ma20,
+                    )
+        except Exception as e:
+            logger.debug("大盘过滤失败: %s", e)
+
         fdf = fdf.sort_values("alpha158_score", ascending=False)
 
         logger.info(
-            "超阈值候选: %d 只 (阈值=%.1f)", len(fdf), self.alpha158_score_threshold
+            "超阈值候选: %d 只 (阈值=%.2f, 状态=%s)%s",
+            len(fdf), dynamic_score_threshold, regime_decision.regime,
+            " [弱市]" if market_below_ma20 else "",
         )
 
         results = []
         for _, row in fdf.iterrows():
             score_val = float(row["alpha158_score"])
-            mapped_score = max(0, min(100, 50 + score_val * 10))
+            # LightGBM输出0~1概率，IC加权输出z-score，分别映射
+            if lgb_score is not None:
+                mapped_score = max(0, min(100, score_val * 100))
+                level = "strong" if score_val > 0.6 else ("medium" if score_val > 0.5 else "weak")
+            else:
+                mapped_score = max(0, min(100, 50 + score_val * 10))
+                level = "strong" if score_val > 1.0 else ("medium" if score_val > 0.7 else "weak")
 
             results.append(
                 {
@@ -3185,12 +3532,14 @@ class StockSelector:
                     "name": row.get("name", ""),
                     "industry": row.get("industry", ""),
                     "total_score": mapped_score,
-                    "level": "strong"
-                    if score_val > 1.0
-                    else ("medium" if score_val > 0.7 else "weak"),
+                    "level": level,
                     "alpha158_raw": score_val,
                     "feedback_guard_level": "normal",
                     "feedback_guard_active": False,
+                    "market_below_ma20": market_below_ma20,
+                    "alpha158_regime": regime_decision.regime,
+                    "alpha158_regime_reason": regime_decision.reason,
+                    "alpha158_top_n_multiplier": regime_decision.top_n_multiplier,
                 }
             )
 
@@ -3223,6 +3572,15 @@ class StockSelector:
         effective_top_n = int(feedback_guard_profile.get("effective_top_n", self.top_n))
 
         results = self._run_alpha158_selection(end_date=end_date)
+        if results:
+            regime_top_n_multiplier = float(results[0].get("alpha158_top_n_multiplier", 1.0))
+            # 向下取整，确保收缩仓位在小样本下也能真实生效（避免 round 导致 0.8/0.7 同为4）
+            effective_top_n = max(1, int(effective_top_n * regime_top_n_multiplier))
+            logger.info(
+                "状态路由调整后有效选股数: %d (x%.2f)",
+                effective_top_n,
+                regime_top_n_multiplier,
+            )
         results = self._zscore_normalize_scores(results)
 
         results.sort(
@@ -3230,6 +3588,11 @@ class StockSelector:
         )
 
         diversified_results = self.diversify_by_industry(results)
+
+        # 大盘弱市时减少选股数量（实证：大盘<MA20时均收-0.18%）
+        if diversified_results and diversified_results[0].get("market_below_ma20", False):
+            effective_top_n = max(1, effective_top_n // 2)
+            logger.info("弱市模式: 选股数量减半为 %d", effective_top_n)
 
         top_results = diversified_results[:effective_top_n]
 

@@ -14,6 +14,9 @@ scipy>=1.11.0
 scikit-learn>=1.3.0
 lightgbm>=4.0.0
 
+# 策略/超参数优化（对接自研回测目标函数）
+optuna>=3.6.0
+
 # 数据库
 # sqlite3 为Python内置模块，无需安装
 
@@ -46,3 +49,7 @@ cryptography==41.0.7
 
 # 类型检查
 typing-extensions==4.8.0
+
+# AI集成（本地大模型 - 可选依赖）
+# 需要先安装Ollama: https://ollama.com/download
+ollama>=0.1.0

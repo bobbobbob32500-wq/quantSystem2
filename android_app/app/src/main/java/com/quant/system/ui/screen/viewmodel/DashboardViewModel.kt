@@ -17,11 +17,21 @@ import com.quant.system.data.model.StockDetailPayload
 import com.quant.system.data.model.StrategyMeta
 import com.quant.system.data.model.TradeReminderSetting
 import com.quant.system.data.model.WatchlistPayload
+import com.quant.system.data.model.AIStatus
+import com.quant.system.data.model.ButlerStatus
+import com.quant.system.data.model.AlertItem
+import com.quant.system.data.model.AlertSummary
+import com.quant.system.data.model.PriceAlertItem
+import com.quant.system.data.model.WatcherSummary
+import com.quant.system.data.model.DeepReviewResult
+import com.quant.system.data.model.KnowledgeTopic
+import com.quant.system.data.model.KnowledgeArticle
 import com.quant.system.core.data.DataSyncOptimizer
 import com.quant.system.core.performance.AppPerformanceOptimizer
 import com.quant.system.core.stability.GlobalExceptionHandler
 import com.quant.system.core.ux.PerformanceMonitor
 import com.quant.system.core.ux.UserExperienceOptimizer
+import com.quant.system.data.repository.AIRepository
 import com.quant.system.data.repository.DashboardRepository
 import com.quant.system.data.repository.LocalCacheRepository
 import com.quant.system.data.repository.SelectionHistoryRepository
@@ -111,10 +121,27 @@ data class DashboardUiState(
     val isUsingCachedData: Boolean = false,
     val pendingNavigationTarget: NavigationTarget? = null,
     val navigationVersion: Long = 0L,
+    // AI管家相关状态
+    val aiAvailable: Boolean = false,
+    val aiStatus: AIStatus? = null,
+    val butlerStatus: ButlerStatus? = null,
+    val aiMessages: List<ChatMessage> = emptyList(),
+    val aiInputText: String = "",
+    val isAiLoading: Boolean = false,
+    // 扩展功能状态
+    val activeAlerts: List<AlertItem> = emptyList(),
+    val alertSummary: AlertSummary? = null,
+    val watcherAlerts: List<PriceAlertItem> = emptyList(),
+    val watcherSummary: WatcherSummary? = null,
+    val deepReviewResult: DeepReviewResult? = null,
+    val knowledgeTopics: List<KnowledgeTopic> = emptyList(),
+    val knowledgeCategories: List<String> = emptyList(),
+    val selectedKnowledgeArticle: KnowledgeArticle? = null,
 )
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
     private val repo = DashboardRepository(application)
+    private val aiRepo = AIRepository(application)
     private val settings = SettingsRepository(application)
     private val cache = LocalCacheRepository(application)
     private val selectionHistoryRepo = SelectionHistoryRepository(application)
@@ -174,6 +201,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             refreshStrategies(false)
             refreshAnalyticsSummary(false)
             refreshWatchlist(false)
+            refreshAIStatus(false)
         }
         setAutoRefreshEnabled(true)
     }
@@ -980,5 +1008,212 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private companion object {
         const val DASHBOARD_REFRESH_MIN_INTERVAL_MS = 2_500L
+    }
+    
+    // ==================== AI管家相关方法 ====================
+    
+    /**
+     * 刷新AI服务状态
+     */
+    private fun refreshAIStatus(showNotice: Boolean) = viewModelScope.launch {
+        // 获取AI服务状态
+        aiRepo.getAIStatus(uiState.currentBaseUrl).onSuccess { status ->
+            uiState = uiState.copy(
+                aiAvailable = status.available,
+                aiStatus = status,
+            )
+        }.onFailure {
+            uiState = uiState.copy(aiAvailable = false)
+            if (showNotice) post("AI服务不可用", NoticeType.Info)
+        }
+        
+        // 获取管家状态
+        aiRepo.getButlerStatus(uiState.currentBaseUrl).onSuccess { status ->
+            uiState = uiState.copy(butlerStatus = status)
+        }.onFailure {
+            // 忽略管家状态获取失败
+        }
+    }
+    
+    /**
+     * 发送AI消息
+     */
+    fun sendAIMessage(message: String) = viewModelScope.launch {
+        if (message.isBlank()) return@launch
+        if (uiState.isAiLoading) {
+            post("AI正在思考中，请稍候", NoticeType.Info)
+            return@launch
+        }
+        
+        // 添加用户消息
+        val userMessage = ChatMessage(role = "user", content = message)
+        val loadingMessage = ChatMessage(role = "assistant", content = "", isLoading = true)
+        uiState = uiState.copy(
+            aiMessages = uiState.aiMessages + userMessage + loadingMessage,
+            aiInputText = "",
+            isAiLoading = true,
+        )
+        
+        // 调用AI对话
+        aiRepo.aiChat(uiState.currentBaseUrl, message).onSuccess { response ->
+            val assistantMessage = ChatMessage(role = "assistant", content = response)
+            uiState = uiState.copy(
+                aiMessages = uiState.aiMessages.dropLast(1) + assistantMessage,
+                isAiLoading = false,
+            )
+        }.onFailure { e ->
+            val errorMessage = ChatMessage(
+                role = "system",
+                content = "AI响应失败: ${e.message ?: "未知错误"}"
+            )
+            uiState = uiState.copy(
+                aiMessages = uiState.aiMessages.dropLast(1) + errorMessage,
+                isAiLoading = false,
+            )
+            post(e.message ?: "AI对话失败", NoticeType.Error)
+        }
+    }
+    
+    /**
+     * 快速预设问答
+     */
+    fun aiQuickAsk(key: String) = viewModelScope.launch {
+        if (uiState.isAiLoading) {
+            post("AI正在思考中，请稍候", NoticeType.Info)
+            return@launch
+        }
+        
+        val userMessage = ChatMessage(role = "user", content = key)
+        val loadingMessage = ChatMessage(role = "assistant", content = "", isLoading = true)
+        uiState = uiState.copy(
+            aiMessages = uiState.aiMessages + userMessage + loadingMessage,
+            isAiLoading = true,
+        )
+        
+        aiRepo.aiQuickAsk(uiState.currentBaseUrl, key).onSuccess { response ->
+            val assistantMessage = ChatMessage(role = "assistant", content = response)
+            uiState = uiState.copy(
+                aiMessages = uiState.aiMessages.dropLast(1) + assistantMessage,
+                isAiLoading = false,
+            )
+        }.onFailure { e ->
+            val errorMessage = ChatMessage(
+                role = "system",
+                content = "快速问答失败: ${e.message ?: "未知错误"}"
+            )
+            uiState = uiState.copy(
+                aiMessages = uiState.aiMessages.dropLast(1) + errorMessage,
+                isAiLoading = false,
+            )
+            post(e.message ?: "快速问答失败", NoticeType.Error)
+        }
+    }
+    
+    /**
+     * 启动管家服务
+     */
+    fun startButler() = viewModelScope.launch {
+        aiRepo.startButler(uiState.currentBaseUrl).onSuccess {
+            post(it, NoticeType.Success)
+            refreshAIStatus(false)
+        }.onFailure { e ->
+            post(e.message ?: "启动管家失败", NoticeType.Error)
+        }
+    }
+    
+    /**
+     * 停止管家服务
+     */
+    fun stopButler() = viewModelScope.launch {
+        aiRepo.stopButler(uiState.currentBaseUrl).onSuccess {
+            post(it, NoticeType.Success)
+            refreshAIStatus(false)
+        }.onFailure { e ->
+            post(e.message ?: "停止管家失败", NoticeType.Error)
+        }
+    }
+    
+    /**
+     * 更新AI输入文本
+     */
+    fun updateAIInputText(text: String) {
+        uiState = uiState.copy(aiInputText = text)
+    }
+    
+    /**
+     * 清空AI对话历史
+     */
+    fun clearAIHistory() {
+        uiState = uiState.copy(aiMessages = emptyList())
+        post("对话历史已清空", NoticeType.Success)
+    }
+    
+    // ==================== 扩展功能方法 ====================
+    
+    /** 刷新预警 */
+    fun refreshAlerts(showNotice: Boolean) = viewModelScope.launch {
+        repo.getActiveAlerts(uiState.currentBaseUrl).onSuccess {
+            uiState = uiState.copy(activeAlerts = it)
+        }.onFailure { if (showNotice) post(it.message ?: "加载预警失败", NoticeType.Error) }
+        repo.getAlertSummary(uiState.currentBaseUrl).onSuccess {
+            uiState = uiState.copy(alertSummary = it)
+        }
+    }
+    
+    /** 确认预警 */
+    fun ackAlert(alertId: String) = viewModelScope.launch {
+        repo.ackAlert(uiState.currentBaseUrl, alertId).onSuccess {
+            post("预警已确认", NoticeType.Success)
+            refreshAlerts(false)
+        }.onFailure { post(it.message ?: "确认失败", NoticeType.Error) }
+    }
+    
+    /** 刷新盯盘提醒 */
+    fun refreshWatcherAlerts(showNotice: Boolean) = viewModelScope.launch {
+        repo.getWatcherAlerts(uiState.currentBaseUrl).onSuccess {
+            uiState = uiState.copy(watcherAlerts = it)
+        }.onFailure { if (showNotice) post(it.message ?: "加载盯盘失败", NoticeType.Error) }
+        repo.getWatcherSummary(uiState.currentBaseUrl).onSuccess {
+            uiState = uiState.copy(watcherSummary = it)
+        }
+    }
+    
+    /** 移除盯盘提醒 */
+    fun removeWatcherAlert(alertId: String) = viewModelScope.launch {
+        repo.removeWatcherAlert(uiState.currentBaseUrl, alertId).onSuccess {
+            post("提醒已移除", NoticeType.Success)
+            refreshWatcherAlerts(false)
+        }.onFailure { post(it.message ?: "移除失败", NoticeType.Error) }
+    }
+    
+    /** 执行深度复盘 */
+    fun executeDeepReview() = viewModelScope.launch {
+        val trades = uiState.snapshot?.virtualTrades?.closedTrades?.map { mapOf(
+            "symbol" to (it.symbol ?: ""),
+            "name" to (it.name ?: ""),
+            "pnl_pct" to (it.pnlPct?.toString() ?: "0"),
+            "hold_days" to "1",
+        ) } ?: emptyList()
+        repo.deepReview(uiState.currentBaseUrl, trades).onSuccess {
+            uiState = uiState.copy(deepReviewResult = it)
+            post("深度复盘完成", NoticeType.Success)
+        }.onFailure { post(it.message ?: "深度复盘失败", NoticeType.Error) }
+    }
+    
+    /** 刷新知识库主题 */
+    fun refreshKnowledgeTopics(showNotice: Boolean) = viewModelScope.launch {
+        repo.listKnowledgeTopics(uiState.currentBaseUrl).onSuccess {
+            uiState = uiState.copy(knowledgeTopics = it)
+        }.onFailure { if (showNotice) post(it.message ?: "加载知识库失败", NoticeType.Error) }
+        repo.getKnowledgeCategories(uiState.currentBaseUrl).onSuccess {
+            uiState = uiState.copy(knowledgeCategories = it)
+        }
+    }
+    
+    /** 查询知识 */
+    fun queryKnowledge(topic: String) = viewModelScope.launch {
+        repo.queryKnowledge(uiState.currentBaseUrl, topic).onSuccess {
+            uiState = uiState.copy(selectedKnowledgeArticle = it)
+        }.onFailure { post(it.message ?: "查询失败", NoticeType.Error) }
     }
 }

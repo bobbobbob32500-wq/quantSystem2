@@ -1,0 +1,57 @@
+# AI集成配置
+# 云端大模型配置 - 基于DeepSeek API
+
+ai:
+  # 是否启用AI功能
+  enabled: true
+
+  # LLM提供者: "deepseek" 或 "ollama"
+  provider: "deepseek"
+
+  # DeepSeek API配置
+  deepseek:
+    # API Key: 优先从环境变量DEEPSEEK_API_KEY读取, 未设置时使用下方api_key值
+    api_key_env: "DEEPSEEK_API_KEY"
+    api_key: ""  # 推荐通过环境变量DEEPSEEK_API_KEY设置, 避免密钥泄露
+    base_url: "https://api.deepseek.com/v1"
+    timeout: 120
+    max_retries: 2
+    retry_delay: 3
+
+  # Ollama服务配置 (备用)
+  ollama:
+    base_url: "http://localhost:11434"
+    timeout: 120
+    max_retries: 2
+    retry_delay: 3
+
+  # 模型配置
+  models:
+    # 默认对话模型
+    default: "deepseek-chat"
+    # 代码生成模型
+    code: "deepseek-coder"
+
+  # 生成参数
+  generation:
+    temperature: 0.7
+    max_tokens: 2048
+
+  # 功能开关
+  features:
+    # 选股解释
+    stock_explanation: true
+    # 信号分析
+    signal_analysis: true
+    # 新闻情感分析
+    news_sentiment: true
+    # AI助手
+    ai_assistant: true
+    # 代码生成
+    code_generation: true
+
+  # 缓存配置
+  cache:
+    enabled: true
+    ttl: 3600  # 缓存时间(秒)
+    max_size: 100  # 最大缓存条目

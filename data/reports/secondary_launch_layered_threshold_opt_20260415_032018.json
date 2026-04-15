@@ -1,0 +1,535 @@
+{
+  "generated_at": "2026-04-15 03:20:18",
+  "sample_count": 132,
+  "grid_size": 648,
+  "baseline": {
+    "score": 41.09,
+    "trade_count": 121,
+    "entry_rate_pct": 91.67,
+    "metrics": {
+      "count": 120,
+      "win_rate_pct": 55.83,
+      "avg_return_pct": 2.57,
+      "median_return_pct": 1.65,
+      "profit_factor": 2.34
+    },
+    "tier_metrics": {
+      "direct": {
+        "count": 72,
+        "win_rate_pct": 58.33,
+        "avg_return_pct": 2.9,
+        "median_return_pct": 2.02,
+        "profit_factor": 2.39
+      },
+      "semi": {
+        "count": 1,
+        "win_rate_pct": 100.0,
+        "avg_return_pct": 1.6,
+        "median_return_pct": 1.6,
+        "profit_factor": 0.0
+      },
+      "confirm": {
+        "count": 47,
+        "win_rate_pct": 51.06,
+        "avg_return_pct": 2.08,
+        "median_return_pct": 0.06,
+        "profit_factor": 2.24
+      }
+    },
+    "params": {
+      "direct_score_min": 78.0,
+      "direct_lgb_min": 0.6,
+      "semi_score_min": 72.0,
+      "semi_lgb_min": 0.569,
+      "direct_conf_min": 0.45,
+      "semi_conf_min": 0.55
+    },
+    "label": "D(score>=78.0,lgb>=0.600,conf>=0.45) | S(score>=72.0,lgb>=0.569,conf>=0.55)"
+  },
+  "best": {
+    "score": 41.1195,
+    "trade_count": 121,
+    "entry_rate_pct": 91.67,
+    "metrics": {
+      "count": 120,
+      "win_rate_pct": 55.83,
+      "avg_return_pct": 2.58,
+      "median_return_pct": 1.71,
+      "profit_factor": 2.35
+    },
+    "tier_metrics": {
+      "direct": {
+        "count": 72,
+        "win_rate_pct": 58.33,
+        "avg_return_pct": 2.9,
+        "median_return_pct": 2.02,
+        "profit_factor": 2.39
+      },
+      "semi": {
+        "count": 1,
+        "win_rate_pct": 100.0,
+        "avg_return_pct": 3.25,
+        "median_return_pct": 3.25,
+        "profit_factor": 0.0
+      },
+      "confirm": {
+        "count": 47,
+        "win_rate_pct": 51.06,
+        "avg_return_pct": 2.08,
+        "median_return_pct": 0.06,
+        "profit_factor": 2.24
+      }
+    },
+    "params": {
+      "direct_score_min": 76.0,
+      "direct_lgb_min": 0.58,
+      "semi_score_min": 70.0,
+      "semi_lgb_min": 0.55,
+      "direct_conf_min": 0.45,
+      "semi_conf_min": 0.58
+    },
+    "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=70.0,lgb>=0.550,conf>=0.58)"
+  },
+  "top_k": [
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.58,
+        "semi_score_min": 70.0,
+        "semi_lgb_min": 0.55,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=70.0,lgb>=0.550,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.58,
+        "semi_score_min": 70.0,
+        "semi_lgb_min": 0.569,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=70.0,lgb>=0.569,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.58,
+        "semi_score_min": 72.0,
+        "semi_lgb_min": 0.55,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=72.0,lgb>=0.550,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.58,
+        "semi_score_min": 72.0,
+        "semi_lgb_min": 0.569,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=72.0,lgb>=0.569,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.58,
+        "semi_score_min": 74.0,
+        "semi_lgb_min": 0.55,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=74.0,lgb>=0.550,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.58,
+        "semi_score_min": 74.0,
+        "semi_lgb_min": 0.569,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.580,conf>=0.45) | S(score>=74.0,lgb>=0.569,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.6,
+        "semi_score_min": 70.0,
+        "semi_lgb_min": 0.55,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.600,conf>=0.45) | S(score>=70.0,lgb>=0.550,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.6,
+        "semi_score_min": 70.0,
+        "semi_lgb_min": 0.569,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.600,conf>=0.45) | S(score>=70.0,lgb>=0.569,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.6,
+        "semi_score_min": 70.0,
+        "semi_lgb_min": 0.59,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.600,conf>=0.45) | S(score>=70.0,lgb>=0.590,conf>=0.58)"
+    },
+    {
+      "score": 41.1195,
+      "trade_count": 121,
+      "entry_rate_pct": 91.67,
+      "metrics": {
+        "count": 120,
+        "win_rate_pct": 55.83,
+        "avg_return_pct": 2.58,
+        "median_return_pct": 1.71,
+        "profit_factor": 2.35
+      },
+      "tier_metrics": {
+        "direct": {
+          "count": 72,
+          "win_rate_pct": 58.33,
+          "avg_return_pct": 2.9,
+          "median_return_pct": 2.02,
+          "profit_factor": 2.39
+        },
+        "semi": {
+          "count": 1,
+          "win_rate_pct": 100.0,
+          "avg_return_pct": 3.25,
+          "median_return_pct": 3.25,
+          "profit_factor": 0.0
+        },
+        "confirm": {
+          "count": 47,
+          "win_rate_pct": 51.06,
+          "avg_return_pct": 2.08,
+          "median_return_pct": 0.06,
+          "profit_factor": 2.24
+        }
+      },
+      "params": {
+        "direct_score_min": 76.0,
+        "direct_lgb_min": 0.6,
+        "semi_score_min": 72.0,
+        "semi_lgb_min": 0.55,
+        "direct_conf_min": 0.45,
+        "semi_conf_min": 0.58
+      },
+      "label": "D(score>=76.0,lgb>=0.600,conf>=0.45) | S(score>=72.0,lgb>=0.550,conf>=0.58)"
+    }
+  ]
+}

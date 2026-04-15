@@ -1,0 +1,53 @@
+# AI集成配置 - 云API版本
+# 适用于无GPU的小型云服务器
+
+ai:
+  # 是否启用AI功能
+  enabled: true
+
+  # 使用云端API服务
+  provider: "deepseek"  # 推荐: deepseek(最便宜) 或 qwen(中文好)
+
+  # DeepSeek配置（推荐）
+  deepseek:
+    api_key_env: "DEEPSEEK_API_KEY"
+    base_url: "https://api.deepseek.com/v1"
+    model: "deepseek-chat"
+    timeout: 60
+
+  # 通义千问配置（备选）
+  qwen:
+    api_key_env: "QWEN_API_KEY"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-turbo"
+    timeout: 60
+
+  # 生成参数
+  generation:
+    temperature: 0.7
+    max_tokens: 2048
+
+  # 功能开关
+  features:
+    stock_explanation: true
+    signal_analysis: true
+    news_sentiment: true
+    ai_assistant: true
+    code_generation: true
+
+  # 缓存配置（重要：减少API调用）
+  cache:
+    enabled: true
+    ttl: 7200  # 缓存2小时
+    max_size: 500
+
+  # 限流配置（防止超额）
+  rate_limit:
+    max_requests_per_minute: 20
+    max_tokens_per_day: 50000  # 每日限额
+
+  # 降级配置
+  fallback:
+    enabled: true
+    # API不可用时使用规则引擎
+    use_rule_engine: true

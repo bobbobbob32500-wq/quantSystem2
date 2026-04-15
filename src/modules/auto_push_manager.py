@@ -366,6 +366,10 @@ class AutoPushManager:
                     trade_date=selection_end_date,
                     selections=secondary_payload.get("stock_selection", []),
                 )
+                self.secondary_launch_selector.sync_to_candidate_pool(
+                    trade_date=selection_end_date,
+                    selections=secondary_payload.get("stock_selection", []),
+                )
                 secondary_payload["strategy_label"] = "二次启动策略"
                 secondary_success = self.pusher.push_pre_market_selection(secondary_payload)
                 cache_payload["secondary_payload"] = secondary_payload
@@ -489,7 +493,15 @@ class AutoPushManager:
             success = self.pusher.push_pre_market_selection(payload.get("legacy_payload") or {})
         secondary_success = True
         if strategy_key in {"secondary_launch", "secondary", "both"} and payload.get("secondary_payload"):
-            secondary_success = self.pusher.push_pre_market_selection(payload.get("secondary_payload") or {})
+            secondary_payload = payload.get("secondary_payload") or {}
+            trade_date = str(payload.get("trade_date", "") or "")
+            stock_selection = secondary_payload.get("stock_selection", [])
+            if trade_date and stock_selection:
+                self.secondary_launch_selector.sync_to_candidate_pool(
+                    trade_date=trade_date,
+                    selections=stock_selection,
+                )
+            secondary_success = self.pusher.push_pre_market_selection(secondary_payload)
         return bool(success and secondary_success)
 
     def _push_cached_post_market_payload(self, strategy: str, payload: Dict[str, Any]) -> bool:

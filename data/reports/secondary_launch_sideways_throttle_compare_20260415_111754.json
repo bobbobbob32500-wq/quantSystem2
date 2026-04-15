@@ -1,0 +1,408 @@
+{
+  "generated_at": "2026-04-15 11:17:54",
+  "is_range": [
+    "20250901",
+    "20260228"
+  ],
+  "oos_range": [
+    "20260301",
+    "20260414"
+  ],
+  "hold_days": 2,
+  "baseline": {
+    "params": {
+      "min_list_days": 60,
+      "limit_up_threshold": 9.7,
+      "limit_down_threshold": -9.7,
+      "limit_up_count_10_min": 1,
+      "limit_up_count_10_max": 1,
+      "last_limit_up_days_min": 1,
+      "last_limit_up_days_max": 6,
+      "drawdown_min": 0.02,
+      "drawdown_max": 0.1,
+      "vol_shrink_ratio": 0.85,
+      "close_ma5_dev_max": 0.04,
+      "close_ma10_min_ratio": 0.99,
+      "min_amt_ma20": 100000.0,
+      "max_amt_ma20": 5000000.0,
+      "min_price": 3.0,
+      "limit_up_amt_ratio_min": 0.6,
+      "limit_up_amt_ratio_max": 3.5,
+      "rs_lookback": 20,
+      "max_candidates": 12,
+      "picks_per_day": 2,
+      "min_score": 62.0,
+      "cooldown_days": 2,
+      "weak_market_ret5_threshold": -0.02,
+      "weak_market_min_score_boost": 6.0,
+      "weak_market_max_picks": 1,
+      "sideways_market_ret5_low": -0.02,
+      "sideways_market_ret5_high": 0.02,
+      "sideways_market_min_score_boost": 0.0,
+      "sideways_market_max_picks": 2,
+      "second_pick_min_score": 72.0,
+      "second_pick_score_gap": 4.0,
+      "risk_penalty_weight": 12.0,
+      "upper_shadow_penalty_threshold": 0.6,
+      "upper_shadow_penalty_weight": 0.35,
+      "high_volume_penalty_threshold": 1.3,
+      "high_volume_penalty_weight": 0.35,
+      "deep_negative_penalty_low": -5.0,
+      "deep_negative_penalty_high": -3.0,
+      "deep_negative_penalty_weight": 0.3,
+      "direct_score_min": 76.0,
+      "direct_lgb_min": 0.58,
+      "semi_score_min": 70.0,
+      "semi_lgb_min": 0.55,
+      "direct_conf_min": 0.45,
+      "semi_conf_min": 0.58,
+      "lgb_enabled": false,
+      "lgb_mode": "blend",
+      "lgb_weight": 0.35,
+      "lgb_min_score": 0.569,
+      "lgb_config_path": "models/secondary_launch_lgb_model.json",
+      "lgb_model_path": "models/secondary_launch_lgb_model.txt"
+    },
+    "is_metrics": {
+      "total_trades": 106,
+      "total_signal_days": 57,
+      "win_rate": 0.5377358490566038,
+      "day_win_rate": 0.631578947368421,
+      "annual_return": 2.7181913117789662,
+      "sharpe_ratio": 4.096628668931888,
+      "max_drawdown": -0.3104592006836643,
+      "total_return": 1.5416549263036354,
+      "avg_return": 0.018125534331037873,
+      "std_return": 0.0887151739779541,
+      "avg_day_return": 0.01909376108177868,
+      "std_day_return": 0.07398865872084232,
+      "profit_factor": 1.7505448572054674,
+      "regime_bull_avg": 0.04683940858691123,
+      "regime_sideways_avg": 0.014574570891279863,
+      "regime_bear_avg": -0.003353835912073541
+    },
+    "oos_metrics": {
+      "total_trades": 34,
+      "total_signal_days": 21,
+      "win_rate": 0.38235294117647056,
+      "day_win_rate": 0.38095238095238093,
+      "annual_return": -0.9461176082175599,
+      "sharpe_ratio": -2.125250912730989,
+      "max_drawdown": -0.5076621306502798,
+      "total_return": -0.29371209410227617,
+      "avg_return": -0.001284252370951676,
+      "std_return": 0.10853450804254933,
+      "avg_day_return": -0.012404551740779318,
+      "std_day_return": 0.09265548505751327,
+      "profit_factor": 0.9683963920311947,
+      "regime_bull_avg": 0.08805304986603402,
+      "regime_sideways_avg": -0.03389972712665736,
+      "regime_bear_avg": 0.022565275939090634
+    },
+    "oos_groups": {
+      "by_tier": [
+        {
+          "execution_tier_hint": "direct",
+          "trades": 20,
+          "win_rate": 0.4,
+          "avg_return": -0.002527127166152805,
+          "median_return": -0.02834741847829607,
+          "profit_factor": 0.9409909755848677,
+          "total_return": -0.15305194556443047
+        },
+        {
+          "execution_tier_hint": "confirm",
+          "trades": 14,
+          "win_rate": 0.35714285714285715,
+          "avg_return": 0.0004912830507642294,
+          "median_return": -0.023463740689648505,
+          "profit_factor": 1.0130981242657162,
+          "total_return": -0.05904072466288801
+        }
+      ],
+      "by_regime": [
+        {
+          "market_regime": "sideways",
+          "trades": 19,
+          "win_rate": 0.2631578947368421,
+          "avg_return": -0.03389972712665736,
+          "median_return": -0.033784880573971374,
+          "profit_factor": 0.2780872162270913,
+          "total_return": -0.5020850109732482
+        },
+        {
+          "market_regime": "bear",
+          "trades": 11,
+          "win_rate": 0.45454545454545453,
+          "avg_return": 0.022565275939090634,
+          "median_return": -0.0016649648199157825,
+          "profit_factor": 1.558902444471126,
+          "total_return": 0.16343894761058264
+        },
+        {
+          "market_regime": "bull",
+          "trades": 4,
+          "win_rate": 0.75,
+          "avg_return": 0.08805304986603402,
+          "median_return": 0.09596365474948082,
+          "profit_factor": 8.773389224584761,
+          "total_return": 0.3757160489770708
+        }
+      ],
+      "by_tier_regime": [
+        {
+          "tier_regime": "direct|sideways",
+          "trades": 12,
+          "win_rate": 0.3333333333333333,
+          "avg_return": -0.02360655713532994,
+          "median_return": -0.02834741847829607,
+          "profit_factor": 0.397860924239509,
+          "total_return": -0.26852165341499734
+        },
+        {
+          "tier_regime": "confirm|sideways",
+          "trades": 7,
+          "win_rate": 0.14285714285714285,
+          "avg_return": -0.05154516139750441,
+          "median_return": -0.0531419704918195,
+          "profit_factor": 0.14448259230627614,
+          "total_return": -0.31930317370113637
+        },
+        {
+          "tier_regime": "direct|bear",
+          "trades": 6,
+          "win_rate": 0.5,
+          "avg_return": 0.012075208722621439,
+          "median_return": -0.01881120461439499,
+          "profit_factor": 1.2126176813288039,
+          "total_return": 0.005985051459195478
+        },
+        {
+          "tier_regime": "confirm|bear",
+          "trades": 5,
+          "win_rate": 0.4,
+          "avg_return": 0.03515335659885367,
+          "median_return": -0.0016649648199157825,
+          "profit_factor": 2.7005536168615154,
+          "total_return": 0.15651713305580284
+        },
+        {
+          "tier_regime": "confirm|bull",
+          "trades": 2,
+          "win_rate": 1.0,
+          "avg_return": 0.09596365474948082,
+          "median_return": 0.09596365474948082,
+          "profit_factor": 0.0,
+          "total_return": 0.1952672796943995
+        },
+        {
+          "tier_regime": "direct|bull",
+          "trades": 2,
+          "win_rate": 0.5,
+          "avg_return": 0.08014244498258721,
+          "median_return": 0.08014244498258721,
+          "profit_factor": 4.537517548837517,
+          "total_return": 0.15096938764090284
+        }
+      ]
+    }
+  },
+  "throttle": {
+    "params": {
+      "min_list_days": 60,
+      "limit_up_threshold": 9.7,
+      "limit_down_threshold": -9.7,
+      "limit_up_count_10_min": 1,
+      "limit_up_count_10_max": 1,
+      "last_limit_up_days_min": 1,
+      "last_limit_up_days_max": 6,
+      "drawdown_min": 0.02,
+      "drawdown_max": 0.1,
+      "vol_shrink_ratio": 0.85,
+      "close_ma5_dev_max": 0.04,
+      "close_ma10_min_ratio": 0.99,
+      "min_amt_ma20": 100000.0,
+      "max_amt_ma20": 5000000.0,
+      "min_price": 3.0,
+      "limit_up_amt_ratio_min": 0.6,
+      "limit_up_amt_ratio_max": 3.5,
+      "rs_lookback": 20,
+      "max_candidates": 12,
+      "picks_per_day": 2,
+      "min_score": 62.0,
+      "cooldown_days": 2,
+      "weak_market_ret5_threshold": -0.02,
+      "weak_market_min_score_boost": 6.0,
+      "weak_market_max_picks": 1,
+      "sideways_market_ret5_low": -0.02,
+      "sideways_market_ret5_high": 0.02,
+      "sideways_market_min_score_boost": 4.0,
+      "sideways_market_max_picks": 1,
+      "second_pick_min_score": 72.0,
+      "second_pick_score_gap": 4.0,
+      "risk_penalty_weight": 12.0,
+      "upper_shadow_penalty_threshold": 0.6,
+      "upper_shadow_penalty_weight": 0.35,
+      "high_volume_penalty_threshold": 1.3,
+      "high_volume_penalty_weight": 0.35,
+      "deep_negative_penalty_low": -5.0,
+      "deep_negative_penalty_high": -3.0,
+      "deep_negative_penalty_weight": 0.3,
+      "direct_score_min": 76.0,
+      "direct_lgb_min": 0.58,
+      "semi_score_min": 70.0,
+      "semi_lgb_min": 0.55,
+      "direct_conf_min": 0.45,
+      "semi_conf_min": 0.58,
+      "lgb_enabled": false,
+      "lgb_mode": "blend",
+      "lgb_weight": 0.35,
+      "lgb_min_score": 0.569,
+      "lgb_config_path": "models/secondary_launch_lgb_model.json",
+      "lgb_model_path": "models/secondary_launch_lgb_model.txt"
+    },
+    "is_metrics": {
+      "total_trades": 106,
+      "total_signal_days": 57,
+      "win_rate": 0.5377358490566038,
+      "day_win_rate": 0.631578947368421,
+      "annual_return": 2.7181913117789662,
+      "sharpe_ratio": 4.096628668931888,
+      "max_drawdown": -0.3104592006836643,
+      "total_return": 1.5416549263036354,
+      "avg_return": 0.018125534331037873,
+      "std_return": 0.0887151739779541,
+      "avg_day_return": 0.01909376108177868,
+      "std_day_return": 0.07398865872084232,
+      "profit_factor": 1.7505448572054674,
+      "regime_bull_avg": 0.04683940858691123,
+      "regime_sideways_avg": 0.014574570891279863,
+      "regime_bear_avg": -0.003353835912073541
+    },
+    "oos_metrics": {
+      "total_trades": 34,
+      "total_signal_days": 21,
+      "win_rate": 0.38235294117647056,
+      "day_win_rate": 0.38095238095238093,
+      "annual_return": -0.9461176082175599,
+      "sharpe_ratio": -2.125250912730989,
+      "max_drawdown": -0.5076621306502798,
+      "total_return": -0.29371209410227617,
+      "avg_return": -0.001284252370951676,
+      "std_return": 0.10853450804254933,
+      "avg_day_return": -0.012404551740779318,
+      "std_day_return": 0.09265548505751327,
+      "profit_factor": 0.9683963920311947,
+      "regime_bull_avg": 0.08805304986603402,
+      "regime_sideways_avg": -0.03389972712665736,
+      "regime_bear_avg": 0.022565275939090634
+    },
+    "oos_groups": {
+      "by_tier": [
+        {
+          "execution_tier_hint": "direct",
+          "trades": 20,
+          "win_rate": 0.4,
+          "avg_return": -0.002527127166152805,
+          "median_return": -0.02834741847829607,
+          "profit_factor": 0.9409909755848677,
+          "total_return": -0.15305194556443047
+        },
+        {
+          "execution_tier_hint": "confirm",
+          "trades": 14,
+          "win_rate": 0.35714285714285715,
+          "avg_return": 0.0004912830507642294,
+          "median_return": -0.023463740689648505,
+          "profit_factor": 1.0130981242657162,
+          "total_return": -0.05904072466288801
+        }
+      ],
+      "by_regime": [
+        {
+          "market_regime": "sideways",
+          "trades": 19,
+          "win_rate": 0.2631578947368421,
+          "avg_return": -0.03389972712665736,
+          "median_return": -0.033784880573971374,
+          "profit_factor": 0.2780872162270913,
+          "total_return": -0.5020850109732482
+        },
+        {
+          "market_regime": "bear",
+          "trades": 11,
+          "win_rate": 0.45454545454545453,
+          "avg_return": 0.022565275939090634,
+          "median_return": -0.0016649648199157825,
+          "profit_factor": 1.558902444471126,
+          "total_return": 0.16343894761058264
+        },
+        {
+          "market_regime": "bull",
+          "trades": 4,
+          "win_rate": 0.75,
+          "avg_return": 0.08805304986603402,
+          "median_return": 0.09596365474948082,
+          "profit_factor": 8.773389224584761,
+          "total_return": 0.3757160489770708
+        }
+      ],
+      "by_tier_regime": [
+        {
+          "tier_regime": "direct|sideways",
+          "trades": 12,
+          "win_rate": 0.3333333333333333,
+          "avg_return": -0.02360655713532994,
+          "median_return": -0.02834741847829607,
+          "profit_factor": 0.397860924239509,
+          "total_return": -0.26852165341499734
+        },
+        {
+          "tier_regime": "confirm|sideways",
+          "trades": 7,
+          "win_rate": 0.14285714285714285,
+          "avg_return": -0.05154516139750441,
+          "median_return": -0.0531419704918195,
+          "profit_factor": 0.14448259230627614,
+          "total_return": -0.31930317370113637
+        },
+        {
+          "tier_regime": "direct|bear",
+          "trades": 6,
+          "win_rate": 0.5,
+          "avg_return": 0.012075208722621439,
+          "median_return": -0.01881120461439499,
+          "profit_factor": 1.2126176813288039,
+          "total_return": 0.005985051459195478
+        },
+        {
+          "tier_regime": "confirm|bear",
+          "trades": 5,
+          "win_rate": 0.4,
+          "avg_return": 0.03515335659885367,
+          "median_return": -0.0016649648199157825,
+          "profit_factor": 2.7005536168615154,
+          "total_return": 0.15651713305580284
+        },
+        {
+          "tier_regime": "confirm|bull",
+          "trades": 2,
+          "win_rate": 1.0,
+          "avg_return": 0.09596365474948082,
+          "median_return": 0.09596365474948082,
+          "profit_factor": 0.0,
+          "total_return": 0.1952672796943995
+        },
+        {
+          "tier_regime": "direct|bull",
+          "trades": 2,
+          "win_rate": 0.5,
+          "avg_return": 0.08014244498258721,
+          "median_return": 0.08014244498258721,
+          "profit_factor": 4.537517548837517,
+          "total_return": 0.15096938764090284
+        }
+      ]
+    }
+  }
+}

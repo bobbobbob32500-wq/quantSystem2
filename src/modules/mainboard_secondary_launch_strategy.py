@@ -15,6 +15,15 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
+try:
+    from src.modules.secondary_launch_lgb_scorer import (
+        SecondaryLaunchLGBScorer,
+        SecondaryLaunchLGBScorerConfig,
+    )
+except ImportError:
+    SecondaryLaunchLGBScorer = None
+    SecondaryLaunchLGBScorerConfig = None
+
 
 @dataclass
 class StrategyParams:
@@ -52,8 +61,36 @@ class StrategyParams:
     weak_market_ret5_threshold: float = -0.02
     weak_market_min_score_boost: float = 6.0
     weak_market_max_picks: int = 1
+    # 震荡市限流：用于减少噪音环境下的过度出手
+    sideways_market_ret5_low: float = -0.02
+    sideways_market_ret5_high: float = 0.02
+    sideways_market_min_score_boost: float = 12.0
+    sideways_market_max_picks: int = 0
     second_pick_min_score: float = 72.0
     second_pick_score_gap: float = 4.0
+    # V4: 选股层增强（结构质量分 - 风险惩罚分）
+    risk_penalty_weight: float = 12.0
+    upper_shadow_penalty_threshold: float = 0.60
+    upper_shadow_penalty_weight: float = 0.35
+    high_volume_penalty_threshold: float = 1.30
+    high_volume_penalty_weight: float = 0.35
+    deep_negative_penalty_low: float = -5.0
+    deep_negative_penalty_high: float = -3.0
+    deep_negative_penalty_weight: float = 0.30
+    direct_score_min: float = 76.0
+    direct_lgb_min: float = 0.58
+    semi_score_min: float = 70.0
+    semi_lgb_min: float = 0.55
+    direct_conf_min: float = 0.45
+    semi_conf_min: float = 0.58
+
+    # 机器学习二级过滤：只在规则筛出的候选上做排序增强，避免黑箱替代主逻辑
+    lgb_enabled: bool = False
+    lgb_mode: str = "blend"
+    lgb_weight: float = 0.35
+    lgb_min_score: float = 0.569
+    lgb_config_path: str = "models/secondary_launch_lgb_model.json"
+    lgb_model_path: str = "models/secondary_launch_lgb_model.txt"
 
 
 class MainboardSecondaryLaunchStrategy:
@@ -63,6 +100,23 @@ class MainboardSecondaryLaunchStrategy:
 
     def __init__(self, params: StrategyParams | None = None):
         self.params = params or StrategyParams()
+        self.lgb_scorer = self._build_lgb_scorer()
+
+    def _build_lgb_scorer(self):
+        """按配置构建二次启动 LGB 评分器。"""
+        p = self.params
+        if not p.lgb_enabled or SecondaryLaunchLGBScorer is None or SecondaryLaunchLGBScorerConfig is None:
+            return None
+        cfg = SecondaryLaunchLGBScorerConfig(
+            model_path=p.lgb_model_path,
+            config_path=p.lgb_config_path,
+            enabled=True,
+            mode=p.lgb_mode,
+            blend_weight=p.lgb_weight,
+            min_probability=p.lgb_min_score,
+        )
+        scorer = SecondaryLaunchLGBScorer(cfg)
+        return scorer if scorer.is_available() else None
 
     @staticmethod
     def _is_mainboard(code: str) -> bool:
@@ -263,49 +317,133 @@ class MainboardSecondaryLaunchStrategy:
         next_ret_score = (scored["next_ret_after_limit_up"].fillna(0.0).clip(lower=-0.06, upper=0.10) + 0.06) / 0.16
         next_ret_score = next_ret_score.clip(0.0, 1.0)
 
-        scored["signal_score"] = (
-            rs_rank * 24.0
-            + limit_up_count_score * 10.0
-            + last_limit_up_score * 16.0
-            + drawdown_score * 18.0
-            + volume_shrink_score * 8.0
-            + ma5_dev_score * 12.0
-            + trend_score * 6.0
+        # 风险特征：上影线、异常放量、信号日深跌区间
+        high = pd.to_numeric(scored.get("high"), errors="coerce")
+        low = pd.to_numeric(scored.get("low"), errors="coerce")
+        open_ = pd.to_numeric(scored.get("open"), errors="coerce")
+        close = pd.to_numeric(scored.get("close"), errors="coerce")
+        total_range = (high - low).replace(0, np.nan)
+        upper_shadow_ratio = ((high - np.maximum(open_, close)) / total_range).clip(lower=0.0, upper=1.0)
+        upper_shadow_ratio = upper_shadow_ratio.fillna(0.0)
+        vol_ratio_5 = (scored["vol"] / scored["vol_ma5"].replace(0, np.nan)).replace([np.inf, -np.inf], np.nan).fillna(1.0)
+        pct_chg = pd.to_numeric(scored.get("pct_chg"), errors="coerce").fillna(0.0)
+
+        # 经验复盘结论：高分段并未带来更高收益，原先过度奖励“强势+大回撤”反而放大了追高回落风险。
+        # 调整后降低纯强势因子权重，提升贴近均线、缩量质量、次日承接等更稳健特征的占比。
+        base_quality_score = (
+            rs_rank * 18.0
+            + limit_up_count_score * 8.0
+            + last_limit_up_score * 14.0
+            + drawdown_score * 12.0
+            + volume_shrink_score * 14.0
+            + ma5_dev_score * 16.0
+            + trend_score * 7.0
             + volume_trend_score * 3.0
-            + limit_up_amt_score * 2.0
+            + limit_up_amt_score * 3.0
             + next_ret_score * 5.0
         )
+        upper_shadow_penalty = (
+            ((upper_shadow_ratio - float(p.upper_shadow_penalty_threshold)) / max(1.0 - float(p.upper_shadow_penalty_threshold), 1e-6))
+            .clip(lower=0.0, upper=1.0)
+            * float(p.upper_shadow_penalty_weight)
+        )
+        high_volume_penalty = (
+            ((vol_ratio_5 - float(p.high_volume_penalty_threshold)) / max(float(p.high_volume_penalty_threshold), 1e-6))
+            .clip(lower=0.0, upper=1.0)
+            * float(p.high_volume_penalty_weight)
+        )
+        deep_negative_penalty = (
+            ((pct_chg >= float(p.deep_negative_penalty_low)) & (pct_chg < float(p.deep_negative_penalty_high))).astype(float)
+            * float(p.deep_negative_penalty_weight)
+        )
+        risk_penalty_score = (
+            upper_shadow_penalty
+            + high_volume_penalty
+            + deep_negative_penalty
+        ).clip(lower=0.0, upper=1.0) * float(p.risk_penalty_weight)
+
+        scored["quality_score"] = base_quality_score.round(4)
+        scored["risk_penalty_score"] = risk_penalty_score.round(4)
+        scored["signal_score"] = (base_quality_score - risk_penalty_score).clip(lower=0.0)
+        scored["upper_shadow_ratio"] = upper_shadow_ratio.round(4)
+        scored["vol_ratio_5"] = vol_ratio_5.round(4)
         scored["volume_ratio"] = volume_ratio.fillna(0.0)
         scored["score_breakdown"] = (
             "RS="
-            + (rs_rank * 24.0).round(1).astype(str)
+            + (rs_rank * 18.0).round(1).astype(str)
             + "|涨停次数="
-            + (limit_up_count_score * 10.0).round(1).astype(str)
+            + (limit_up_count_score * 8.0).round(1).astype(str)
             + "|涨停间隔="
-            + (last_limit_up_score * 16.0).round(1).astype(str)
+            + (last_limit_up_score * 14.0).round(1).astype(str)
             + "|回撤="
-            + (drawdown_score * 18.0).round(1).astype(str)
+            + (drawdown_score * 12.0).round(1).astype(str)
             + "|缩量="
-            + (volume_shrink_score * 8.0).round(1).astype(str)
+            + (volume_shrink_score * 14.0).round(1).astype(str)
+            + "|贴线="
+            + (ma5_dev_score * 16.0).round(1).astype(str)
+            + "|风险罚分="
+            + risk_penalty_score.round(1).astype(str)
         )
+
+        if self.lgb_scorer is not None:
+            scored = self.lgb_scorer.apply(scored, score_col="signal_score")
+
+        # 分层档次提示：用于后续盘中执行与质量看板闭环
+        score_s = pd.to_numeric(scored.get("signal_score"), errors="coerce").fillna(0.0)
+        # 注意：此处仍处于“候选打分”阶段，可能尚未生成 rank 列。
+        # 为了避免把 rank 依赖提前导致回测崩溃，这里在缺失 rank 时用临时日内排序生成。
+        if "rank" in scored.columns:
+            rank_s = pd.to_numeric(scored["rank"], errors="coerce").fillna(99).astype(int)
+        else:
+            tmp = scored[["signal_date", "signal_score", "rs20"]].copy()
+            tmp["signal_date"] = pd.to_datetime(tmp["signal_date"], errors="coerce")
+            tmp["signal_score"] = pd.to_numeric(tmp["signal_score"], errors="coerce").fillna(0.0)
+            tmp["rs20"] = pd.to_numeric(tmp["rs20"], errors="coerce").fillna(0.0)
+            tmp = tmp.sort_values(["signal_date", "signal_score", "rs20"], ascending=[True, False, False])
+            tmp["rank"] = tmp.groupby("signal_date").cumcount() + 1
+            rank_s = tmp["rank"].astype(int).reindex(scored.index).fillna(99).astype(int)
+        if "lgb_prob" in scored.columns:
+            lgb_s = pd.to_numeric(scored["lgb_prob"], errors="coerce")
+        else:
+            # 没有LGB评分列时，按“缺失即不限制”处理
+            lgb_s = pd.Series(np.nan, index=scored.index)
+        direct_mask = (
+            (rank_s == 1)
+            & (score_s >= float(p.direct_score_min))
+            & (lgb_s.isna() | (lgb_s >= float(p.direct_lgb_min)))
+        )
+        semi_mask = (
+            (rank_s == 1)
+            & (~direct_mask)
+            & (score_s >= float(p.semi_score_min))
+            & (lgb_s.isna() | (lgb_s >= float(p.semi_lgb_min)))
+        )
+        scored["execution_tier_hint"] = np.where(direct_mask, "direct", np.where(semi_mask, "semi", "confirm"))
         return scored
 
     def _get_market_gate(self, candidate_df: pd.DataFrame) -> Tuple[float, int]:
-        """根据指数近5日涨幅做轻量级市场闸门。"""
+        """根据指数近5日涨幅做轻量级市场闸门（弱市 + 震荡市限流）。"""
         p = self.params
         if candidate_df.empty:
             return float(p.min_score), int(p.picks_per_day)
 
         index_row = candidate_df[candidate_df["ts_code"] == "000001.SH"]
         if index_row.empty:
-            return float(p.min_score), int(p.picks_per_day)
-
-        ret5 = float(index_row.iloc[-1].get("ret5", 0.0) or 0.0)
+            # 回退：当指数行缺失时，用当日候选池 ret5 中位数近似市场温度，避免闸门失效。
+            ret5_s = pd.to_numeric(candidate_df.get("ret5"), errors="coerce").dropna()
+            if ret5_s.empty:
+                return float(p.min_score), int(p.picks_per_day)
+            ret5 = float(ret5_s.median())
+        else:
+            ret5 = float(index_row.iloc[-1].get("ret5", 0.0) or 0.0)
         effective_min_score = float(p.min_score)
         effective_picks = int(p.picks_per_day)
         if ret5 <= float(p.weak_market_ret5_threshold):
             effective_min_score += float(p.weak_market_min_score_boost)
             effective_picks = min(effective_picks, int(p.weak_market_max_picks))
+        elif float(p.sideways_market_ret5_low) < ret5 < float(p.sideways_market_ret5_high):
+            effective_min_score += float(p.sideways_market_min_score_boost)
+            effective_picks = min(effective_picks, int(p.sideways_market_max_picks))
         return effective_min_score, effective_picks
 
     def _select_candidates(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -315,12 +453,17 @@ class MainboardSecondaryLaunchStrategy:
             return filtered
 
         scored = self._score_candidates(filtered)
-        effective_min_score, _ = self._get_market_gate(df)
+        effective_min_score, effective_picks = self._get_market_gate(df)
         scored = scored[scored["signal_score"] >= effective_min_score].copy()
         if scored.empty:
             return scored
 
+        if int(effective_picks) <= 0:
+            # 震荡市/弱市极端限流：当日不出手
+            return scored.iloc[0:0].copy()
+
         scored = scored.sort_values(["signal_score", "rs20"], ascending=[False, False]).reset_index(drop=True)
+        scored = scored.groupby("signal_date", group_keys=False).head(int(effective_picks))
         return scored
 
     def _apply_cooldown(self, eval_df: pd.DataFrame) -> pd.DataFrame:
@@ -404,22 +547,90 @@ class MainboardSecondaryLaunchStrategy:
     def generate_signals_from_frame(self, signal_frame: pd.DataFrame) -> pd.DataFrame:
         """基于已构造好的信号帧生成每日信号。"""
         if signal_frame.empty:
-            return pd.DataFrame(columns=["signal_date", "ts_code", "name", "rank", "rs20", "signal_score"])
+            return pd.DataFrame(
+                columns=[
+                    "signal_date",
+                    "ts_code",
+                    "name",
+                    "rank",
+                    "rs20",
+                    "signal_score",
+                    "quality_score",
+                    "risk_penalty_score",
+                    "execution_tier_hint",
+                    "lgb_prob",
+                ]
+            )
 
         eval_df = self._select_candidates(signal_frame)
         if eval_df.empty:
-            return pd.DataFrame(columns=["signal_date", "ts_code", "name", "rank", "rs20", "signal_score"])
+            return pd.DataFrame(
+                columns=[
+                    "signal_date",
+                    "ts_code",
+                    "name",
+                    "rank",
+                    "rs20",
+                    "signal_score",
+                    "quality_score",
+                    "risk_penalty_score",
+                    "execution_tier_hint",
+                    "lgb_prob",
+                ]
+            )
 
         eval_df = eval_df.sort_values(["signal_date", "signal_score", "rs20"], ascending=[True, False, False])
         eval_df = eval_df.groupby("signal_date", group_keys=False).head(self.params.max_candidates)
         eval_df = self._apply_cooldown(eval_df)
         if eval_df.empty:
-            return pd.DataFrame(columns=["signal_date", "ts_code", "name", "rank", "rs20", "signal_score"])
+            return pd.DataFrame(
+                columns=[
+                    "signal_date",
+                    "ts_code",
+                    "name",
+                    "rank",
+                    "rs20",
+                    "signal_score",
+                    "quality_score",
+                    "risk_penalty_score",
+                    "execution_tier_hint",
+                    "lgb_prob",
+                ]
+            )
         eval_df = self._refine_daily_picks(eval_df)
         if eval_df.empty:
-            return pd.DataFrame(columns=["signal_date", "ts_code", "name", "rank", "rs20", "signal_score"])
+            return pd.DataFrame(
+                columns=[
+                    "signal_date",
+                    "ts_code",
+                    "name",
+                    "rank",
+                    "rs20",
+                    "signal_score",
+                    "quality_score",
+                    "risk_penalty_score",
+                    "execution_tier_hint",
+                    "lgb_prob",
+                ]
+            )
         eval_df["rank"] = eval_df.groupby("signal_date").cumcount() + 1
-        return eval_df[["signal_date", "ts_code", "name", "rank", "rs20", "signal_score"]].reset_index(drop=True)
+        for col in ("quality_score", "risk_penalty_score", "execution_tier_hint", "lgb_prob"):
+            if col not in eval_df.columns:
+                eval_df[col] = np.nan if col != "execution_tier_hint" else "confirm"
+        return eval_df[
+            [
+                "signal_date",
+                "ts_code",
+                "name",
+                "rank",
+                "rs20",
+                "signal_score",
+                "quality_score",
+                "risk_penalty_score",
+                "execution_tier_hint",
+                "lgb_prob",
+            ]
+        ].reset_index(drop=True)
 
     def generate_signals(self, feature_df: pd.DataFrame) -> pd.DataFrame:
         """对全样本生成每日信号"""

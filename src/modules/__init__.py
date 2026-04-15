@@ -90,3 +90,27 @@ try:
 except ImportError:
     StrongStartStrategy = None  # type: ignore[misc, assignment]
     StrongStartParams = None  # type: ignore[misc, assignment]
+
+# AI集成模块（可选依赖，Ollama不可用时降级）
+try:
+    from src.modules.ai_integration import (
+        LLMClient,
+        StockExplainer,
+        SignalAnalyzer,
+        NewsSentimentAnalyzer,
+        AIAssistant,
+    )
+
+    __all__.extend([
+        "LLMClient",
+        "StockExplainer",
+        "SignalAnalyzer",
+        "NewsSentimentAnalyzer",
+        "AIAssistant",
+    ])
+except ImportError:
+    LLMClient = None  # type: ignore[misc, assignment]
+    StockExplainer = None  # type: ignore[misc, assignment]
+    SignalAnalyzer = None  # type: ignore[misc, assignment]
+    NewsSentimentAnalyzer = None  # type: ignore[misc, assignment]
+    AIAssistant = None  # type: ignore[misc, assignment]

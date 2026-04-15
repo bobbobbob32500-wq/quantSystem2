@@ -133,15 +133,36 @@ def push_buy_signals(system, signals: List[Dict], now: datetime):
                     )
                     continue
 
-                # 二次启动策略更强调等待下一次全新结构，冷却内无论信号类型都不重复推送
+                # 二次启动策略：同一档次同一类型在冷却期内不重复推送；
+                # 若档次或信号类型发生切换，允许更快提醒，保证盘中时效性。
                 if strategy_profile == "secondary_launch" and time_diff < system.push_cooldown:
-                    logger.debug(
-                        "%s secondary_launch signal blocked by strict cooldown (%ss < %ss)",
+                    last_tier = str(last_push.get("execution_tier", "") or "")
+                    curr_tier = str(signal.get("execution_tier", "") or "")
+                    same_tier = last_tier == curr_tier
+                    same_type = last_push["signal_type"] == signal_type
+                    if same_tier and same_type:
+                        logger.debug(
+                            "%s secondary_launch same-tier/type cooldown (%ss < %ss), skip",
+                            symbol,
+                            int(time_diff),
+                            system.push_cooldown,
+                        )
+                        continue
+                    if time_diff < 30:
+                        logger.debug(
+                            "%s secondary_launch switched tier/type but interval too short (%ss < 30s), skip",
+                            symbol,
+                            int(time_diff),
+                        )
+                        continue
+                    logger.info(
+                        "%s secondary_launch switched route, allow push: tier %s -> %s, type %s -> %s",
                         symbol,
-                        int(time_diff),
-                        system.push_cooldown,
+                        last_tier,
+                        curr_tier,
+                        last_push["signal_type"],
+                        signal_type,
                     )
-                    continue
 
                 # 不同类型信号的最短间隔保护（60s），但必须在 push_cooldown 之后才生效
                 # 修复：仅在尚未过 push_cooldown 时应用 60s 保护，避免误拦截
@@ -152,6 +173,7 @@ def push_buy_signals(system, signals: List[Dict], now: datetime):
             signals_to_push.append(signal)
             system.pushed_signals[symbol] = {
                 "signal_type": signal_type,
+                "execution_tier": str(signal.get("execution_tier", "") or ""),
                 "push_time": now,
                 "total_score": total_score,
             }

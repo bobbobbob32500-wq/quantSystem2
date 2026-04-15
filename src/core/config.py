@@ -48,6 +48,8 @@ class ConfigManager:
             with open(self.config_file, "r", encoding="utf-8") as f:
                 self._config = yaml.safe_load(f) or {}
             
+            # 先清除 YAML 中明文敏感项，再由环境变量覆盖（避免把 env 里的 token 一并清空）
+            self._clear_sensitive_in_config()
             self._load_sensitive_from_env()
             
             logger.info(f"配置文件加载成功: {self.config_file}")
@@ -81,8 +83,6 @@ class ConfigManager:
                     config = config[k]
                 config[keys[-1]] = env_value
                 logger.debug(f"从环境变量加载配置: {config_key}")
-
-        self._clear_sensitive_in_config()
 
     def _clear_sensitive_in_config(self):
         """清除配置文件中残留的明文敏感值，防止意外泄露"""
@@ -269,6 +269,14 @@ class ConfigManager:
                     "backtest_oos_end": "20260327",
                     "use_auction_filter": False,
                 },
+            },
+            
+            # Qlib Alpha158 / LightGBM（与 Optuna 优化 JSON 对接，供训练与回测脚本统一读取）
+            "qlib": {
+                "use_optuna_alpha_lgb_params": True,
+                "optuna_alpha_comparison_json": "output/qlib_optuna_alpha_comparison.json",
+                "provider_uri": "~/.qlib/qlib_data/cn_data",
+                "lgb_num_threads": None,
             },
             
             # 风控配置

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ai-assistant.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 <body>
@@ -80,6 +81,7 @@
                     <button class="sidebar-nav-btn" type="button" data-stage-target="monitorSection">监控</button>
                     <button class="sidebar-nav-btn" type="button" data-stage-target="reportSection">报告</button>
                     <button class="sidebar-nav-btn" type="button" data-stage-target="systemSection">系统</button>
+                    <button class="sidebar-nav-btn" type="button" data-stage-target="aiSection" style="color:#6366f1">AI助手</button>
                 </div>
             </aside>
 
@@ -473,10 +475,46 @@
                         </article>
                     </section>
                 </section>
+
+                <!-- AI助手面板 -->
+                <section class="content-stage" id="aiSection">
+                    <article class="panel-card">
+                        <div class="panel-head">
+                            <div>
+                                <span class="panel-kicker">AI Assistant</span>
+                                <h2>AI智能助手</h2>
+                            </div>
+                            <p>基于本地大模型的智能分析助手，支持选股解释、信号分析、新闻解读、策略咨询。</p>
+                        </div>
+                        <div class="ai-status-bar" id="aiStatusBar">
+                            <span class="ai-status-indicator" id="aiStatusIndicator"></span>
+                            <span id="aiStatusText">检测中...</span>
+                        </div>
+                        <div class="ai-quick-actions">
+                            <button class="ai-quick-btn" type="button" data-quick-key="市场分析">市场分析</button>
+                            <button class="ai-quick-btn" type="button" data-quick-key="选股逻辑">选股逻辑</button>
+                            <button class="ai-quick-btn" type="button" data-quick-key="风控策略">风控策略</button>
+                            <button class="ai-quick-btn" type="button" data-quick-key="策略优化">策略优化</button>
+                        </div>
+                        <div class="ai-chat-container" id="aiChatContainer">
+                            <div class="ai-chat-messages" id="aiChatMessages">
+                                <div class="ai-message ai-message-system">
+                                    <div class="ai-message-content">你好！我是量化交易AI助手，可以帮你分析选股结果、解读交易信号、分析新闻影响、生成策略代码。请问有什么可以帮你的？</div>
+                                </div>
+                            </div>
+                            <div class="ai-chat-input-area">
+                                <textarea class="ai-chat-input" id="aiChatInput" placeholder="输入问题，如：分析一下今天的选股结果..." rows="2"></textarea>
+                                <button class="primary-btn ai-send-btn" id="aiSendButton" type="button">发送</button>
+                                <button class="stage-ghost-btn ai-clear-btn" id="aiClearButton" type="button">清空对话</button>
+                            </div>
+                        </div>
+                    </article>
+                </section>
             </main>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ai-assistant.js') }}"></script>
 </body>
 </html>

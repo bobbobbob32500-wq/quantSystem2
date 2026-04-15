@@ -9,6 +9,8 @@ data_source:
   # 实盘级：分钟批量拉取整体超时（秒），超时则返回部分结果并让下游降级
   minute_batch_timeout_seconds: 2.8
   startup_auto_update_enabled: true
+  # 每日17:30自动增量更新(只补齐缺失的交易日数据,非全量)
+  auto_daily_update_enabled: true
   startup_refresh_stock_basic: true
   startup_sync_chip_data_enabled: false
   full_update_sync_chip_data_enabled: false
@@ -378,8 +380,28 @@ stock_selection:
     limit_up_amt_ratio_min: 0.6
     limit_up_count_10_max: 1
     limit_up_count_10_min: 1
-    limit_up_threshold: 9.7
-    max_amt_ma20: 5000000.0
+    lgb_enabled: true
+    lgb_mode: blend
+    lgb_weight: 0.35
+    lgb_min_score: 0.569
+    lgb_config_path: models/secondary_launch_lgb_model.json
+    lgb_model_path: models/secondary_launch_lgb_model.txt
+    # V4 选股增强：结构质量分 + 风险惩罚分
+    risk_penalty_weight: 12.0
+    upper_shadow_penalty_threshold: 0.60
+    upper_shadow_penalty_weight: 0.35
+    high_volume_penalty_threshold: 1.30
+    high_volume_penalty_weight: 0.35
+    deep_negative_penalty_low: -5.0
+    deep_negative_penalty_high: -3.0
+    deep_negative_penalty_weight: 0.30
+    # 分层阈值（选股层提示档次，与盘中分层执行保持同口径）
+    direct_score_min: 76.0
+    direct_lgb_min: 0.58
+    semi_score_min: 70.0
+    semi_lgb_min: 0.55
+    direct_conf_min: 0.45
+    semi_conf_min: 0.58
     max_candidates: 12
     min_amt_ma20: 100000.0
     min_list_days: 60
@@ -395,6 +417,12 @@ stock_selection:
     weak_market_max_picks: 1
     weak_market_min_score_boost: 6.0
     weak_market_ret5_threshold: -0.02
+    # 震荡市限流（-2%~2%）：抬高最低分并压缩当日入选数
+    sideways_market_ret5_low: -0.02
+    sideways_market_ret5_high: 0.02
+    # 激进版震荡限流：区间内抬高最低分 + 当日暂停开新仓（回测见 secondary_launch_sideways_throttle_compare_20260415_114837）
+    sideways_market_min_score_boost: 12.0
+    sideways_market_max_picks: 0
   short_cycle_score_weight: 0.16
   strategy_profile: alpha158
   # Alpha158：TuShare 日线 amount 为千元；10 万千元 ≈ 1 亿元日成交额（与 local_alpha158 回测一致）
@@ -402,6 +430,26 @@ stock_selection:
   alpha158_vol_max: 0.6
   alpha158_roc5_min: -0.02
   alpha158_score_threshold: 0.5
+  # Alpha158 去弱留强过滤（降低追高与高波动样本）
+  alpha158_weak_filter_enabled: true
+  alpha158_max_rsi14: 62.0
+  alpha158_max_vol_ratio5: 1.8
+  alpha158_max_boll_pos: 1.0
+  alpha158_max_vstd30: 0.55
+  alpha158_max_roc5_chase: 0.04
+  # Alpha158 状态路由（路线A最小重构）：趋势/震荡/弱势切换双引擎评分
+  alpha158_regime_router_enabled: true
+  alpha158_regime_lookback: 30
+  alpha158_regime_trend_ret5_threshold: 0.015
+  alpha158_regime_weak_ret5_threshold: -0.02
+  alpha158_regime_ma_deviation_threshold: 0.01
+  # 控回撤优先：在震荡/弱势中抬高阈值并减少开仓
+  alpha158_regime_trend_score_threshold_delta: 0.03
+  alpha158_regime_sideways_score_threshold_delta: 0.08
+  alpha158_regime_weak_score_threshold_delta: 0.12
+  alpha158_regime_trend_top_n_multiplier: 1.0
+  alpha158_regime_sideways_top_n_multiplier: 0.60
+  alpha158_regime_weak_top_n_multiplier: 0.30
   strong_up_day_threshold: 6.0
   top_n: 5
   tradeability_penalty_weight: 0.18
@@ -413,9 +461,18 @@ stock_selection:
   volume_factor_weight: 0.0148
   # 突破策略（选强→等突破）：与 get_breakout_params_for_backtest 预设对齐
   breakout:
-    # baseline | selection_relaxed_v1 | win_rate_priority | wide_pool_strict_entry_v1 | wide_pool_strict_entry_v2 | buy_tuning_v1
+    # baseline | selection_relaxed_v1 | win_rate_priority | wide_pool_strict_entry_v1 | wide_pool_strict_entry_v2 | buy_tuning_v1 | optuna_optimized_v1
     # 注：「宽进突破策略」为独立菜单/任务，固定 wide_pool_strict_entry_v2，不依赖本项
+    # optuna_optimized_v1: Optuna三阶段优化后的参数（2026-04-14），样本外T1胜率59.62%
+    # 当前使用 win_rate_priority：买点更严，回测中突破+放量确认胜率84.6%
     params_preset: win_rate_priority
+# Qlib：Alpha158 + LightGBM 超参（与 output/qlib_optuna_alpha_comparison.json 中 Optuna 最优结果对齐）
+qlib:
+  use_optuna_alpha_lgb_params: true
+  optuna_alpha_comparison_json: output/qlib_optuna_alpha_comparison.json
+  provider_uri: ~/.qlib/qlib_data/cn_data
+  # 留空则使用 JSON/基线中的 num_threads；填整数可覆盖本机线程数
+  lgb_num_threads: null
 system:
   log_level: INFO
   name: A股量化交易辅助系统

@@ -36,7 +36,7 @@ def start_dashboard():
     print("=" * 80)
     print()
 
-    host = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
+    host = os.environ.get("DASHBOARD_HOST", "0.0.0.0")
     port = int(os.environ.get("DASHBOARD_PORT", "8501"))
 
     print(f"看板地址: http://{host}:{port}")

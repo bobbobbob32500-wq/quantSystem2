@@ -18,6 +18,7 @@ from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
 from src.core.logger import setup_logger
 from src.core.runtime_monitor import IncidentCategory, RuntimeHealthMonitor
+from src.modules.data_updater import DataUpdater
 from src.modules.enhanced_hybrid_system import EnhancedHybridSystem
 from src.modules.message_pusher import MessagePusher
 from src.modules.monitoring_store import MonitoringStore
@@ -106,6 +107,18 @@ class QuantService:
                 runtime_monitor=self.health_monitor,
             )
             self.task_manager.setup_auto_push_tasks()
+
+            # 注册每日17:30自动增量数据更新
+            data_updater = DataUpdater(self.config, self.db)
+            auto_data_update_enabled = bool(
+                self.config.get("data_source.auto_daily_update_enabled", True)
+            )
+            if auto_data_update_enabled:
+                self.task_manager.setup_default_tasks(
+                    data_update_func=data_updater.ensure_latest_market_data,
+                )
+                logger.info("已注册每日17:30自动增量数据更新任务")
+
             self.task_manager.start()
             jobs = self.task_manager.get_task_list()
             self.health_monitor.record_success(

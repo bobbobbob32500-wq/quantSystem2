@@ -1,0 +1,60 @@
+{
+  "model_type": "LightGBM",
+  "version": "v1_optuna_optimized",
+  "created_at": "2026-04-14",
+  "description": "Optuna三阶段优化后的LightGBM模型",
+  "performance": {
+    "in_sample": {
+      "signal_count": 161,
+      "t1_win_rate": 0.5031,
+      "t1_avg_ret": 0.000473,
+      "t1_pf": 1.0437
+    },
+    "out_sample": {
+      "signal_count": 157,
+      "t1_win_rate": 0.5962,
+      "t1_avg_ret": 0.0128,
+      "t1_pf": 2.5997
+    },
+    "best_auc": 0.5538
+  },
+  "lgb_params": {
+    "learning_rate": 0.031707193242141093,
+    "num_leaves": 58,
+    "max_depth": 4,
+    "subsample": 0.8650089137415928,
+    "colsample_bytree": 0.7246844304357644,
+    "lambda_l2": 10.968217207529522,
+    "min_child_samples": 32
+  },
+  "feature_importance": {
+    "market_strong_ratio": 11.2442,
+    "box_range": 8.4455,
+    "vol_ma20": 4.7204,
+    "amt_ma20": 3.9632,
+    "vol_ma5": 1.8751
+  },
+  "feature_cols": [
+    "rs20_xsec_q", "ma20_slope", "atr_ratio_q60", "box_range",
+    "ma20", "ma60", "ma120", "close",
+    "vol_ma5", "vol_ma20", "amt_ma20",
+    "industry_rs_rank", "industry_rs_gap", "industry_momentum",
+    "industry_strength", "volume_ratio", "price_volume_divergence",
+    "amplitude", "market_ad_ratio", "market_strong_ratio",
+    "ts_pe", "ts_pb", "ts_turnover_rate", "ts_volume_ratio",
+    "ts_total_mv", "ts_net_mf_vol", "ts_net_mf_amount"
+  ],
+  "strategy_params": {
+    "rs_quantile_min": 0.80,
+    "rs_quantile_max": 0.97,
+    "box_max_range": 0.08,
+    "atr_quantile_max": 0.50,
+    "min_signal_score": 60.0,
+    "top_k": 15,
+    "weight_rs": 35.0,
+    "weight_trend": 25.0,
+    "weight_stability": 20.0,
+    "weight_box": 12.0,
+    "weight_volume": 8.0
+  }
+}
