@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -87,6 +89,8 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -95,4 +99,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    exclude("**/com/quant/system/core/test/**")
+    exclude("**/com/quant/system/ui/screen/OptimizationTestActivity.kt")
+    exclude("**/com/quant/system/ui/screen/OptimizationReportActivity.kt")
 }

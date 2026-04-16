@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -71,6 +72,7 @@ object InteractiveFeedback {
     /**
      * 增强型按钮（带点击反馈）
      */
+    @Suppress("UNUSED_PARAMETER")
     @Composable
     fun EnhancedButton(
         onClick: () -> Unit,
@@ -731,7 +733,7 @@ object InteractiveFeedback {
                         }
                         
                         if (index < items.size - 1) {
-                            androidx.compose.material3.Divider(
+                            androidx.compose.material3.HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 thickness = 0.5.dp,
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -799,7 +801,7 @@ object InteractiveFeedback {
      */
     fun vibrate(context: android.content.Context, duration: Long = 50L) {
         try {
-            val vibrator = context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            val vibrator = context.getSystemService(android.os.Vibrator::class.java)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 vibrator?.vibrate(android.os.VibrationEffect.createOneShot(duration, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
             } else {

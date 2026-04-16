@@ -37,6 +37,10 @@ def test_openapi_lists_ai_and_butler(api_client):
     assert "/api/butler/status" in paths
     assert "/api/butler/start" in paths
     assert "/api/butler/stop" in paths
+    assert "/api/butler/risk-check" in paths
+    assert "/api/butler/signal-analysis" in paths
+    assert "/api/butler/last-briefing" in paths
+    assert "/api/butler/last-review" in paths
 
 
 @pytest.mark.smoke
@@ -76,6 +80,17 @@ def test_butler_start_stop_roundtrip(api_client):
     r4 = api_client.get("/api/butler/status")
     assert r4.status_code == 200
     assert r4.json().get("running") is False
+
+
+@pytest.mark.smoke
+def test_butler_hyphen_alias_routes_work(api_client):
+    briefing = api_client.get("/api/butler/last-briefing")
+    assert briefing.status_code == 200, briefing.text
+    assert "briefing" in briefing.json()
+
+    review = api_client.get("/api/butler/last-review")
+    assert review.status_code == 200, review.text
+    assert "review" in review.json()
 
 
 @pytest.mark.skipif(

@@ -16,11 +16,13 @@ from src.services.dashboard_action_service import DashboardActionService
 from src.services.dashboard_service import DashboardDataService
 
 # AI服务（可选依赖）
+_ai_import_error: str | None = None
 try:
     from src.services.ai_service import AIService
     _ai_available = True
-except ImportError:
+except Exception as exc:
     _ai_available = False
+    _ai_import_error = str(exc)
 
 # AI管家服务（可选依赖）
 try:
@@ -119,10 +121,11 @@ def create_app(
             payload = request.get_json(silent=True) or {}
             user_input = str(payload.get("message", "") or "").strip()
             context = payload.get("context")
+            session_id = str(payload.get("session_id", "") or "").strip() or None
             if not user_input:
                 return jsonify({"success": False, "message": "消息不能为空"}), 400
             try:
-                response = ai_service.chat(user_input, context=context)
+                response = ai_service.chat(user_input, context=context, session_id=session_id)
                 return jsonify({"success": True, "response": response})
             except Exception as exc:
                 return jsonify({"success": False, "message": f"AI对话失败: {exc}"}), 500
@@ -131,10 +134,11 @@ def create_app(
         def ai_quick_ask():
             payload = request.get_json(silent=True) or {}
             prompt_key = str(payload.get("key", "") or "").strip()
+            session_id = str(payload.get("session_id", "") or "").strip() or None
             if not prompt_key:
                 return jsonify({"success": False, "message": "缺少预设问题key"}), 400
             try:
-                response = ai_service.quick_ask(prompt_key)
+                response = ai_service.quick_ask(prompt_key, session_id=session_id)
                 return jsonify({"success": True, "response": response})
             except Exception as exc:
                 return jsonify({"success": False, "message": f"AI问答失败: {exc}"}), 500
@@ -189,16 +193,82 @@ def create_app(
 
         @app.post("/api/ai/clear-history")
         def ai_clear_history():
-            ai_service.clear_chat_history()
+            payload = request.get_json(silent=True) or {}
+            session_id = str(payload.get("session_id", "") or "").strip() or None
+            ai_service.clear_chat_history(session_id=session_id)
             return jsonify({"success": True})
 
         @app.get("/api/ai/history")
         def ai_history():
-            return jsonify({"history": ai_service.get_chat_history()})
+            session_id = str(request.args.get("session_id", "") or "").strip() or None
+            limit = request.args.get("limit", 50)
+            try:
+                limit_int = int(limit)
+            except Exception:
+                limit_int = 50
+            return jsonify({"history": ai_service.get_chat_history(session_id=session_id, limit=limit_int)})
+    else:
+        app.logger.warning("AI routes disabled because AIService import failed: %s", _ai_import_error)
+
+        @app.get("/api/ai/status")
+        def ai_status_unavailable():
+            return jsonify(
+                {
+                    "enabled": False,
+                    "available": False,
+                    "message": "AI service unavailable in current dashboard runtime.",
+                    "import_error": _ai_import_error,
+                }
+            )
+
+        @app.post("/api/ai/chat")
+        def ai_chat_unavailable():
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "AI service unavailable, please check dashboard runtime dependencies.",
+                        "import_error": _ai_import_error,
+                    }
+                ),
+                503,
+            )
+
+        @app.post("/api/ai/quick-ask")
+        def ai_quick_ask_unavailable():
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "AI service unavailable, please check dashboard runtime dependencies.",
+                        "import_error": _ai_import_error,
+                    }
+                ),
+                503,
+            )
 
     # === AI管家接口 ===
     if _butler_available:
         butler_service = AIButlerService()
+
+        if not os.environ.get("PYTEST_CURRENT_TEST"):
+            auto_start = True
+            try:
+                import yaml
+
+                cfg_path = BASE_DIR / "config" / "ai_config.yaml"
+                if cfg_path.exists():
+                    cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+                    auto_start = bool((cfg.get("ai", {}) or {}).get("butler", {}).get("auto_start", True))
+            except Exception:
+                app.logger.exception("Failed to read ai_config.yaml for butler auto-start")
+
+            if auto_start:
+                try:
+                    butler_service.start()
+                    app.logger.info("AI butler auto-started on dashboard boot")
+                except Exception:
+                    app.logger.exception("Failed to auto-start AI butler from dashboard")
 
         @app.get("/api/butler/status")
         def butler_status():

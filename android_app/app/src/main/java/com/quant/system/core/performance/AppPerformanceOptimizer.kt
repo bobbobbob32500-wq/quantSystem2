@@ -5,14 +5,16 @@ import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import androidx.annotation.RequiresApi
+import com.quant.system.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotxlinx.coroutines.Job
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -311,12 +313,10 @@ class AppPerformanceOptimizer(private val context: Context) {
     
     private fun optimizeThreadPools() {
         // 配置线程池参数
-        ioThreadPool.keepAliveTime = 30L
-        ioThreadPool.unit = TimeUnit.SECONDS
+        ioThreadPool.setKeepAliveTime(30L, TimeUnit.SECONDS)
         ioThreadPool.allowCoreThreadTimeOut(true)
         
-        computationThreadPool.keepAliveTime = 60L
-        computationThreadPool.unit = TimeUnit.SECONDS
+        computationThreadPool.setKeepAliveTime(60L, TimeUnit.SECONDS)
         computationThreadPool.allowCoreThreadTimeOut(true)
     }
     
@@ -523,7 +523,7 @@ class AppPerformanceOptimizer(private val context: Context) {
         @JvmStatic
         fun getInstance(context: Context): AppPerformanceOptimizer {
             return instanceMap.getOrPut(context) {
-                AppPerformanceOptimizer(context.applicationContext ?: context)
+                AppPerformanceOptimizer(context.applicationContext)
             }
         }
         

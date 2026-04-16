@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeUnit
  * 数据同步优化器
  * 提供智能数据同步、增量更新和缓存管理
  */
+@OptIn(ExperimentalSerializationApi::class)
 class DataSyncOptimizer(private val context: Context) {
     private val networkMonitor = NetworkMonitorImpl(context)
     private val workManager = WorkManager.getInstance(context)
@@ -63,6 +66,12 @@ class DataSyncOptimizer(private val context: Context) {
         onError: (Throwable) -> Unit,
         forceRefresh: Boolean = false
     ) {
+        if (baseUrl.isBlank()) {
+            onError(IllegalArgumentException("API base URL is empty"))
+            _syncState.value = SyncState.FAILED
+            return
+        }
+
         syncJob?.cancel()
         
         syncJob = scope.launch {
@@ -89,7 +98,7 @@ class DataSyncOptimizer(private val context: Context) {
                 when (syncStrategy) {
                     SyncStrategy.FULL_REFRESH -> {
                         // 全量刷新
-                        val data = fetchFullData(baseUrl)
+                        val data = fetchFullData()
                         saveToCache(data)
                         onSuccess(data)
                         _syncState.value = SyncState.COMPLETED_FULL
@@ -106,8 +115,8 @@ class DataSyncOptimizer(private val context: Context) {
                             // 后台增量更新
                             launch {
                                 try {
-                                    val incrementalData = fetchIncrementalData(baseUrl, cachedData)
-                                    val mergedData = mergeData(cachedData, incrementalData)
+                                    val incrementalData = fetchIncrementalData()
+                                    val mergedData = mergeData(incrementalData)
                                     saveToCache(mergedData)
                                     _syncState.value = SyncState.COMPLETED_INCREMENTAL
                                 } catch (e: Exception) {
@@ -116,7 +125,7 @@ class DataSyncOptimizer(private val context: Context) {
                             }
                         } else {
                             // 缓存过期或无缓存，全量刷新
-                            val data = fetchFullData(baseUrl)
+                            val data = fetchFullData()
                             saveToCache(data)
                             onSuccess(data)
                             _syncState.value = SyncState.COMPLETED_FULL
@@ -238,21 +247,21 @@ class DataSyncOptimizer(private val context: Context) {
         )
     }
     
-    private suspend fun fetchFullData(baseUrl: String): DashboardSnapshot {
+    private suspend fun fetchFullData(): DashboardSnapshot {
         // 这里应该调用实际的API
         // 暂时返回空对象，实际项目中需要实现
         delay(1000) // 模拟网络延迟
         return DashboardSnapshot()
     }
     
-    private suspend fun fetchIncrementalData(baseUrl: String, cachedData: DashboardSnapshot): DashboardSnapshot {
+    private suspend fun fetchIncrementalData(): DashboardSnapshot {
         // 这里应该调用增量更新API
         // 暂时返回空对象，实际项目中需要实现
         delay(500) // 模拟网络延迟
         return DashboardSnapshot()
     }
     
-    private fun mergeData(cached: DashboardSnapshot, incremental: DashboardSnapshot): DashboardSnapshot {
+    private fun mergeData(incremental: DashboardSnapshot): DashboardSnapshot {
         // 合并缓存数据和增量数据
         // 这里需要根据实际数据结构实现合并逻辑
         return incremental // 暂时返回增量数据
@@ -303,8 +312,8 @@ class DataSyncOptimizer(private val context: Context) {
         val ageMs = now - timestamp
         
         // 根据网络质量调整缓存过期时间
-        val networkState = networkMonitor.networkState.value
-        val maxAgeMs = when (NetworkMonitor.getNetworkQualityLevel(networkState.networkQuality)) {
+        val currentNetworkQuality = networkMonitor.networkQuality
+        val maxAgeMs = when (NetworkMonitor.getNetworkQualityLevel(currentNetworkQuality)) {
             NetworkQuality.EXCELLENT -> CACHE_EXPIRY_FAST_MS
             NetworkQuality.GOOD -> CACHE_EXPIRY_NORMAL_MS
             NetworkQuality.FAIR -> CACHE_EXPIRY_SLOW_MS

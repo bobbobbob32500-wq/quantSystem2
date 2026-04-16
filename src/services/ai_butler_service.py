@@ -56,8 +56,17 @@ class AIButlerService:
 
         # 初始化LLM和管家
         ai_config = self._load_ai_config()
-        self.llm = LLMClient(config=ai_config.get("llm", {}))
+        self.llm = LLMClient(config=self._build_llm_config(ai_config))
         self.butler = AIButler(self.llm)
+        ai_root = ai_config.get("ai", {}) if isinstance(ai_config, dict) else {}
+        butler_cfg = ai_root.get("butler", {}) if isinstance(ai_root, dict) else {}
+        self._strong_reminder_levels = {
+            str(level).upper()
+            for level in (butler_cfg.get("strong_reminder_levels", ["HIGH", "CRITICAL"]) or [])
+            if str(level).strip()
+        }
+        if not self._strong_reminder_levels:
+            self._strong_reminder_levels = {"HIGH", "CRITICAL"}
 
         # 调度器
         self._scheduler = BackgroundScheduler(daemon=True)
@@ -75,6 +84,47 @@ class AIButlerService:
         logger.info(f"AI管家服务初始化完成, LLM可用={self.llm.is_available}")
 
     # ==================== 数据服务懒加载 ====================
+
+    def _normalize_alert_level(self, level: Optional[str]) -> str:
+        raw = str(level or "").strip().upper()
+        return raw if raw else "INFO"
+
+    def _format_alert_title(self, alert_type: str, level: str) -> str:
+        level_prefix = {
+            "CRITICAL": "【紧急】",
+            "HIGH": "【高危】",
+            "MEDIUM": "【提示】",
+            "LOW": "【关注】",
+            "INFO": "【信息】",
+        }
+        return f"{level_prefix.get(level, '【信息】')}{alert_type}"
+
+    def _publish_alert(
+        self,
+        *,
+        alert_type: str,
+        message: str,
+        level: Optional[str] = None,
+        source: str = "butler",
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        normalized = self._normalize_alert_level(level)
+        alert_record = {
+            "type": alert_type,
+            "message": message,
+            "level": normalized,
+            "source": source,
+            "created_at": datetime.now().isoformat(),
+        }
+        if extra:
+            alert_record.update(extra)
+
+        self._active_alerts.append(alert_record)
+        if len(self._active_alerts) > 200:
+            self._active_alerts = self._active_alerts[-200:]
+
+        if self._push_callback and normalized in self._strong_reminder_levels:
+            self._push_callback(self._format_alert_title(alert_type, normalized), message)
 
     def _get_dashboard_service(self):
         """懒加载DashboardDataService, 避免循环依赖"""
@@ -112,6 +162,52 @@ class AIButlerService:
             except Exception as e:
                 logger.warning(f"AI配置加载失败: {e}")
         return {}
+
+    def _build_llm_config(self, config_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Build butler LLM config from ai_config.yaml."""
+        ai_root = config_data.get("ai", {}) if isinstance(config_data, dict) else {}
+        provider = str(ai_root.get("provider", "deepseek")).strip() or "deepseek"
+        models_config = ai_root.get("models", {}) or {}
+        generation_config = ai_root.get("generation", {}) or {}
+
+        if provider == "deepseek":
+            provider_config = ai_root.get("deepseek", {}) or {}
+            default_base_url = "https://api.deepseek.com/v1"
+            default_model = "deepseek-chat"
+            code_model = "deepseek-coder"
+        elif provider == "local_deepseek":
+            provider_config = ai_root.get("local_deepseek", {}) or {}
+            default_base_url = "http://localhost:8000/v1"
+            default_model = "deepseek-r1"
+            code_model = "deepseek-r1"
+        else:
+            provider_config = ai_root.get("ollama", {}) or {}
+            default_base_url = "http://localhost:11434"
+            default_model = "qwen2.5:7b"
+            code_model = "mistral:7b"
+
+        api_key_env = str(provider_config.get("api_key_env", "")).strip()
+        api_key = os.environ.get(api_key_env, "") if api_key_env else ""
+        if not api_key:
+            api_key = str(provider_config.get("api_key", "") or "")
+
+        llm_config: Dict[str, Any] = {
+            "provider": provider,
+            "base_url": provider_config.get("base_url", default_base_url),
+            "api_key": api_key,
+            "default_model": models_config.get("default", default_model),
+            "code_model": models_config.get("code", code_model),
+            "timeout": provider_config.get("timeout", 120),
+            "max_retries": provider_config.get("max_retries", 2),
+            "retry_delay": provider_config.get("retry_delay", 3),
+            "temperature": generation_config.get("temperature", 0.4),
+            "max_tokens": generation_config.get("max_tokens", 2048),
+        }
+
+        protection_cfg = ai_root.get("protection", {}) or {}
+        llm_config["max_concurrency"] = int(protection_cfg.get("max_concurrency", 2))
+        llm_config["circuit_breaker"] = protection_cfg.get("circuit_breaker", {}) or {}
+        return llm_config
 
     @property
     def is_available(self) -> bool:
@@ -230,10 +326,13 @@ class AIButlerService:
 
             alerts = monitor_result.get("alerts", [])
             for alert in alerts:
-                if alert.get("level") in ["HIGH", "CRITICAL"]:
-                    self._active_alerts.append(alert)
-                    if self._push_callback:
-                        self._push_callback(f"⚠️ {alert['type']}", alert["message"])
+                self._publish_alert(
+                    alert_type=str(alert.get("type", "盘中监控告警")),
+                    message=str(alert.get("message", "")),
+                    level=str(alert.get("level", "INFO")),
+                    source="intraday_monitor",
+                    extra={"raw": alert},
+                )
 
             logger.debug(f"盘中监控完成, 预警数: {len(alerts)}")
 
@@ -277,9 +376,13 @@ class AIButlerService:
 
             if risk_result["risk_level"] in ["HIGH", "CRITICAL"]:
                 for alert in risk_result["alerts"]:
-                    if alert.get("level") in ["HIGH", "CRITICAL"]:
-                        if self._push_callback:
-                            self._push_callback(f"🚨 风险预警", alert["message"])
+                    self._publish_alert(
+                        alert_type="风险预警",
+                        message=str(alert.get("message", "")),
+                        level=str(alert.get("level", risk_result.get("risk_level", "HIGH"))),
+                        source="risk_check",
+                        extra={"raw": alert},
+                    )
 
             logger.debug(f"风险检查完成, 风险等级: {risk_result['risk_level']}")
 
@@ -299,12 +402,20 @@ class AIButlerService:
         )
 
         if result.get("confidence", 0) >= 0.7 and result.get("action") in ["BUY", "SELL"]:
-            if self._push_callback:
-                action_text = "买入" if result["action"] == "BUY" else "卖出"
-                self._push_callback(
-                    f"💡 {action_text}建议",
-                    f"{stock_info.get('name', '')} {action_text}\n原因: {result['reason']}\n执行: {result['execution_advice']}",
-                )
+            action_text = "买入" if result["action"] == "BUY" else "卖出"
+            confidence = float(result.get("confidence", 0) or 0)
+            level = "HIGH" if confidence >= 0.85 else "MEDIUM"
+            self._publish_alert(
+                alert_type=f"{action_text}建议",
+                message=(
+                    f"{stock_info.get('name', '')} {action_text}\n"
+                    f"原因: {result.get('reason', '')}\n"
+                    f"执行: {result.get('execution_advice', '')}"
+                ),
+                level=level,
+                source="signal_analysis",
+                extra={"signal": signal, "stock_info": stock_info, "confidence": confidence},
+            )
 
         return result
 
@@ -619,6 +730,7 @@ class AIButlerService:
             "running": self._running,
             "llm_available": self.llm.is_available,
             "llm_provider": self.llm.provider,
+            "strong_reminder_levels": sorted(self._strong_reminder_levels),
             "last_briefing_time": self._last_briefing.get("created_at") if self._last_briefing else None,
             "last_review_time": self._last_review.get("created_at") if self._last_review else None,
             "active_alerts_count": len(self._active_alerts),

@@ -416,8 +416,8 @@ private fun TradeCard(
                 DetailCard(
                     title = "止盈止损提醒",
                     lines = listOf(
-                        "止损：${reminder?.stopLossPct?.let { "${"%.2f".format(it)}%" } ?: "--"}",
-                        "止盈：${reminder?.takeProfitPct?.let { "${"%.2f".format(it)}%" } ?: "--"}",
+                        "止损：${reminder.stopLossPct?.let { "${"%.2f".format(it)}%" } ?: "--"}",
+                        "止盈：${reminder.takeProfitPct?.let { "${"%.2f".format(it)}%" } ?: "--"}",
                     ),
                 )
             }

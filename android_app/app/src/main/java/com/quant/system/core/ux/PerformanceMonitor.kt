@@ -7,6 +7,7 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -16,6 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -203,8 +205,7 @@ class PerformanceMonitor(private val context: Context) {
             val file = File(context.filesDir, fileName)
             
             val report = getPerformanceReport()
-            val json = kotlinx.serialization.json.Json { prettyPrint = true }
-            val jsonString = json.encodeToString(PerformanceReport.serializer(), report)
+            val jsonString = report.toString()
             
             file.writeText(jsonString)
             
@@ -260,8 +261,6 @@ class PerformanceMonitor(private val context: Context) {
         performanceData.values.forEach { metric ->
             if (metric.sampleCount >= 10) {
                 val avg = metric.average
-                val max = metric.maximum
-                val min = metric.minimum
                 val stdDev = metric.standardDeviation
                 
                 // 检测异常值
@@ -281,11 +280,11 @@ class PerformanceMonitor(private val context: Context) {
         val screenMetrics = uiRenderTimes.map { (screenName, times) ->
             if (times.isNotEmpty()) {
                 val avg = times.average()
-                val max = times.maxOrNull() ?: 0.0
-                val min = times.minOrNull() ?: 0.0
+                val max = (times.maxOrNull() ?: 0L).toDouble()
+                val min = (times.minOrNull() ?: 0L).toDouble()
                 val p95 = times.sorted().let { sorted ->
                     val index = (sorted.size * 0.95).toInt()
-                    sorted[index]
+                    sorted[index].toDouble()
                 }
                 
                 ScreenPerformance(
@@ -318,11 +317,11 @@ class PerformanceMonitor(private val context: Context) {
         val endpointMetrics = networkRequestTimes.map { (endpoint, times) ->
             if (times.isNotEmpty()) {
                 val avg = times.average()
-                val max = times.maxOrNull() ?: 0.0
-                val min = times.minOrNull() ?: 0.0
+                val max = (times.maxOrNull() ?: 0L).toDouble()
+                val min = (times.minOrNull() ?: 0L).toDouble()
                 val p95 = times.sorted().let { sorted ->
                     val index = (sorted.size * 0.95).toInt()
-                    sorted[index]
+                    sorted[index].toDouble()
                 }
                 val successRate = 0.95 // 假设成功率为95%
                 
@@ -437,7 +436,7 @@ class PerformanceMonitor(private val context: Context) {
                     android.os.PowerManager.THERMAL_STATUS_NONE -> "正常"
                     android.os.PowerManager.THERMAL_STATUS_LIGHT -> "轻度"
                     android.os.PowerManager.THERMAL_STATUS_MODERATE -> "中度"
-                    android.os.POWER_MANAGER_THERMAL_STATUS_SEVERE -> "严重"
+                    android.os.PowerManager.THERMAL_STATUS_SEVERE -> "严重"
                     android.os.PowerManager.THERMAL_STATUS_CRITICAL -> "临界"
                     android.os.PowerManager.THERMAL_STATUS_EMERGENCY -> "紧急"
                     android.os.PowerManager.THERMAL_STATUS_SHUTDOWN -> "关机"
@@ -709,6 +708,9 @@ data class PerformanceRecommendation(
     val impact: String // 低、中、高
 )
 
+@Composable
+fun rememberPerformanceMonitor(): PerformanceMonitor = PerformanceMonitor.rememberPerformanceMonitor()
+
 /**
  * 性能监控Composable
  */
@@ -727,7 +729,7 @@ fun PerformanceMonitorComposable(
     }
     
     // 清理效果
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         onDispose {
             monitor.stopMonitoring()
         }

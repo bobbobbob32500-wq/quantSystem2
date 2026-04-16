@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-04-16 23:04:59",
+  "window_days": 7,
+  "total_validations": 2,
+  "success_count": 2,
+  "success_rate": 1.0,
+  "avg_p95_ms": 4.147,
+  "max_p95_ms": 4.339,
+  "avg_unavailable_ratio": 0.0,
+  "records": [
+    {
+      "time": "2026-04-16 22:51:38",
+      "file": "D:\\HuaweiAI\\quantSystem2\\reports\\release\\ai_local_final_validation_20260416_225138.json",
+      "overall_passed": true,
+      "p95_ms": 4.339,
+      "unavailable_ratio": null
+    },
+    {
+      "time": "2026-04-16 23:04:50",
+      "file": "D:\\HuaweiAI\\quantSystem2\\reports\\release\\ai_local_final_validation_20260416_230450.json",
+      "overall_passed": true,
+      "p95_ms": 3.955,
+      "unavailable_ratio": 0.0
+    }
+  ]
+}

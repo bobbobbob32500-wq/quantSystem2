@@ -1,0 +1,25 @@
+{
+  "generated_at": "20260416_230459",
+  "overall_passed": true,
+  "checks": {
+    "baseline_smoke": {
+      "ok": true,
+      "exit_code": 0,
+      "duration_sec": 11.21640330000082,
+      "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0\nrootdir: D:\\HuaweiAI\\quantSystem2\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 7 items\n\ntests\\test_ai_mobile_api_smoke.py .....s                                 [ 85%]\ntests\\test_mobile_api_contract.py .                                      [100%]\n\n============================== warnings summary ===============================\nC:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path D:\\HuaweiAI\\quantSystem2\\.pytest_cache\\v\\cache\\nodeids: [WinError 183] ���ļ��Ѵ���ʱ���޷��������ļ���: 'D:\\\\HuaweiAI\\\\quantSystem2\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nSKIPPED [1] tests\\test_ai_mobile_api_smoke.py:96: Export RUN_AI_LLM_SMOKE=1 to call real LLM (uses API tokens).\n=================== 6 passed, 1 skipped, 1 warning in 7.67s ===================\n",
+      "stderr_tail": ""
+    },
+    "final_validation": {
+      "ok": true,
+      "exit_code": 0,
+      "duration_sec": 34.11211259999982,
+      "stdout_tail": "[AI Final Validation] overall_passed=True\n[AI Final Validation] markdown_report=D:\\HuaweiAI\\quantSystem2\\reports\\release\\ai_local_final_validation_20260416_230543.md\n[AI Final Validation] json_report=D:\\HuaweiAI\\quantSystem2\\reports\\release\\ai_local_final_validation_20260416_230543.json\n",
+      "stderr_tail": ""
+    },
+    "rollback_anchor_exists": {
+      "ok": true,
+      "count": 3,
+      "latest": "D:\\HuaweiAI\\quantSystem2\\reports\\release\\ai_local_final_validation_20260416_230543.json"
+    }
+  }
+}

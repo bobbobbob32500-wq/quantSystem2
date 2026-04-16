@@ -28,7 +28,7 @@ class CrashReporter(private val context: Context) {
     private val crashQueue = ConcurrentLinkedQueue<GlobalExceptionHandler.CrashInfo>()
     private val isReporting = AtomicInteger(0)
     private val maxCrashFiles = 50 // 最大崩溃文件数
-    private val maxCrashSize = 10 * 1024 * 1024 // 最大崩溃文件大小：10MB
+    private val maxCrashSize = 10L * 1024L * 1024L // 最大崩溃文件大小：10MB
     
     /**
      * 记录崩溃信息
@@ -219,7 +219,8 @@ class CrashReporter(private val context: Context) {
             try {
                 val crashesToReport = mutableListOf<GlobalExceptionHandler.CrashInfo>()
                 while (crashQueue.isNotEmpty()) {
-                    crashesToReport.add(crashQueue.poll())
+                    val crashInfo = crashQueue.poll() ?: break
+                    crashesToReport.add(crashInfo)
                 }
                 
                 if (crashesToReport.isNotEmpty()) {
@@ -228,7 +229,7 @@ class CrashReporter(private val context: Context) {
                     Log.i(TAG, "准备上报 ${crashesToReport.size} 个崩溃信息")
                     
                     // 模拟上报
-                    val success = simulateCrashReport(crashesToReport)
+                    val success = simulateCrashReport()
                     
                     if (success) {
                         Log.i(TAG, "崩溃信息上报成功")
@@ -248,7 +249,7 @@ class CrashReporter(private val context: Context) {
         }
     }
     
-    private fun simulateCrashReport(crashes: List<GlobalExceptionHandler.CrashInfo>): Boolean {
+    private fun simulateCrashReport(): Boolean {
         // 模拟网络请求
         return try {
             // 在实际项目中，这里应该发送HTTP请求到服务器

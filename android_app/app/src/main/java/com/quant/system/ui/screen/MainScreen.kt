@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -183,7 +183,7 @@ fun MainScreen() {
                                 Icon(Icons.Filled.SmartToy, contentDescription = "AI管家")
                             }
                             IconButton(onClick = { extraScreen = ScreenDestination.KnowledgeBase }) {
-                                Icon(Icons.Filled.MenuBook, contentDescription = "知识库")
+                                Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = "知识库")
                             }
                             IconButton(onClick = { extraScreen = ScreenDestination.History }) {
                                 Icon(Icons.Filled.History, contentDescription = "执行历史")
@@ -255,6 +255,7 @@ fun MainScreen() {
                         highContrastEnabled = state.highContrastEnabled,
                         defaultStrategy = state.defaultStrategy,
                         homeModuleOrder = state.homeModuleOrder,
+                        aiInferenceMode = state.aiInferenceMode,
                         watchlistSymbols = state.watchlist.symbols,
                         isNotificationPermissionGranted = state.isNotificationPermissionGranted,
                         notifyHighPrioritySignalOnly = state.notifyHighPrioritySignalOnly,
@@ -303,6 +304,7 @@ fun MainScreen() {
                         },
                         onSaveDefaultStrategy = viewModel::setDefaultStrategy,
                         onSaveHomeModuleOrder = viewModel::setHomeModuleOrder,
+                        onSaveAiInferenceMode = viewModel::setAiInferenceMode,
                         onSaveWatchlist = viewModel::updateWatchlist,
                         onSetHighPrioritySignalOnly = viewModel::setHighPrioritySignalOnly,
                         onSetActionCompleteNotifyEnabled = viewModel::setActionCompleteNotifyEnabled,
@@ -327,16 +329,13 @@ fun MainScreen() {
                                 .onFailure { scope.launch { snackbarHostState.showSnackbar("无法打开文档链接") } }
                         },
                         onOpenOptimizationTest = {
-                            val intent = Intent(context, OptimizationTestActivity::class.java)
-                            context.startActivity(intent)
+                            scope.launch { snackbarHostState.showSnackbar("优化测试页已暂时下线") }
                         },
                         onOpenOptimizationReport = {
-                            val intent = Intent(context, OptimizationReportActivity::class.java)
-                            context.startActivity(intent)
+                            scope.launch { snackbarHostState.showSnackbar("优化报告页已暂时下线") }
                         },
                         onOpenOptimizationLauncher = {
-                            val intent = Intent(context, com.quant.system.core.test.OptimizationLauncherActivity::class.java)
-                            context.startActivity(intent)
+                            scope.launch { snackbarHostState.showSnackbar("优化启动器已暂时下线") }
                         },
                     )
 
@@ -377,6 +376,7 @@ fun MainScreen() {
                         onStopButler = viewModel::stopButler,
                         messages = state.aiMessages,
                         inputText = state.aiInputText,
+                        inferenceMode = state.aiInferenceMode,
                         onInputTextChange = viewModel::updateAIInputText,
                         onClearHistory = viewModel::clearAIHistory,
                     )

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.lang.management.ManagementFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
 
@@ -363,18 +362,18 @@ class PerformanceMonitor {
     }
     
     companion object {
-        private val instance by lazy { PerformanceMonitor() }
+        private val singleton by lazy { PerformanceMonitor() }
         
         @JvmStatic
-        fun getInstance(): PerformanceMonitor = instance
+        fun getInstance(): PerformanceMonitor = singleton
         
         /**
          * 快速记录操作耗时
          */
         @JvmStatic
-        fun recordOperation(operationName: String, block: () -> Unit) {
-            val tracker = instance.startOperation(operationName)
-            try {
+        fun <T> recordOperation(operationName: String, block: () -> T): T {
+            val tracker = singleton.startOperation(operationName)
+            return try {
                 block()
             } finally {
                 tracker.stop()
@@ -385,9 +384,9 @@ class PerformanceMonitor {
          * 异步记录操作耗时
          */
         @JvmStatic
-        suspend fun recordOperationAsync(operationName: String, block: suspend () -> Unit) {
-            val tracker = instance.startOperation(operationName)
-            try {
+        suspend fun <T> recordOperationAsync(operationName: String, block: suspend () -> T): T {
+            val tracker = singleton.startOperation(operationName)
+            return try {
                 block()
             } finally {
                 tracker.stop()

@@ -63,6 +63,7 @@ fun SettingsScreen(
     highContrastEnabled: Boolean,
     defaultStrategy: String,
     homeModuleOrder: String,
+    aiInferenceMode: String,
     watchlistSymbols: List<String>,
     isNotificationPermissionGranted: Boolean,
     notifyHighPrioritySignalOnly: Boolean,
@@ -85,6 +86,7 @@ fun SettingsScreen(
     onOpenNotificationSettings: () -> Unit,
     onSaveDefaultStrategy: (String) -> Unit,
     onSaveHomeModuleOrder: (String) -> Unit,
+    onSaveAiInferenceMode: (String) -> Unit,
     onSaveWatchlist: (List<String>) -> Unit,
     onSetHighPrioritySignalOnly: (Boolean) -> Unit,
     onSetActionCompleteNotifyEnabled: (Boolean) -> Unit,
@@ -101,6 +103,7 @@ fun SettingsScreen(
 ) {
     val strategyInput = remember(defaultStrategy) { mutableStateOf(defaultStrategy) }
     val moduleOrderInput = remember(homeModuleOrder) { mutableStateOf(homeModuleOrder) }
+    val aiModeInput = remember(aiInferenceMode) { mutableStateOf(aiInferenceMode) }
     val watchlistInput = remember(watchlistSymbols) { mutableStateOf(watchlistSymbols.joinToString(",")) }
     val silentStartInput = remember(silentStart) { mutableStateOf(silentStart) }
     val silentEndInput = remember(silentEnd) { mutableStateOf(silentEnd) }
@@ -339,6 +342,34 @@ fun SettingsScreen(
             )
         }
         item { DetailCard("当前生效地址", listOf(currentBaseUrl)) }
+        item { SectionHeader("AI 推理策略") }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                InferenceModeButton(
+                    label = "自动",
+                    selected = aiModeInput.value == "auto",
+                    modifier = Modifier.weight(1f),
+                ) { aiModeInput.value = "auto" }
+                InferenceModeButton(
+                    label = "云端优先",
+                    selected = aiModeInput.value == "cloud",
+                    modifier = Modifier.weight(1f),
+                ) { aiModeInput.value = "cloud" }
+                InferenceModeButton(
+                    label = "本地优先",
+                    selected = aiModeInput.value == "local",
+                    modifier = Modifier.weight(1f),
+                ) { aiModeInput.value = "local" }
+            }
+        }
+        item {
+            OutlinedButton(
+                onClick = { onSaveAiInferenceMode(aiModeInput.value) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("保存 AI 推理策略")
+            }
+        }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onTestConnection, modifier = Modifier.weight(1f), enabled = !isSaving) {
@@ -461,6 +492,20 @@ private fun SettingSwitchRow(
     ) {
         Text(title, modifier = Modifier.padding(top = 12.dp))
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun RowScope.InferenceModeButton(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    if (selected) {
+        Button(onClick = onClick, modifier = modifier) { Text(label) }
+    } else {
+        OutlinedButton(onClick = onClick, modifier = modifier) { Text(label) }
     }
 }
 

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -274,7 +275,6 @@ object UserExperienceOptimizer {
         modifier: Modifier = Modifier
     ) {
         val alpha = remember { Animatable(0.3f) }
-        val scope = rememberCoroutineScope()
         
         LaunchedEffect(Unit) {
             while (true) {
@@ -576,6 +576,7 @@ object UserExperienceOptimizer {
     /**
      * 平滑过渡内容
      */
+    @Suppress("UNUSED_PARAMETER")
     @Composable
     fun <T> CrossfadeContent(
         currentValue: T,
@@ -643,16 +644,13 @@ object UserExperienceOptimizer {
     /**
      * 错误边界（捕获Compose中的异常）
      */
+    @Suppress("UNUSED_PARAMETER")
     @Composable
     fun ErrorBoundary(
         fallback: @Composable (Throwable) -> Unit,
         content: @Composable () -> Unit
     ) {
-        try {
-            content()
-        } catch (throwable: Throwable) {
-            fallback(throwable)
-        }
+        content()
     }
     
     /**

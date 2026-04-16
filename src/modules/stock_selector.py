@@ -3370,11 +3370,39 @@ class StockSelector:
         lgb_score = None
         try:
             import os
+            import re
             # 从项目根目录查找模型
             _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             model_path = os.path.join(_root, "models", "alpha158_lgb_model.txt")
             config_path = os.path.join(_root, "models", "alpha158_lgb_config.json")
             if os.path.exists(model_path) and os.path.exists(config_path):
+                # Pre-validate text model to avoid LightGBM fatal log flood on malformed files.
+                with open(model_path, "r", encoding="utf-8", errors="replace") as mf:
+                    model_text = mf.read()
+                tree_match = re.search(r"tree_sizes=([0-9\s]+)", model_text)
+                expected_trees = (
+                    len([x for x in tree_match.group(1).split() if x.strip()])
+                    if tree_match
+                    else 0
+                )
+                actual_trees = model_text.count("\nTree=")
+                text_model_valid = (
+                    model_text.startswith("tree\n")
+                    and ("feature_names=" in model_text)
+                    and ("tree_sizes=" in model_text)
+                    and actual_trees > 0
+                    and (expected_trees == 0 or actual_trees == expected_trees)
+                    and model_text.rstrip().endswith("pandas_categorical:[]")
+                )
+                if not text_model_valid:
+                    logger.warning(
+                        "alpha158_lgb_model invalid, fallback to IC scoring: %s (expected_trees=%s actual_trees=%s)",
+                        model_path,
+                        expected_trees,
+                        actual_trees,
+                    )
+                    raise ValueError("invalid alpha158 lgb model")
+
                 import lightgbm as lgb
                 with open(config_path, "r", encoding="utf-8") as f:
                     lgb_config = json.load(f)

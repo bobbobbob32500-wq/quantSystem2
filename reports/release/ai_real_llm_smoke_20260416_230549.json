@@ -1,0 +1,19 @@
+{
+  "generated_at": "20260416_230549",
+  "passed": true,
+  "command": [
+    "C:\\Python314\\python.exe",
+    "-m",
+    "pytest",
+    "tests/test_ai_mobile_api_smoke.py",
+    "-k",
+    "test_ai_chat_and_quick_ask_llm"
+  ],
+  "run": {
+    "exit_code": 0,
+    "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0\nrootdir: D:\\HuaweiAI\\quantSystem2\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 6 items / 5 deselected / 1 selected\n\ntests\\test_ai_mobile_api_smoke.py .                                      [100%]\n\n============================== warnings summary ===============================\nC:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path D:\\HuaweiAI\\quantSystem2\\.pytest_cache\\v\\cache\\nodeids: [WinError 183] ���ļ��Ѵ���ʱ���޷��������ļ���: 'D:\\\\HuaweiAI\\\\quantSystem2\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n============ 1 passed, 5 deselected, 1 warning in 70.69s (0:01:10) ============\n",
+    "stderr": "",
+    "duration_sec": 74.30284319999919,
+    "timed_out": false
+  }
+}

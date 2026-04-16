@@ -134,6 +134,26 @@ class SettingsRepository(context: Context) {
             .apply()
     }
 
+    fun getAiInferenceMode(): String {
+        val mode = prefs.getString(KEY_AI_INFERENCE_MODE, DEFAULT_AI_INFERENCE_MODE)
+            .orEmpty()
+            .lowercase()
+            .trim()
+        return when (mode) {
+            "auto", "cloud", "local" -> mode
+            else -> DEFAULT_AI_INFERENCE_MODE
+        }
+    }
+
+    fun setAiInferenceMode(mode: String) {
+        val normalized = when (mode.lowercase().trim()) {
+            "cloud" -> "cloud"
+            "local" -> "local"
+            else -> "auto"
+        }
+        prefs.edit().putString(KEY_AI_INFERENCE_MODE, normalized).apply()
+    }
+
     fun getNotificationLogs(limit: Int = 120): List<String> {
         val retentionDays = getNotificationLogRetentionDays()
         val raw = prefs.getString(KEY_NOTIFICATION_LOGS, "").orEmpty()
@@ -181,9 +201,11 @@ class SettingsRepository(context: Context) {
         const val KEY_SIGNAL_PRIORITY_KEYWORDS = "signal_priority_keywords"
         const val KEY_NOTIFICATION_LOGS = "notification_logs"
         const val KEY_NOTIFICATION_LOG_RETENTION_DAYS = "notification_log_retention_days"
+        const val KEY_AI_INFERENCE_MODE = "ai_inference_mode"
         const val KEY_TRADE_NOTE_PREFIX = "trade_note_"
         const val KEY_TRADE_REMINDER_PREFIX = "trade_reminder_"
         const val DEFAULT_SIGNAL_PRIORITY_KEYWORDS = "buy,strong,breakout,突破,高优先"
         const val DEFAULT_NOTIFICATION_LOG_RETENTION_DAYS = 7
+        const val DEFAULT_AI_INFERENCE_MODE = "auto"
     }
 }

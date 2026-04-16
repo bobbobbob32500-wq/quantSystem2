@@ -4,10 +4,13 @@
 利用大模型对交易信号进行深度解读
 """
 
+import json
 from typing import Any, Dict, List, Optional
 
 from src.core.logger import get_logger
 from src.modules.ai_integration.llm_client import LLMClient
+from src.modules.ai_integration.ai_response_models import SignalExplanation
+from src.modules.ai_integration.structured_output import llm_chat_structured
 
 logger = get_logger("signal_analyzer")
 
@@ -23,8 +26,19 @@ SYSTEM_PROMPT = """你是一个专业的A股短线交易信号分析师。你的
 class SignalAnalyzer:
     """信号分析器 - 用大模型解读交易信号"""
 
-    def __init__(self, llm_client: LLMClient):
+    def __init__(
+        self,
+        llm_client: LLMClient,
+        system_prompt: Optional[str] = None,
+        default_temperature: Optional[float] = None,
+        default_max_tokens: Optional[int] = None,
+        default_timeout: Optional[float] = None,
+    ):
         self.llm = llm_client
+        self._system_prompt = system_prompt or SYSTEM_PROMPT
+        self._default_temperature = default_temperature
+        self._default_max_tokens = default_max_tokens
+        self._default_timeout = default_timeout
 
     def analyze_breakout_signal(
         self,
@@ -53,6 +67,10 @@ class SignalAnalyzer:
         if not self.llm.is_available:
             return self._fallback_analyze(stock_name, signal_data)
 
+        structured = self.analyze_breakout_signal_structured(stock_code, stock_name, signal_data)
+        if structured:
+            return self._render_structured_signal(structured)
+
         prompt = f"""请分析以下股票的突破信号：
 
 ## 股票: {stock_name}({stock_code})
@@ -74,7 +92,52 @@ class SignalAnalyzer:
 
 请用简洁专业的中文回答。"""
 
-        return self.llm.chat(prompt=prompt, system=SYSTEM_PROMPT)
+        return self.llm.chat(
+            prompt=prompt,
+            system=self._system_prompt,
+            temperature=self._default_temperature,
+            max_tokens=self._default_max_tokens,
+            timeout=self._default_timeout,
+        )
+
+    def analyze_breakout_signal_structured(
+        self,
+        stock_code: str,
+        stock_name: str,
+        signal_data: Dict,
+    ) -> Optional[SignalExplanation]:
+        """结构化分析突破信号（失败返回 None）"""
+        if not self.llm.is_available:
+            return None
+
+        indicators = signal_data.get("indicators", {}) if isinstance(signal_data.get("indicators", {}), dict) else {}
+        prompt = f"""你需要对“突破信号”做结构化解读。
+
+【输入-股票】
+- name: {stock_name}
+- code: {stock_code}
+
+【输入-信号字段】（只能引用这些字段，禁止编造）
+{json.dumps(signal_data, ensure_ascii=False, indent=2)[:3000]}
+
+输出要求：
+1) action 只能取 BUY/HOLD/SELL/WATCH
+2) confidence 取 0-1 小数
+3) execution_advice 给出 1-5 条可执行建议（仓位/止损/触发条件）
+4) evidence 必须引用 signal_data 里出现过的字段和值（如 price、breakout_price、volume_ratio、trend、indicators 等）
+"""
+
+        obj, _raw = llm_chat_structured(
+            self.llm,
+            prompt=prompt,
+            system=self._system_prompt,
+            model_cls=SignalExplanation,
+            temperature=self._default_temperature if self._default_temperature is not None else 0.3,
+            max_tokens=self._default_max_tokens if self._default_max_tokens is not None else 1000,
+            timeout=self._default_timeout,
+            max_fix_attempts=1,
+        )
+        return obj
 
     def analyze_sell_signal(
         self,
@@ -121,7 +184,38 @@ class SignalAnalyzer:
 
 请用简洁专业的中文回答。"""
 
-        return self.llm.chat(prompt=prompt, system=SYSTEM_PROMPT)
+        return self.llm.chat(
+            prompt=prompt,
+            system=self._system_prompt,
+            temperature=self._default_temperature,
+            max_tokens=self._default_max_tokens,
+            timeout=self._default_timeout,
+        )
+
+    def _render_structured_signal(self, payload: SignalExplanation) -> str:
+        lines = []
+        head = f"【结论】{payload.summary}".strip()
+        lines.append(head)
+        lines.append(f"【建议动作】{payload.action}（置信度:{payload.confidence:.2f}）")
+        if payload.key_points:
+            lines.append("\n【要点】")
+            for item in payload.key_points[:7]:
+                lines.append(f"- {item}")
+        if payload.execution_advice:
+            lines.append("\n【执行建议】")
+            for item in payload.execution_advice[:5]:
+                lines.append(f"- {item}")
+        if payload.risks:
+            lines.append("\n【风险提示】")
+            for item in payload.risks[:5]:
+                lines.append(f"- {item}")
+        if payload.evidence:
+            lines.append("\n【证据】")
+            for ev in payload.evidence[:6]:
+                note = f"（{ev.note}）" if ev.note else ""
+                lines.append(f"- {ev.key}: {ev.value}{note}")
+        lines.append("\n[免责声明] 以上内容仅供参考，不构成投资建议。")
+        return "\n".join(lines)
 
     def analyze_market_gate(
         self,
@@ -160,7 +254,13 @@ class SignalAnalyzer:
 
 请用简洁专业的中文回答。"""
 
-        return self.llm.chat(prompt=prompt, system=SYSTEM_PROMPT)
+        return self.llm.chat(
+            prompt=prompt,
+            system=self._system_prompt,
+            temperature=self._default_temperature,
+            max_tokens=self._default_max_tokens,
+            timeout=self._default_timeout,
+        )
 
     def _format_indicators(self, indicators: Dict) -> str:
         """格式化技术指标"""

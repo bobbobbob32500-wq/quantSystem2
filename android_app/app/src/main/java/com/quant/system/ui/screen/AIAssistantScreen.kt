@@ -20,7 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +54,7 @@ fun AIAssistantScreen(
     onStopButler: () -> Unit,
     messages: List<ChatMessage>,
     inputText: String,
+    inferenceMode: String,
     onInputTextChange: (String) -> Unit,
     onClearHistory: () -> Unit,
 ) {
@@ -73,6 +74,7 @@ fun AIAssistantScreen(
         AIStatusBar(
             aiAvailable = aiAvailable,
             aiStatus = aiStatus,
+            inferenceMode = inferenceMode,
             butlerRunning = butlerStatus?.running ?: false,
             onStartButler = onStartButler,
             onStopButler = onStopButler,
@@ -145,11 +147,17 @@ fun AIAssistantScreen(
 private fun AIStatusBar(
     aiAvailable: Boolean,
     aiStatus: AIStatus?,
+    inferenceMode: String,
     butlerRunning: Boolean,
     onStartButler: () -> Unit,
     onStopButler: () -> Unit,
 ) {
     val modelLine = aiStatus?.llmStatus?.defaultModel?.takeIf { it.isNotBlank() }?.let { "模型：$it" } ?: ""
+    val inferenceLine = when (inferenceMode.lowercase()) {
+        "cloud" -> "推理策略：云端优先"
+        "local" -> "推理策略：本地优先"
+        else -> "推理策略：自动"
+    }
 
     Column(
         modifier = Modifier
@@ -209,6 +217,12 @@ private fun AIStatusBar(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = inferenceLine,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -346,7 +360,7 @@ private fun ChatInputArea(
                 },
                 enabled = enabled && inputText.isNotBlank(),
             ) {
-                Icon(Icons.Default.Send, contentDescription = "发送")
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "发送")
             }
 
             TextButton(

@@ -3,8 +3,11 @@ package com.quant.system.core.data
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.quant.system.data.repository.DashboardRepository
+import com.quant.system.core.network.NetworkMonitor
+import com.quant.system.core.network.NetworkMonitorImpl
+import com.quant.system.core.network.NetworkQuality
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /**
@@ -29,14 +32,13 @@ class DataSyncWorker(
                 
                 // 创建数据同步优化器
                 val syncOptimizer = DataSyncOptimizer(applicationContext)
-                val repository = DashboardRepository(applicationContext)
                 
                 // 执行数据同步
                 var syncSuccess = false
                 
                 syncOptimizer.startSync(
                     baseUrl = baseUrl,
-                    onSuccess = { dashboardSnapshot ->
+                    onSuccess = { _ ->
                         // 同步成功，可以在这里处理数据
                         // 例如：更新本地数据库、发送通知等
                         syncSuccess = true

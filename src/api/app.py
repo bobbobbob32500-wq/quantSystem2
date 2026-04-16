@@ -1178,13 +1178,28 @@ if _ai_available:
     ai_service = AIService()
     butler_service = AIButlerService()
 
+    def _should_auto_start_butler() -> bool:
+        # Keep tests deterministic.
+        if os.environ.get("PYTEST_CURRENT_TEST"):
+            return False
+        return bool(config.get("ai.butler.auto_start", True))
+
+    if _should_auto_start_butler():
+        try:
+            butler_service.start()
+            logger.info("AI butler auto-started on mobile API boot")
+        except Exception:
+            logger.exception("Failed to auto-start AI butler")
+
     class AIChatRequest(BaseModel):
         message: str
         context: Optional[Dict[str, Any]] = None
+        session_id: Optional[str] = None
 
     class AIQuickAskRequest(BaseModel):
         key: str
         context: Optional[Dict[str, Any]] = None
+        session_id: Optional[str] = None
 
     class AIBriefingRequest(BaseModel):
         yesterday_review: Optional[Dict[str, Any]] = None
@@ -1221,7 +1236,11 @@ if _ai_available:
     async def ai_chat(request: AIChatRequest):
         """AI对话"""
         try:
-            response = ai_service.chat(request.message, context=request.context)
+            response = ai_service.chat(
+                request.message,
+                context=request.context,
+                session_id=request.session_id,
+            )
             return {"success": True, "response": response}
         except Exception as exc:
             logger.exception("AI chat failed")
@@ -1231,10 +1250,36 @@ if _ai_available:
     async def ai_quick_ask(request: AIQuickAskRequest):
         """快速预设问答"""
         try:
-            response = ai_service.quick_ask(request.key, context=request.context)
+            response = ai_service.quick_ask(
+                request.key,
+                context=request.context,
+                session_id=request.session_id,
+            )
             return {"success": True, "response": response}
         except Exception as exc:
             logger.exception("AI quick ask failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.post("/api/ai/clear_history")
+    async def ai_clear_history(session_id: Optional[str] = None):
+        """清空对话历史（按 session_id）"""
+        try:
+            ai_service.clear_chat_history(session_id=session_id)
+            return {"success": True}
+        except Exception as exc:
+            logger.exception("AI clear history failed")
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    @app.get("/api/ai/history")
+    async def ai_get_history(session_id: Optional[str] = None, limit: int = 50):
+        """获取对话历史（按 session_id）"""
+        try:
+            return {
+                "success": True,
+                "data": ai_service.get_chat_history(session_id=session_id, limit=limit),
+            }
+        except Exception as exc:
+            logger.exception("AI get history failed")
             raise HTTPException(status_code=500, detail=str(exc))
 
     @app.get("/api/butler/status")
@@ -1302,6 +1347,7 @@ if _ai_available:
             logger.exception("Failed to generate review")
             raise HTTPException(status_code=500, detail=str(exc))
 
+    @app.post("/api/butler/risk-check")
     @app.post("/api/butler/risk_check")
     async def do_risk_check(request: AIRiskCheckRequest):
         """执行风险检查"""
@@ -1315,6 +1361,7 @@ if _ai_available:
             logger.exception("Failed to do risk check")
             raise HTTPException(status_code=500, detail=str(exc))
 
+    @app.post("/api/butler/signal-analysis")
     @app.post("/api/butler/signal_analysis")
     async def analyze_signal(request: AISignalAnalysisRequest):
         """信号实时分析"""
@@ -1329,11 +1376,13 @@ if _ai_available:
             logger.exception("Failed to analyze signal")
             raise HTTPException(status_code=500, detail=str(exc))
 
+    @app.get("/api/butler/last-briefing")
     @app.get("/api/butler/last_briefing")
     async def get_last_briefing():
         """获取最近盘前简报"""
         return {"briefing": butler_service.get_last_briefing()}
 
+    @app.get("/api/butler/last-review")
     @app.get("/api/butler/last_review")
     async def get_last_review():
         """获取最近盘后复盘"""

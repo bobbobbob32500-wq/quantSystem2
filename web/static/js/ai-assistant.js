@@ -46,15 +46,29 @@ const AIAssistant = {
     async _checkStatus() {
         const indicator = document.getElementById('aiStatusIndicator');
         const statusText = document.getElementById('aiStatusText');
+        // Provider可读名称映射
+        const providerNames = {
+            'ollama': 'Ollama',
+            'deepseek': 'DeepSeek云端',
+            'local_deepseek': 'DeepSeek R1本地',
+        };
         try {
             const resp = await fetch('/api/ai/status');
             const data = await resp.json();
+            const provider = data.llm_status?.provider || '';
+            const providerName = providerNames[provider] || provider || 'AI';
             if (data.available) {
                 if (indicator) indicator.className = 'ai-status-indicator ai-status-online';
-                if (statusText) statusText.textContent = `AI服务在线 | 模型: ${data.llm_status?.default_model || '未知'}`;
+                if (statusText) statusText.textContent = `${providerName} 已连接 | 模型: ${data.llm_status?.default_model || '未知'}`;
             } else {
                 if (indicator) indicator.className = 'ai-status-indicator ai-status-offline';
-                if (statusText) statusText.textContent = 'AI服务离线 - 请启动Ollama服务 (ollama serve)';
+                if (provider === 'local_deepseek') {
+                    if (statusText) statusText.textContent = '本地DeepSeek R1未连接 - 请检查服务是否已启动';
+                } else if (provider === 'deepseek') {
+                    if (statusText) statusText.textContent = 'DeepSeek云端未连接 - 请检查API Key和网络';
+                } else {
+                    if (statusText) statusText.textContent = 'AI服务离线 - 请启动Ollama服务 (ollama serve)';
+                }
             }
         } catch {
             if (indicator) indicator.className = 'ai-status-indicator ai-status-offline';

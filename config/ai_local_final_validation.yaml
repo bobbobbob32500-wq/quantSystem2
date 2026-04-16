@@ -1,0 +1,43 @@
+validation:
+  report_dir: "reports/release"
+  pytest_suites:
+    - name: "ai_mobile_smoke"
+      stage: "functional"
+      required: true
+      timeout_sec: 900
+      command:
+        - "{python}"
+        - "-m"
+        - "pytest"
+        - "-m"
+        - "smoke"
+        - "tests/test_ai_mobile_api_smoke.py"
+    - name: "android_backend_contract"
+      stage: "functional"
+      required: true
+      timeout_sec: 600
+      command:
+        - "{python}"
+        - "-m"
+        - "pytest"
+        - "tests/test_mobile_api_contract.py"
+    - name: "ai_golden_regression"
+      stage: "functional"
+      required: true
+      timeout_sec: 600
+      command:
+        - "{python}"
+        - "-m"
+        - "pytest"
+        - "tests/test_ai_golden_regression.py"
+  performance:
+    endpoint: "/api/ai/status"
+    iterations: 30
+    warmup: 5
+    p95_threshold_ms: 500.0
+    max_unavailable_ratio: 0.0
+  security:
+    require_action_execution_disabled: true
+    require_empty_static_api_key: true
+  ux:
+    require_butler_hyphen_alias: true

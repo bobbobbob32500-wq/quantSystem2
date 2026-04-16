@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.ConnectionPool
@@ -29,6 +30,7 @@ import kotlin.math.pow
 /**
  * 增强的Retrofit客户端，提供智能网络管理和优化
  */
+@OptIn(ExperimentalSerializationApi::class)
 class EnhancedRetrofitClient(private val context: Context) {
     private val networkMonitor = NetworkMonitorImpl(context)
     private val scope = CoroutineScope(Dispatchers.IO + Job())
@@ -103,7 +105,7 @@ class EnhancedRetrofitClient(private val context: Context) {
         scope.launch {
             networkMonitor.networkState.collectLatest { state ->
                 _networkState.value = state
-                updateClientConfiguration(state)
+                updateClientConfiguration()
             }
         }
     }
@@ -111,7 +113,7 @@ class EnhancedRetrofitClient(private val context: Context) {
     /**
      * 根据网络状态更新客户端配置
      */
-    private fun updateClientConfiguration(state: NetworkState) {
+    private fun updateClientConfiguration() {
         // 这里可以动态调整超时时间、重试策略等
         // 例如：弱网环境下增加超时时间，减少重试次数
     }

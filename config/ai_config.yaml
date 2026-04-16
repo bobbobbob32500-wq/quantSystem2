@@ -1,57 +1,90 @@
-# AI集成配置
-# 云端大模型配置 - 基于DeepSeek API
-
 ai:
-  # 是否启用AI功能
   enabled: true
-
-  # LLM提供者: "deepseek" 或 "ollama"
-  provider: "deepseek"
-
-  # DeepSeek API配置
+  provider: deepseek
+  local_deepseek:
+    api_key_env: LOCAL_DEEPSEEK_API_KEY
+    api_key: ''
+    base_url: http://localhost:8000/v1
+    timeout: 120
+    max_retries: 2
+    retry_delay: 3
   deepseek:
-    # API Key: 优先从环境变量DEEPSEEK_API_KEY读取, 未设置时使用下方api_key值
-    api_key_env: "DEEPSEEK_API_KEY"
-    api_key: ""  # 推荐通过环境变量DEEPSEEK_API_KEY设置, 避免密钥泄露
-    base_url: "https://api.deepseek.com/v1"
+    api_key_env: DEEPSEEK_API_KEY
+    api_key: ''
+    base_url: https://api.deepseek.com/v1
     timeout: 120
     max_retries: 2
     retry_delay: 3
-
-  # Ollama服务配置 (备用)
   ollama:
-    base_url: "http://localhost:11434"
+    base_url: http://localhost:11434
     timeout: 120
     max_retries: 2
     retry_delay: 3
-
-  # 模型配置
   models:
-    # 默认对话模型
-    default: "deepseek-chat"
-    # 代码生成模型
-    code: "deepseek-coder"
-
-  # 生成参数
+    default: deepseek-chat
+    code: deepseek-coder
   generation:
-    temperature: 0.7
+    temperature: 0.4
     max_tokens: 2048
-
-  # 功能开关
+    scenarios:
+      chat:
+        temperature: 0.3
+        max_tokens: 1200
+        timeout: 40
+      explain:
+        temperature: 0.25
+        max_tokens: 1400
+        timeout: 60
+      report:
+        temperature: 0.25
+        max_tokens: 1800
+        timeout: 80
+      code:
+        temperature: 0.2
+        max_tokens: 2200
+        timeout: 120
+  prompts:
+    assistant_system: ''
+    assistant_quick_prompts: {}
+    stock_explainer_system: ''
+    signal_analyzer_system: ''
+  session:
+    db_path: ''
+    max_messages: 200
+    max_prompt_tokens: 6000
+    reserved_answer_tokens: 1200
   features:
-    # 选股解释
     stock_explanation: true
-    # 信号分析
     signal_analysis: true
-    # 新闻情感分析
     news_sentiment: true
-    # AI助手
     ai_assistant: true
-    # 代码生成
+    action_execution: false
+    action_whitelist:
+    - run_stock_selection
+    - update_holding
+    - generate_plan
+    - generate_post_market_review
+    require_action_confirmation: true
+    action_confirmation_keywords:
+    - 确认
+    - 执行
+    - 立即执行
+    - confirm
     code_generation: true
-
-  # 缓存配置
+    stream_output: false
+    rag: false
+  butler:
+    auto_start: true
+    strong_reminder_levels:
+    - HIGH
+    - CRITICAL
   cache:
     enabled: true
-    ttl: 3600  # 缓存时间(秒)
-    max_size: 100  # 最大缓存条目
+    ttl: 3600
+    max_size: 100
+  protection:
+    max_concurrency: 2
+    circuit_breaker:
+      enabled: true
+      fail_threshold: 5
+      cooldown_seconds: 60

@@ -4,10 +4,13 @@
 利用大模型对选股结果进行自然语言解释
 """
 
+import json
 from typing import Any, Dict, List, Optional
 
 from src.core.logger import get_logger
 from src.modules.ai_integration.llm_client import LLMClient
+from src.modules.ai_integration.ai_response_models import SelectionExplanation
+from src.modules.ai_integration.structured_output import llm_chat_structured
 
 logger = get_logger("stock_explainer")
 
@@ -24,8 +27,19 @@ SYSTEM_PROMPT = """你是一个专业的A股量化分析助手。你的任务是
 class StockExplainer:
     """选股解释器 - 用大模型解释选股逻辑"""
 
-    def __init__(self, llm_client: LLMClient):
+    def __init__(
+        self,
+        llm_client: LLMClient,
+        system_prompt: Optional[str] = None,
+        default_temperature: Optional[float] = None,
+        default_max_tokens: Optional[int] = None,
+        default_timeout: Optional[float] = None,
+    ):
         self.llm = llm_client
+        self._system_prompt = system_prompt or SYSTEM_PROMPT
+        self._default_temperature = default_temperature
+        self._default_max_tokens = default_max_tokens
+        self._default_timeout = default_timeout
 
     def explain_selection(
         self,
@@ -46,6 +60,10 @@ class StockExplainer:
         """
         if not self.llm.is_available:
             return self._fallback_explain(stock_list, factors)
+
+        structured = self.explain_selection_structured(stock_list, factors=factors, market_context=market_context)
+        if structured:
+            return self._render_structured_selection(structured)
 
         # 格式化股票信息
         stocks_text = self._format_stocks(stock_list)
@@ -71,7 +89,57 @@ class StockExplainer:
 
 请用简洁专业的中文回答。"""
 
-        return self.llm.chat(prompt=prompt, system=SYSTEM_PROMPT)
+        return self.llm.chat(
+            prompt=prompt,
+            system=self._system_prompt,
+            temperature=self._default_temperature,
+            max_tokens=self._default_max_tokens,
+            timeout=self._default_timeout,
+        )
+
+    def explain_selection_structured(
+        self,
+        stock_list: List[Dict],
+        factors: Optional[Dict] = None,
+        market_context: Optional[Dict] = None,
+    ) -> Optional[SelectionExplanation]:
+        """结构化解释（返回 Pydantic 对象；失败则返回 None）"""
+        if not self.llm.is_available:
+            return None
+
+        stocks_text = self._format_stocks(stock_list)
+        factors_text = self._format_factors(factors) if factors else "未提供因子信息"
+        market_text = self._format_market(market_context) if market_context else "未提供市场环境"
+
+        prompt = f"""你需要对“选股结果”做结构化解释。
+
+【输入-选中股票】（仅供引用，不得编造不在此列表中的股票）
+{stocks_text}
+
+【输入-因子权重】
+{factors_text}
+
+【输入-市场环境】
+{market_text}
+
+输出要求：
+1) 结论先行，尽量短
+2) 关键点 3-7 条，避免空话
+3) focus_stocks 只能从输入 stock_list 中选择，最多 3 只；每只股票至少包含 code/name/score（若输入里没有则为空）
+4) evidence 必须引用输入里出现过的字段和值（例如 score、行业、因子权重、市场环境字段等），禁止杜撰
+"""
+
+        obj, _raw = llm_chat_structured(
+            self.llm,
+            prompt=prompt,
+            system=self._system_prompt,
+            model_cls=SelectionExplanation,
+            temperature=self._default_temperature if self._default_temperature is not None else 0.3,
+            max_tokens=self._default_max_tokens if self._default_max_tokens is not None else 1200,
+            timeout=self._default_timeout,
+            max_fix_attempts=1,
+        )
+        return obj
 
     def explain_single_stock(
         self,
@@ -109,7 +177,45 @@ class StockExplainer:
 
 请用简洁专业的中文回答。"""
 
-        return self.llm.chat(prompt=prompt, system=SYSTEM_PROMPT)
+        return self.llm.chat(
+            prompt=prompt,
+            system=self._system_prompt,
+            temperature=self._default_temperature,
+            max_tokens=self._default_max_tokens,
+            timeout=self._default_timeout,
+        )
+
+    def _render_structured_selection(self, payload: SelectionExplanation) -> str:
+        lines = []
+        lines.append(f"【结论】{payload.summary}".strip())
+        if payload.key_points:
+            lines.append("\n【要点】")
+            for item in payload.key_points[:7]:
+                lines.append(f"- {item}")
+        if payload.focus_stocks:
+            lines.append("\n【重点关注】")
+            for s in payload.focus_stocks[:3]:
+                code = s.get("code") or s.get("symbol") or ""
+                name = s.get("name") or ""
+                score = s.get("score", s.get("total_score", ""))
+                label = f"{name}({code})" if code else name
+                if label:
+                    lines.append(f"- {label} 评分:{score}")
+        if payload.action_suggestions:
+            lines.append("\n【操作建议】")
+            for item in payload.action_suggestions[:5]:
+                lines.append(f"- {item}")
+        if payload.risks:
+            lines.append("\n【风险提示】")
+            for item in payload.risks[:5]:
+                lines.append(f"- {item}")
+        if payload.evidence:
+            lines.append("\n【证据】")
+            for ev in payload.evidence[:6]:
+                note = f"（{ev.note}）" if ev.note else ""
+                lines.append(f"- {ev.key}: {ev.value}{note}")
+        lines.append("\n[免责声明] 以上内容仅供参考，不构成投资建议。")
+        return "\n".join(lines)
 
     def _format_stocks(self, stock_list: List[Dict]) -> str:
         """格式化股票列表"""

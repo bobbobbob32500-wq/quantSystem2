@@ -12,6 +12,8 @@ from enum import Enum
 
 from src.core.logger import get_logger
 from src.modules.ai_integration.llm_client import LLMClient
+from src.modules.ai_integration.ai_response_models import MorningBriefingPayload, PostMarketReviewPayload
+from src.modules.ai_integration.structured_output import llm_chat_structured
 
 logger = get_logger("ai_butler")
 
@@ -123,20 +125,29 @@ class AIButler:
 
 请用简洁专业的中文回答，突出重点，可操作性强。"""
 
-        briefing = self.llm.chat(
+        system = "你是专业的A股量化交易管家，擅长盘前准备、风险预警和策略建议。你的建议必须具体可操作。"
+        structured, _raw = llm_chat_structured(
+            self.llm,
             prompt=prompt,
-            system="你是专业的A股量化交易管家，擅长盘前准备、风险预警和策略建议。你的建议必须具体可操作。",
+            system=system,
+            model_cls=MorningBriefingPayload,
+            temperature=0.3,
+            max_tokens=1400,
+            max_fix_attempts=1,
         )
 
-        # 提取重点关注股票
-        focus_stocks = self._extract_focus_stocks(today_selection or [], briefing)
-
-        # 生成预警
-        risk_alerts = self._extract_risk_alerts(briefing)
-        opportunity_alerts = self._extract_opportunities(briefing, today_selection or [])
-
-        # 提取建议
-        suggestions = self._extract_suggestions(briefing)
+        if structured:
+            briefing = self._render_morning_briefing(structured)
+            focus_stocks = (structured.focus_stocks or [])[:3]
+            risk_alerts = [{"type": "风险提醒", "message": item} for item in (structured.risk_alerts or [])[:10]]
+            opportunity_alerts = []
+            suggestions = (structured.action_suggestions or [])[:8]
+        else:
+            briefing = self.llm.chat(prompt=prompt, system=system)
+            focus_stocks = self._extract_focus_stocks(today_selection or [], briefing)
+            risk_alerts = self._extract_risk_alerts(briefing)
+            opportunity_alerts = self._extract_opportunities(briefing, today_selection or [])
+            suggestions = self._extract_suggestions(briefing)
 
         # 保存今日计划
         self._today_plan = {
@@ -411,23 +422,100 @@ class AIButler:
 
 请用专业但通俗易懂的中文撰写，便于学习和改进。"""
 
-        review = self.llm.chat(
+        system = "你是专业的量化交易复盘分析师，擅长总结经验教训和制定改进计划。"
+        structured, _raw = llm_chat_structured(
+            self.llm,
             prompt=prompt,
-            system="你是专业的量化交易复盘分析师，擅长总结经验教训和制定改进计划。",
+            system=system,
+            model_cls=PostMarketReviewPayload,
+            temperature=0.3,
+            max_tokens=1600,
+            max_fix_attempts=1,
         )
 
-        # 提取经验教训
+        if structured:
+            review_text = self._render_post_market_review(structured)
+            return {
+                "review_report": review_text,
+                "performance_summary": "\n".join((structured.performance_summary or [])[:10]),
+                "lessons": (structured.lessons or [])[:7],
+                "tomorrow_plan": "\n".join((structured.tomorrow_plan or [])[:12]),
+            }
+
+        review = self.llm.chat(prompt=prompt, system=system)
         lessons = self._extract_lessons(review)
-
-        # 生成明日计划
         tomorrow_plan = self._extract_tomorrow_plan(review)
-
         return {
             "review_report": review,
             "performance_summary": self._extract_performance(review),
             "lessons": lessons,
             "tomorrow_plan": tomorrow_plan,
         }
+
+    def _render_morning_briefing(self, payload: MorningBriefingPayload) -> str:
+        lines: List[str] = []
+        lines.append(f"【盘前总览】{payload.summary}".strip())
+        if payload.data_checks:
+            lines.append("\n【数据检查】")
+            for item in payload.data_checks[:8]:
+                lines.append(f"- {item}")
+        if payload.market_view:
+            lines.append("\n【市场环境】")
+            for item in payload.market_view[:8]:
+                lines.append(f"- {item}")
+        if payload.position_advice:
+            lines.append("\n【仓位建议】")
+            for item in payload.position_advice[:6]:
+                lines.append(f"- {item}")
+        if payload.focus_stocks:
+            lines.append("\n【重点关注】")
+            for s in payload.focus_stocks[:3]:
+                code = s.get("code") or s.get("symbol") or ""
+                name = s.get("name") or ""
+                score = s.get("score", s.get("total_score", ""))
+                label = f"{name}({code})" if code else name
+                if label:
+                    lines.append(f"- {label} 评分:{score}")
+        if payload.risk_alerts:
+            lines.append("\n【风险预警】")
+            for item in payload.risk_alerts[:8]:
+                lines.append(f"- {item}")
+        if payload.action_suggestions:
+            lines.append("\n【开盘优先动作】")
+            for item in payload.action_suggestions[:8]:
+                lines.append(f"- {item}")
+        lines.append("\n[免责声明] 以上内容仅供参考，不构成投资建议。")
+        return "\n".join(lines)
+
+    def _render_post_market_review(self, payload: PostMarketReviewPayload) -> str:
+        lines: List[str] = []
+        lines.append(f"【复盘结论】{payload.summary}".strip())
+        if payload.performance_summary:
+            lines.append("\n【表现总结】")
+            for item in payload.performance_summary[:10]:
+                lines.append(f"- {item}")
+        if payload.what_went_well:
+            lines.append("\n【做对了什么】")
+            for item in payload.what_went_well[:8]:
+                lines.append(f"- {item}")
+        if payload.what_went_wrong:
+            lines.append("\n【做错了什么】")
+            for item in payload.what_went_wrong[:8]:
+                lines.append(f"- {item}")
+        if payload.lessons:
+            lines.append("\n【经验教训】")
+            for item in payload.lessons[:7]:
+                lines.append(f"- {item}")
+        if payload.tomorrow_plan:
+            lines.append("\n【明日计划】")
+            for item in payload.tomorrow_plan[:12]:
+                lines.append(f"- {item}")
+        if payload.risk_notes:
+            lines.append("\n【风险与改进】")
+            for item in payload.risk_notes[:8]:
+                lines.append(f"- {item}")
+        lines.append("\n[免责声明] 以上内容仅供参考，不构成投资建议。")
+        return "\n".join(lines)
 
     # ==================== 风控哨兵 ====================
 

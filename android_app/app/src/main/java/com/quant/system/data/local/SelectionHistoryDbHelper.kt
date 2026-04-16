@@ -6,12 +6,14 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.quant.system.data.model.Candidate
 import com.quant.system.data.model.StockSelectionHistoryRecord
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalSerializationApi::class)
 class SelectionHistoryDbHelper(context: Context) :
     SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
 

@@ -125,6 +125,7 @@ data class DashboardUiState(
     val aiAvailable: Boolean = false,
     val aiStatus: AIStatus? = null,
     val butlerStatus: ButlerStatus? = null,
+    val aiInferenceMode: String = "auto",
     val aiMessages: List<ChatMessage> = emptyList(),
     val aiInputText: String = "",
     val isAiLoading: Boolean = false,
@@ -181,6 +182,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             selectionLastStrategyLabel = strategyLabelOf(settings.getDefaultStrategy()),
             selectionLastUpdatedAtLabel = "--",
             manualTradeRecords = settings.getManualTradeRecords(),
+            aiInferenceMode = settings.getAiInferenceMode(),
         )
 
         // 启用性能优化
@@ -622,6 +624,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun setHomeModuleOrder(order: String) { val v = order.trim().ifBlank { "overview,task,health,metrics,signals" }; settings.setHomeModuleOrder(v); uiState = uiState.copy(homeModuleOrder = v); post("模块顺序已保存", NoticeType.Success) }
     fun setHighPrioritySignalOnly(enabled: Boolean) { settings.setHighPrioritySignalOnlyEnabled(enabled); uiState = uiState.copy(notifyHighPrioritySignalOnly = enabled) }
     fun setActionCompleteNotifyEnabled(enabled: Boolean) { settings.setActionCompleteNotifyEnabled(enabled); uiState = uiState.copy(notifyActionCompleteEnabled = enabled) }
+    fun setAiInferenceMode(mode: String) {
+        val normalized = when (mode.lowercase(Locale.getDefault())) {
+            "cloud" -> "cloud"
+            "local" -> "local"
+            else -> "auto"
+        }
+        settings.setAiInferenceMode(normalized)
+        uiState = uiState.copy(aiInferenceMode = normalized)
+        post("AI inference mode: $normalized", NoticeType.Success)
+    }
 
     fun setSilentWindow(start: String, end: String) {
         if (!validTime(start) || !validTime(end)) return post("静默时段格式应为 HH:mm", NoticeType.Error)
@@ -1019,6 +1031,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val snap = uiState.snapshot ?: return emptyMap()
         return buildMap {
             put("app_default_strategy", uiState.defaultStrategy)
+            put("ai_inference_mode", uiState.aiInferenceMode)
             put("data_sync_at", uiState.lastSyncedAtLabel)
             snap.candidatePool?.let { pool ->
                 val n = pool.count ?: pool.topCandidates.size

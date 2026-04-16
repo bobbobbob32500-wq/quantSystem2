@@ -3,9 +3,11 @@ package com.quant.system.data.repository
 import android.content.Context
 import com.quant.system.data.model.ActionRecord
 import com.quant.system.data.model.DashboardSnapshot
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
+@OptIn(ExperimentalSerializationApi::class)
 class LocalCacheRepository(context: Context) {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 

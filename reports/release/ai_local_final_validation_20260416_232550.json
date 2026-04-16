@@ -1,0 +1,140 @@
+{
+  "generated_at": "20260416_232550",
+  "results": [
+    {
+      "name": "ai_mobile_smoke",
+      "stage": "functional",
+      "passed": true,
+      "required": true,
+      "duration_sec": 10.943083899997873,
+      "summary": "Passed",
+      "details": {
+        "command": [
+          "C:\\Python314\\python.exe",
+          "-m",
+          "pytest",
+          "-m",
+          "smoke",
+          "tests/test_ai_mobile_api_smoke.py"
+        ],
+        "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0\nrootdir: D:\\HuaweiAI\\quantSystem2\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 6 items\n\ntests\\test_ai_mobile_api_smoke.py .....s                                 [100%]\n\n============================== warnings summary ===============================\nC:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path D:\\HuaweiAI\\quantSystem2\\.pytest_cache\\v\\cache\\nodeids: [WinError 183] ���ļ��Ѵ���ʱ���޷��������ļ���: 'D:\\\\HuaweiAI\\\\quantSystem2\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nSKIPPED [1] tests\\test_ai_mobile_api_smoke.py:96: Export RUN_AI_LLM_SMOKE=1 to call real LLM (uses API tokens).\n=================== 5 passed, 1 skipped, 1 warning in 7.54s ===================\n",
+        "stderr_tail": ""
+      }
+    },
+    {
+      "name": "android_backend_contract",
+      "stage": "functional",
+      "passed": true,
+      "required": true,
+      "duration_sec": 2.3905379000061657,
+      "summary": "Passed",
+      "details": {
+        "command": [
+          "C:\\Python314\\python.exe",
+          "-m",
+          "pytest",
+          "tests/test_mobile_api_contract.py"
+        ],
+        "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0\nrootdir: D:\\HuaweiAI\\quantSystem2\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 1 item\n\ntests\\test_mobile_api_contract.py .                                      [100%]\n\n============================== warnings summary ===============================\nC:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path D:\\HuaweiAI\\quantSystem2\\.pytest_cache\\v\\cache\\nodeids: [WinError 183] ���ļ��Ѵ���ʱ���޷��������ļ���: 'D:\\\\HuaweiAI\\\\quantSystem2\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 1 passed, 1 warning in 0.03s =========================\n",
+        "stderr_tail": ""
+      }
+    },
+    {
+      "name": "ai_golden_regression",
+      "stage": "functional",
+      "passed": true,
+      "required": true,
+      "duration_sec": 10.043056800001068,
+      "summary": "Passed",
+      "details": {
+        "command": [
+          "C:\\Python314\\python.exe",
+          "-m",
+          "pytest",
+          "tests/test_ai_golden_regression.py"
+        ],
+        "stdout_tail": "============================= test session starts =============================\nplatform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0\nrootdir: D:\\HuaweiAI\\quantSystem2\nconfigfile: pytest.ini\nplugins: anyio-4.12.1\ncollected 2 items\n\ntests\\test_ai_golden_regression.py ..                                    [100%]\n\n============================== warnings summary ===============================\nC:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\Users\\32519\\AppData\\Roaming\\Python\\Python314\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path D:\\HuaweiAI\\quantSystem2\\.pytest_cache\\v\\cache\\nodeids: [WinError 183] ���ļ��Ѵ���ʱ���޷��������ļ���: 'D:\\\\HuaweiAI\\\\quantSystem2\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 2 passed, 1 warning in 7.16s =========================\n",
+        "stderr_tail": ""
+      }
+    },
+    {
+      "name": "api_status_perf_probe",
+      "stage": "performance",
+      "passed": true,
+      "required": true,
+      "duration_sec": 8.208539399995061,
+      "summary": "p95=4.3ms <= 500.0ms, unavailable_ratio=0.00%",
+      "details": {
+        "endpoint": "/api/ai/status",
+        "iterations": 30,
+        "p50_ms": 3.202,
+        "p95_ms": 4.295,
+        "max_ms": 4.363,
+        "failures": 0,
+        "threshold_ms": 500.0,
+        "unavailable_count": 0,
+        "unavailable_ratio": 0.0,
+        "max_unavailable_ratio": 0.0
+      }
+    },
+    {
+      "name": "ai_security_baseline",
+      "stage": "security",
+      "passed": true,
+      "required": true,
+      "duration_sec": 0.005482799999299459,
+      "summary": "No blocking security baseline issue",
+      "details": {
+        "checks": {
+          "action_execution": false,
+          "deepseek.api_key_len": 0,
+          "local_deepseek.api_key_len": 0
+        },
+        "issues": []
+      }
+    },
+    {
+      "name": "ai_ux_compatibility",
+      "stage": "ux",
+      "passed": true,
+      "required": true,
+      "duration_sec": 0.0006987000015215017,
+      "summary": "UX compatibility checks passed",
+      "details": {
+        "checks": {
+          "/api/butler/risk-check": true,
+          "/api/butler/signal-analysis": true,
+          "/api/butler/last-briefing": true,
+          "/api/butler/last-review": true
+        },
+        "issues": []
+      }
+    }
+  ],
+  "summary": {
+    "overall_passed": true,
+    "required_failed": [],
+    "by_stage": {
+      "functional": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0
+      },
+      "performance": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "security": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "ux": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      }
+    }
+  }
+}

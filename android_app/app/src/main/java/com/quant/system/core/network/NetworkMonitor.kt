@@ -7,6 +7,10 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -199,10 +203,10 @@ class NetworkMonitorImpl(private val context: Context) : NetworkMonitor {
         } else {
             // Android N以下版本使用轮询方式
             val interval = 5000L // 5秒轮询一次
-            val job = kotlinx.coroutines.launch {
+            val job = launch {
                 while (isActive) {
                     trySend(getCurrentNetworkState())
-                    kotlinx.coroutines.delay(interval)
+                    delay(interval)
                 }
             }
             
@@ -214,13 +218,14 @@ class NetworkMonitorImpl(private val context: Context) : NetworkMonitor {
         old.isConnected == new.isConnected && old.networkType == new.networkType
     }.map { state ->
         // 异步计算网络质量指标
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        withContext(kotlinx.coroutines.Dispatchers.IO) {
             val latency = getNetworkLatency()
             val bandwidth = getNetworkBandwidth()
             state.copy(latency = latency, bandwidth = bandwidth)
         }
     }
     
+    @Suppress("DEPRECATION")
     private fun checkConnection(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val network = connectivityManager.activeNetwork
@@ -233,6 +238,7 @@ class NetworkMonitorImpl(private val context: Context) : NetworkMonitor {
         }
     }
     
+    @Suppress("DEPRECATION")
     private fun getCurrentNetworkType(): NetworkType {
         if (!checkConnection()) return NetworkType.OFFLINE
         
