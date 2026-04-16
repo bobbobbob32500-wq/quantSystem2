@@ -112,6 +112,12 @@ fun MainScreen() {
         state.message?.let { snackbarHostState.showSnackbar(it) }
     }
 
+    LaunchedEffect(extraScreen) {
+        if (extraScreen == ScreenDestination.AIAssistant) {
+            viewModel.refreshAIAssistantState()
+        }
+    }
+
     LaunchedEffect(extraScreen, selectedTab) {
         val shouldAutoRefreshOverview = extraScreen == null && selectedTab == 0
         viewModel.setAutoRefreshEnabled(shouldAutoRefreshOverview)
@@ -363,6 +369,7 @@ fun MainScreen() {
 
                     ScreenDestination.AIAssistant -> AIAssistantScreen(
                         aiAvailable = state.aiAvailable,
+                        aiStatus = state.aiStatus,
                         butlerStatus = state.butlerStatus,
                         onSendMessage = viewModel::sendAIMessage,
                         onQuickAsk = viewModel::aiQuickAsk,

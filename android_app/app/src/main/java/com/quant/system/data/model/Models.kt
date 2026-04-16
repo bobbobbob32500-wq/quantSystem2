@@ -10,6 +10,8 @@ data class ApiResponse<T>(
     val success: Boolean,
     val data: T? = null,
     val detail: String? = null,
+    /** 部分接口将提示信息放在顶层 message 字段（与 data 并列） */
+    val message: String? = null,
 )
 
 @Serializable

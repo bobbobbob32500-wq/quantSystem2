@@ -5,6 +5,7 @@ import com.quant.system.core.network.EnhancedRetrofitClient
 import com.quant.system.core.network.NetworkMonitor
 import com.quant.system.core.network.NetworkMonitorImpl
 import com.quant.system.core.network.NetworkQuality
+import com.quant.system.core.network.NetworkState
 import com.quant.system.data.api.ApiService
 import com.quant.system.data.model.ActionRecord
 import com.quant.system.data.model.ActionRequest

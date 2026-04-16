@@ -56,33 +56,38 @@ class EnhancedRetrofitClient(private val context: Context) {
         maxRequestsPerHost = 5
     }
     
-    private val okHttpClient = OkHttpClient.Builder().apply {
-        // 连接池优化
+    /** 常规接口超时 */
+    private val okHttpClient = buildOkHttpClient(
+        readTimeoutSec = 30,
+        writeTimeoutSec = 30,
+        callTimeoutSec = 60,
+    )
+
+    /**
+     * 大模型对话、管家类接口：云端推理耗时常超过 60 秒，单独使用更长读超时，避免误报失败。
+     */
+    private val longReadOkHttpClient = buildOkHttpClient(
+        readTimeoutSec = 120,
+        writeTimeoutSec = 60,
+        callTimeoutSec = 180,
+    )
+
+    private fun buildOkHttpClient(
+        readTimeoutSec: Long,
+        writeTimeoutSec: Long,
+        callTimeoutSec: Long,
+    ): OkHttpClient = OkHttpClient.Builder().apply {
         connectionPool(connectionPool)
         dispatcher(dispatcher)
-        
-        // 缓存配置
         cache(Cache(cacheDir, cacheSize))
-        
-        // 超时配置（根据网络质量动态调整）
         connectTimeout(15, TimeUnit.SECONDS)
-        readTimeout(30, TimeUnit.SECONDS)
-        writeTimeout(30, TimeUnit.SECONDS)
-        callTimeout(60, TimeUnit.SECONDS)
-        
-        // 重试配置
+        readTimeout(readTimeoutSec, TimeUnit.SECONDS)
+        writeTimeout(writeTimeoutSec, TimeUnit.SECONDS)
+        callTimeout(callTimeoutSec, TimeUnit.SECONDS)
         retryOnConnectionFailure(true)
-        
-        // 网络状态感知拦截器
         addInterceptor(NetworkAwareInterceptor())
-        
-        // 请求重试拦截器
         addInterceptor(RetryInterceptor())
-        
-        // 缓存控制拦截器
         addInterceptor(CacheControlInterceptor())
-        
-        // 日志拦截器（仅调试模式）
         if (BuildConfig.DEBUG) {
             val logging = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BASIC
@@ -113,14 +118,20 @@ class EnhancedRetrofitClient(private val context: Context) {
     
     /**
      * 创建API服务
+     * @param longReadTimeout 为 true 时使用更长读超时，适用于大模型对话、管家推理等接口
      */
-    fun <T> createApiService(baseUrl: String, serviceClass: Class<T>): T {
+    fun <T> createApiService(
+        baseUrl: String,
+        serviceClass: Class<T>,
+        longReadTimeout: Boolean = false,
+    ): T {
         val normalizedBaseUrl = normalizeBaseUrl(baseUrl)
+        val cacheKey = "$normalizedBaseUrl-${serviceClass.name}-lr:$longReadTimeout"
         @Suppress("UNCHECKED_CAST")
-        return serviceCache.getOrPut("$normalizedBaseUrl-${serviceClass.name}") {
+        return serviceCache.getOrPut(cacheKey) {
             Retrofit.Builder()
                 .baseUrl(normalizedBaseUrl)
-                .client(okHttpClient)
+                .client(if (longReadTimeout) longReadOkHttpClient else okHttpClient)
                 .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
                 .build()
                 .create(serviceClass)

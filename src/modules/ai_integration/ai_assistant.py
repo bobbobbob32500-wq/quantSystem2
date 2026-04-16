@@ -68,7 +68,7 @@ class AIAssistant:
             AI回复文本
         """
         if not self.llm.is_available:
-            return "[AI服务不可用] 请确保Ollama已安装并运行。安装方法: 访问 https://ollama.com/download"
+            return "[AI服务不可用] 请检查大模型配置（例如 DeepSeek 的 API Key 与网络）或本地 Ollama 是否已启动。"
 
         if clear_history:
             self._conversation_history = []

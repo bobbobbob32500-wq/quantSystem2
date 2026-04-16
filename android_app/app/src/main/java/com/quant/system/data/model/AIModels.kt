@@ -3,6 +3,13 @@ package com.quant.system.data.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+// Chat消息
+data class ChatMessage(
+    val role: String, // "user", "assistant", "system"
+    val content: String,
+    val isLoading: Boolean = false,
+)
+
 // AI服务状态
 @Serializable
 data class AIStatus(
@@ -44,6 +51,8 @@ data class AIChatResponse(
 @Serializable
 data class AIQuickAskRequest(
     val key: String,
+    /** 与自由对话一致：附带当前账户/候选池等摘要，便于模型结合实盘语境回答 */
+    val context: Map<String, String>? = null,
 )
 
 // 管家状态

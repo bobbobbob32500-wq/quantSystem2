@@ -81,20 +81,32 @@ virtual_trades_path = project_root / "data" / "cache" / "virtual_trades.json"
 virtual_trades_lock = Lock()
 execution_journal_path = project_root / "data" / "cache" / "execution_journal.json"
 notification_center_ack_path = project_root / "data" / "cache" / "notification_center_ack.json"
-execution_journal_service = ExecutionJournalService(
-    journal_path=execution_journal_path,
-    max_entries=int(config.get("mobile_api.execution_journal_max_entries", 2000) or 2000),
+execution_journal_service = (
+    ExecutionJournalService(
+        journal_path=execution_journal_path,
+        max_entries=int(config.get("mobile_api.execution_journal_max_entries", 2000) or 2000),
+    )
+    if _execution_journal_available
+    else None
 )
-notification_center_service = NotificationCenterService(
-    db=action_service.db,
-    config=config,
-    ack_state_path=notification_center_ack_path,
-    max_scan_items=int(config.get("mobile_api.notification_center_max_scan_items", 5000) or 5000),
+notification_center_service = (
+    NotificationCenterService(
+        db=action_service.db,
+        config=config,
+        ack_state_path=notification_center_ack_path,
+        max_scan_items=int(config.get("mobile_api.notification_center_max_scan_items", 5000) or 5000),
+    )
+    if _notification_center_available
+    else None
 )
-startup_self_check_service = StartupSelfCheckService(
-    project_root=project_root,
-    config=config,
-    stale_days_threshold=int(config.get("mobile_api.startup_self_check_data_stale_days", 5) or 5),
+startup_self_check_service = (
+    StartupSelfCheckService(
+        project_root=project_root,
+        config=config,
+        stale_days_threshold=int(config.get("mobile_api.startup_self_check_data_stale_days", 5) or 5),
+    )
+    if _startup_self_check_available
+    else None
 )
 watchlist_path = project_root / "data" / "cache" / "mobile_watchlist.json"
 watchlist_lock = Lock()
@@ -265,6 +277,8 @@ def _record_execution_journal(
     trade_id: Optional[str] = None,
     details: Optional[Dict[str, Any]] = None,
 ) -> None:
+    if execution_journal_service is None:
+        return
     try:
         execution_journal_service.append_event(
             action=action,
@@ -369,6 +383,8 @@ async def health_check():
 
 @app.get("/api/system/startup_self_check")
 async def get_startup_self_check():
+    if startup_self_check_service is None:
+        raise HTTPException(status_code=503, detail="启动自检服务未启用")
     try:
         payload = startup_self_check_service.run_check()
         return {"success": True, "data": payload}
@@ -451,6 +467,8 @@ async def get_execution_journal(
     status: Optional[str] = None,
     symbol: Optional[str] = None,
 ):
+    if execution_journal_service is None:
+        raise HTTPException(status_code=503, detail="执行流水服务未启用")
     try:
         safe_limit = max(1, min(int(limit), 500))
         payload = execution_journal_service.get_journal(
@@ -467,6 +485,8 @@ async def get_execution_journal(
 
 @app.get("/api/execution_journal/summary")
 async def get_execution_journal_summary(limit: int = 20):
+    if execution_journal_service is None:
+        raise HTTPException(status_code=503, detail="执行流水服务未启用")
     try:
         safe_limit = max(1, min(int(limit), 200))
         payload = execution_journal_service.build_snapshot(recent_limit=safe_limit)
@@ -482,6 +502,8 @@ async def get_notifications(
     status: Optional[str] = None,
     unread_only: bool = False,
 ):
+    if notification_center_service is None:
+        raise HTTPException(status_code=503, detail="通知中心服务未启用")
     try:
         safe_limit = max(1, min(int(limit), 200))
         payload = notification_center_service.list_notifications(
@@ -499,6 +521,8 @@ async def get_notifications(
 
 @app.get("/api/notifications/summary")
 async def get_notification_summary(limit: int = 20):
+    if notification_center_service is None:
+        raise HTTPException(status_code=503, detail="通知中心服务未启用")
     try:
         safe_limit = max(1, min(int(limit), 100))
         payload = notification_center_service.build_summary(recent_limit=safe_limit)
@@ -510,6 +534,8 @@ async def get_notification_summary(limit: int = 20):
 
 @app.post("/api/notifications/{notification_id}/ack")
 async def ack_notification(notification_id: str):
+    if notification_center_service is None:
+        raise HTTPException(status_code=503, detail="通知中心服务未启用")
     try:
         payload = notification_center_service.ack_notification(notification_id=notification_id)
         return {"success": True, "data": payload}
@@ -524,6 +550,8 @@ async def ack_notification(notification_id: str):
 
 @app.post("/api/notifications/ack_all")
 async def ack_all_notifications(request: NotificationAckAllRequest):
+    if notification_center_service is None:
+        raise HTTPException(status_code=503, detail="通知中心服务未启用")
     try:
         payload = notification_center_service.ack_all(status=request.status)
         return {"success": True, "data": payload}
@@ -1156,6 +1184,7 @@ if _ai_available:
 
     class AIQuickAskRequest(BaseModel):
         key: str
+        context: Optional[Dict[str, Any]] = None
 
     class AIBriefingRequest(BaseModel):
         yesterday_review: Optional[Dict[str, Any]] = None
@@ -1202,7 +1231,7 @@ if _ai_available:
     async def ai_quick_ask(request: AIQuickAskRequest):
         """快速预设问答"""
         try:
-            response = ai_service.quick_ask(request.key)
+            response = ai_service.quick_ask(request.key, context=request.context)
             return {"success": True, "response": response}
         except Exception as exc:
             logger.exception("AI quick ask failed")

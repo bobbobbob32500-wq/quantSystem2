@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import com.quant.system.core.network.NetworkMonitor
 import com.quant.system.core.network.NetworkMonitorImpl
 import com.quant.system.core.network.NetworkQuality
+import com.quant.system.core.network.NetworkState
 import com.quant.system.data.model.DashboardSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -315,7 +316,7 @@ class DataSyncOptimizer(private val context: Context) {
         return ageMs > maxAgeMs
     }
     
-    private fun getSyncStrategy(networkState: NetworkMonitor.NetworkState, forceRefresh: Boolean): SyncStrategy {
+    private fun getSyncStrategy(networkState: NetworkState, forceRefresh: Boolean): SyncStrategy {
         if (forceRefresh) return SyncStrategy.FULL_REFRESH
         
         return when (NetworkMonitor.getNetworkQualityLevel(networkState.networkQuality)) {
@@ -326,7 +327,7 @@ class DataSyncOptimizer(private val context: Context) {
         }
     }
     
-    private fun onNetworkStateChanged(state: NetworkMonitor.NetworkState) {
+    private fun onNetworkStateChanged(state: NetworkState) {
         // 网络状态变化时，可以调整同步策略
         when (NetworkMonitor.getNetworkQualityLevel(state.networkQuality)) {
             NetworkQuality.EXCELLENT, NetworkQuality.GOOD -> {

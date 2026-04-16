@@ -34,6 +34,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import com.quant.system.data.model.AppUpdatePayload
 import com.quant.system.ui.screen.viewmodel.DebugPanelState
 import com.quant.system.ui.screen.viewmodel.NoticeType

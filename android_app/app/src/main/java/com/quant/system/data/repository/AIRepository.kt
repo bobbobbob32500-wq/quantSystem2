@@ -10,75 +10,89 @@ import retrofit2.HttpException
 
 class AIRepository(private val context: Context) {
     private val retrofitClient = EnhancedRetrofitClient(context)
-    
+
+    /** 状态类接口使用常规超时，失败更快反馈 */
+    private fun apiShort(baseUrl: String): ApiService =
+        retrofitClient.createApiService(baseUrl, ApiService::class.java, longReadTimeout = false)
+
+    /** 大模型与管家推理使用长读超时 */
+    private fun apiLong(baseUrl: String): ApiService =
+        retrofitClient.createApiService(baseUrl, ApiService::class.java, longReadTimeout = true)
+
     /**
      * 获取AI服务状态
      */
     suspend fun getAIStatus(baseUrl: String): Result<AIStatus> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        apiService.getAIStatus()
+        apiShort(baseUrl).getAIStatus()
     }
-    
+
     /**
      * AI对话
      */
-    suspend fun aiChat(baseUrl: String, message: String, context: Map<String, String>? = null): Result<String> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        val response = apiService.aiChat(AIChatRequest(message, context))
+    suspend fun aiChat(
+        baseUrl: String,
+        message: String,
+        context: Map<String, String>? = null,
+    ): Result<String> = safeApiCall(retryOnTransientNetwork = true) {
+        val response = apiLong(baseUrl).aiChat(AIChatRequest(message, context))
         if (response.success) {
             response.response ?: throw IllegalStateException("AI响应为空")
         } else {
             throw IllegalStateException(response.message ?: "AI对话失败")
         }
     }
-    
+
     /**
      * 快速预设问答
      */
-    suspend fun aiQuickAsk(baseUrl: String, key: String): Result<String> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        val response = apiService.aiQuickAsk(AIQuickAskRequest(key))
+    suspend fun aiQuickAsk(
+        baseUrl: String,
+        key: String,
+        context: Map<String, String>? = null,
+    ): Result<String> = safeApiCall(retryOnTransientNetwork = true) {
+        val response = apiLong(baseUrl).aiQuickAsk(AIQuickAskRequest(key, context))
         if (response.success) {
             response.response ?: throw IllegalStateException("AI响应为空")
         } else {
             throw IllegalStateException(response.message ?: "快速问答失败")
         }
     }
-    
+
     /**
      * 获取管家状态
      */
     suspend fun getButlerStatus(baseUrl: String): Result<ButlerStatus> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        apiService.getButlerStatus()
+        apiShort(baseUrl).getButlerStatus()
     }
-    
+
     /**
      * 启动管家服务
      */
     suspend fun startButler(baseUrl: String): Result<String> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        val response = apiService.startButler()
+        val response = apiShort(baseUrl).startButler()
         if (response.success) {
-            response.data?.get("message") ?: "AI管家服务已启动"
+            response.data?.get("message")
+                ?: response.message
+                ?: "AI管家服务已启动"
         } else {
-            throw IllegalStateException("启动管家失败")
+            throw IllegalStateException(response.detail ?: response.message ?: "启动管家失败")
         }
     }
-    
+
     /**
      * 停止管家服务
      */
     suspend fun stopButler(baseUrl: String): Result<String> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        val response = apiService.stopButler()
+        val response = apiShort(baseUrl).stopButler()
         if (response.success) {
-            response.data?.get("message") ?: "AI管家服务已停止"
+            response.data?.get("message")
+                ?: response.message
+                ?: "AI管家服务已停止"
         } else {
-            throw IllegalStateException("停止管家失败")
+            throw IllegalStateException(response.detail ?: response.message ?: "停止管家失败")
         }
     }
-    
+
     /**
      * 生成盘前简报
      */
@@ -89,21 +103,20 @@ class AIRepository(private val context: Context) {
         overnightNews: List<Map<String, String>>? = null,
         dataStatus: Map<String, String>? = null,
     ): Result<AIBriefingResult> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
         val request = AIBriefingRequest(
             yesterdayReview = yesterdayReview,
             todaySelection = todaySelection,
             overnightNews = overnightNews,
             dataStatus = dataStatus,
         )
-        val response = apiService.generateBriefing(request)
+        val response = apiLong(baseUrl).generateBriefing(request)
         if (response.success && response.result != null) {
             response.result
         } else {
             throw IllegalStateException(response.message ?: "生成盘前简报失败")
         }
     }
-    
+
     /**
      * 执行盘中监控
      */
@@ -113,20 +126,19 @@ class AIRepository(private val context: Context) {
         signals: List<Map<String, String>>? = null,
         marketStatus: Map<String, String>? = null,
     ): Result<AIMonitorResult> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
         val request = AIMonitorRequest(
             holdings = holdings,
             signals = signals,
             marketStatus = marketStatus,
         )
-        val response = apiService.doMonitor(request)
+        val response = apiLong(baseUrl).doMonitor(request)
         if (response.success && response.result != null) {
             response.result
         } else {
             throw IllegalStateException(response.message ?: "盘中监控失败")
         }
     }
-    
+
     /**
      * 生成盘后复盘
      */
@@ -137,21 +149,20 @@ class AIRepository(private val context: Context) {
         holdings: List<Map<String, String>>? = null,
         marketSummary: Map<String, String>? = null,
     ): Result<AIReviewResult> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
         val request = AIReviewRequest(
             todayTrades = todayTrades,
             todaySignals = todaySignals,
             holdings = holdings,
             marketSummary = marketSummary,
         )
-        val response = apiService.generateReview(request)
+        val response = apiLong(baseUrl).generateReview(request)
         if (response.success && response.result != null) {
             response.result
         } else {
             throw IllegalStateException(response.message ?: "生成盘后复盘失败")
         }
     }
-    
+
     /**
      * 执行风险检查
      */
@@ -160,19 +171,18 @@ class AIRepository(private val context: Context) {
         holdings: List<Map<String, String>> = emptyList(),
         marketData: Map<String, String> = emptyMap(),
     ): Result<AIRiskCheckResult> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
         val request = AIRiskCheckRequest(
             holdings = holdings,
             marketData = marketData,
         )
-        val response = apiService.doRiskCheck(request)
+        val response = apiLong(baseUrl).doRiskCheck(request)
         if (response.success && response.result != null) {
             response.result
         } else {
             throw IllegalStateException(response.message ?: "风险检查失败")
         }
     }
-    
+
     /**
      * 信号实时分析
      */
@@ -182,20 +192,15 @@ class AIRepository(private val context: Context) {
         stockInfo: Map<String, String>,
         position: Map<String, String>? = null,
     ): Result<AISignalAnalysisResult> = safeApiCall {
-        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
-        val request = AISignalAnalysisResult(
-            signal = signal,
-            stockInfo = stockInfo,
-            position = position,
-        )
-        val response = apiService.analyzeSignal(AISignalAnalysisRequest(signal, stockInfo, position))
+        val body = AISignalAnalysisRequest(signal, stockInfo, position)
+        val response = apiLong(baseUrl).analyzeSignal(body)
         if (response.success && response.result != null) {
             response.result
         } else {
             throw IllegalStateException(response.message ?: "信号分析失败")
         }
     }
-    
+
     /**
      * 安全API调用包装器
      */
@@ -205,7 +210,7 @@ class AIRepository(private val context: Context) {
         apiCall: suspend () -> T,
     ): Result<T> {
         var lastException: Exception? = null
-        
+
         for (attempt in 0 until maxRetries) {
             try {
                 val result = apiCall()
@@ -222,7 +227,7 @@ class AIRepository(private val context: Context) {
                 return Result.failure(e)
             }
         }
-        
+
         return Result.failure(lastException ?: Exception("未知错误"))
     }
 }

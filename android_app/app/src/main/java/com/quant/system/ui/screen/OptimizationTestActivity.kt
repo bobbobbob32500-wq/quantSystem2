@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,7 +88,8 @@ fun OptimizationTestScreen() {
     var exportPath by remember { mutableStateOf<String?>(null) }
     
     val scope = rememberCoroutineScope()
-    
+    val appContext = LocalContext.current.applicationContext
+
     Scaffold(
         topBar = {
             Surface(
@@ -131,7 +134,7 @@ fun OptimizationTestScreen() {
                         scope.launch {
                             try {
                                 val report = withContext(Dispatchers.IO) {
-                                    OptimizationTestSuite.runTests(androidx.compose.ui.platform.LocalContext.current)
+                                    OptimizationTestSuite.runTests(appContext)
                                 }
                                 testReport = report
                             } catch (e: Exception) {
@@ -170,7 +173,7 @@ fun OptimizationTestScreen() {
                         scope.launch {
                             try {
                                 val benchmark = withContext(Dispatchers.IO) {
-                                    OptimizationTestSuite.runBenchmark(androidx.compose.ui.platform.LocalContext.current)
+                                    OptimizationTestSuite.runBenchmark(appContext)
                                 }
                                 performanceBenchmark = benchmark
                             } catch (e: Exception) {

@@ -28,11 +28,11 @@ import com.quant.system.data.model.KnowledgeTopic
 import com.quant.system.data.model.KnowledgeArticle
 import com.quant.system.core.data.DataSyncOptimizer
 import com.quant.system.core.performance.AppPerformanceOptimizer
-import com.quant.system.core.stability.GlobalExceptionHandler
 import com.quant.system.core.ux.PerformanceMonitor
 import com.quant.system.core.ux.UserExperienceOptimizer
 import com.quant.system.data.repository.AIRepository
 import com.quant.system.data.repository.DashboardRepository
+import com.quant.system.data.model.ChatMessage
 import com.quant.system.data.repository.LocalCacheRepository
 import com.quant.system.data.repository.SelectionHistoryRepository
 import com.quant.system.data.repository.SettingsRepository
@@ -185,9 +185,6 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
         // 启用性能优化
         performanceOptimizer.enableOptimizations()
-        
-        // 跟踪ViewModel内存泄漏
-        performanceOptimizer.trackViewModel(this)
         
         // 启动性能监控
         performanceMonitor.startMonitoring()
@@ -705,7 +702,6 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
      */
     fun recordError(errorType: String) {
         performanceMonitor.recordError(errorType)
-        GlobalExceptionHandler.logError(errorType, null)
     }
     
     /**
@@ -725,7 +721,6 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val duration = System.currentTimeMillis() - startTime
             recordOperationPerformance("${operationName}_error", duration)
             recordError("${operationName}_${e::class.simpleName}")
-            GlobalExceptionHandler.handleException(e, "ViewModel操作: $operationName")
             Result.failure(e)
         }
     }
@@ -1011,7 +1006,50 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
     
     // ==================== AI管家相关方法 ====================
-    
+
+    /**
+     * 进入 AI 管家页或手动刷新时调用：同步大模型可用性与管家运行态
+     */
+    fun refreshAIAssistantState() {
+        refreshAIStatus(false)
+    }
+
+    /** 将当前看板摘要编码为字符串字典，供云端拼入提示词（不含敏感信息） */
+    private fun buildAiTradingContextSnapshot(): Map<String, String> {
+        val snap = uiState.snapshot ?: return emptyMap()
+        return buildMap {
+            put("app_default_strategy", uiState.defaultStrategy)
+            put("data_sync_at", uiState.lastSyncedAtLabel)
+            snap.candidatePool?.let { pool ->
+                val n = pool.count ?: pool.topCandidates.size
+                put("candidate_count", n.toString())
+                val top = pool.topCandidates.take(8).joinToString("；") { c ->
+                    listOfNotNull(c.symbol, c.name?.take(8), c.score?.let { "%.2f".format(it) }).joinToString(" ")
+                }
+                if (top.isNotBlank()) put("top_candidates", top)
+            }
+            val trades = snap.virtualTrades?.openTrades.orEmpty()
+            put("open_position_count", trades.size.toString())
+            if (trades.isNotEmpty()) {
+                put(
+                    "positions_brief",
+                    trades.take(8).joinToString("；") { t ->
+                        val pnl = t.lastPnlPct ?: t.profitPct
+                        "${t.symbol ?: "-"} ${t.name ?: ""} 浮盈亏${if (pnl != null) "%.2f%%".format(pnl) else "--"}"
+                    },
+                )
+            }
+            snap.todayBoard?.let { b ->
+                b.status?.let { put("market_board_status", it) }
+                b.tone?.let { put("market_board_tone", it) }
+            }
+            snap.signals?.latestItems?.firstOrNull()?.let { s ->
+                val line = listOfNotNull(s.tsCode, s.signalType, s.triggerReason?.take(120)).joinToString(" | ")
+                if (line.isNotBlank()) put("latest_signal_brief", line)
+            }
+        }
+    }
+
     /**
      * 刷新AI服务状态
      */
@@ -1054,8 +1092,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             isAiLoading = true,
         )
         
-        // 调用AI对话
-        aiRepo.aiChat(uiState.currentBaseUrl, message).onSuccess { response ->
+        // 调用AI对话（附带当前看板摘要，便于结合持仓与候选池回答）
+        aiRepo.aiChat(uiState.currentBaseUrl, message, buildAiTradingContextSnapshot()).onSuccess { response ->
             val assistantMessage = ChatMessage(role = "assistant", content = response)
             uiState = uiState.copy(
                 aiMessages = uiState.aiMessages.dropLast(1) + assistantMessage,
@@ -1090,7 +1128,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             isAiLoading = true,
         )
         
-        aiRepo.aiQuickAsk(uiState.currentBaseUrl, key).onSuccess { response ->
+        aiRepo.aiQuickAsk(uiState.currentBaseUrl, key, buildAiTradingContextSnapshot()).onSuccess { response ->
             val assistantMessage = ChatMessage(role = "assistant", content = response)
             uiState = uiState.copy(
                 aiMessages = uiState.aiMessages.dropLast(1) + assistantMessage,
@@ -1188,10 +1226,10 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     
     /** 执行深度复盘 */
     fun executeDeepReview() = viewModelScope.launch {
-        val trades = uiState.snapshot?.virtualTrades?.closedTrades?.map { mapOf(
+        val trades = uiState.snapshot?.virtualTrades?.openTrades?.map { mapOf(
             "symbol" to (it.symbol ?: ""),
             "name" to (it.name ?: ""),
-            "pnl_pct" to (it.pnlPct?.toString() ?: "0"),
+            "pnl_pct" to (it.lastPnlPct?.toString() ?: "0"),
             "hold_days" to "1",
         ) } ?: emptyList()
         repo.deepReview(uiState.currentBaseUrl, trades).onSuccess {

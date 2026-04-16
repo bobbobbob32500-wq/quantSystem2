@@ -52,6 +52,60 @@ interface NetworkMonitor {
      * 获取网络带宽（kbps）
      */
     suspend fun getNetworkBandwidth(): Long
+
+    companion object {
+        /**
+         * 根据网络质量数值（0-100）映射为等级，供仓库层与拦截器统一调用
+         */
+        fun getNetworkQualityLevel(quality: Int): NetworkQuality {
+            return when {
+                quality <= 0 -> NetworkQuality.OFFLINE
+                quality < 20 -> NetworkQuality.VERY_POOR
+                quality < 40 -> NetworkQuality.POOR
+                quality < 60 -> NetworkQuality.FAIR
+                quality < 80 -> NetworkQuality.GOOD
+                else -> NetworkQuality.EXCELLENT
+            }
+        }
+
+        /**
+         * 根据网络类型和质量获取建议的重试延迟
+         */
+        fun getSuggestedRetryDelay(networkType: NetworkType, quality: Int): Long {
+            val baseDelay = when (getNetworkQualityLevel(quality)) {
+                NetworkQuality.EXCELLENT -> 1000L
+                NetworkQuality.GOOD -> 2000L
+                NetworkQuality.FAIR -> 3000L
+                NetworkQuality.POOR -> 5000L
+                NetworkQuality.VERY_POOR -> 10000L
+                NetworkQuality.OFFLINE -> 30000L
+            }
+            return when (networkType) {
+                NetworkType.CELLULAR -> baseDelay * 2
+                NetworkType.VPN -> baseDelay * 3
+                else -> baseDelay
+            }
+        }
+
+        /**
+         * 根据网络质量获取建议的超时时间
+         */
+        fun getSuggestedTimeout(networkType: NetworkType, quality: Int): Long {
+            val baseTimeout = when (getNetworkQualityLevel(quality)) {
+                NetworkQuality.EXCELLENT -> 10000L
+                NetworkQuality.GOOD -> 15000L
+                NetworkQuality.FAIR -> 20000L
+                NetworkQuality.POOR -> 30000L
+                NetworkQuality.VERY_POOR -> 45000L
+                NetworkQuality.OFFLINE -> 60000L
+            }
+            return when (networkType) {
+                NetworkType.CELLULAR -> baseTimeout * 2
+                NetworkType.VPN -> baseTimeout * 3
+                else -> baseTimeout
+            }
+        }
+    }
 }
 
 /**
@@ -277,63 +331,5 @@ class NetworkMonitorImpl(private val context: Context) : NetworkMonitor {
             networkType = networkType,
             networkQuality = networkQuality
         )
-    }
-    
-    companion object {
-        /**
-         * 根据网络质量获取质量等级
-         */
-        fun getNetworkQualityLevel(quality: Int): NetworkQuality {
-            return when {
-                quality <= 0 -> NetworkQuality.OFFLINE
-                quality < 20 -> NetworkQuality.VERY_POOR
-                quality < 40 -> NetworkQuality.POOR
-                quality < 60 -> NetworkQuality.FAIR
-                quality < 80 -> NetworkQuality.GOOD
-                else -> NetworkQuality.EXCELLENT
-            }
-        }
-        
-        /**
-         * 根据网络类型和质量获取建议的重试延迟
-         */
-        fun getSuggestedRetryDelay(networkType: NetworkType, quality: Int): Long {
-            val baseDelay = when (getNetworkQualityLevel(quality)) {
-                NetworkQuality.EXCELLENT -> 1000L
-                NetworkQuality.GOOD -> 2000L
-                NetworkQuality.FAIR -> 3000L
-                NetworkQuality.POOR -> 5000L
-                NetworkQuality.VERY_POOR -> 10000L
-                NetworkQuality.OFFLINE -> 30000L
-            }
-            
-            // 根据网络类型调整
-            return when (networkType) {
-                NetworkType.CELLULAR -> baseDelay * 2
-                NetworkType.VPN -> baseDelay * 3
-                else -> baseDelay
-            }
-        }
-        
-        /**
-         * 根据网络质量获取建议的超时时间
-         */
-        fun getSuggestedTimeout(networkType: NetworkType, quality: Int): Long {
-            val baseTimeout = when (getNetworkQualityLevel(quality)) {
-                NetworkQuality.EXCELLENT -> 10000L
-                NetworkQuality.GOOD -> 15000L
-                NetworkQuality.FAIR -> 20000L
-                NetworkQuality.POOR -> 30000L
-                NetworkQuality.VERY_POOR -> 45000L
-                NetworkQuality.OFFLINE -> 60000L
-            }
-            
-            // 根据网络类型调整
-            return when (networkType) {
-                NetworkType.CELLULAR -> baseTimeout * 2
-                NetworkType.VPN -> baseTimeout * 3
-                else -> baseTimeout
-            }
-        }
     }
 }
