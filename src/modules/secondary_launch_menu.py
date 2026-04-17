@@ -44,6 +44,7 @@ class SecondaryLaunchMenu:
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.cache_dir = self.root / "data" / "cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.selection_runtime_marker_path = self.cache_dir / "secondary_launch_selection_runtime.json"
         self.history_db = HistoryRecommendationDB(
             db_path=str(self.root / self.config.get("feedback.history_recommendation_db", "data/history_recommendation.db"))
         )
@@ -376,6 +377,9 @@ class SecondaryLaunchMenu:
             trade_date = self.db.get_latest_trade_date("stock_daily")
         if not trade_date:
             return []
+        marker = self._load_runtime_marker()
+        if marker.get("trade_date") == str(trade_date) and int(marker.get("row_count", -1) or -1) == 0:
+            return []
         if self.use_selection_history_cache:
             cached = self._load_persisted_daily_selection(trade_date)
             if cached:
@@ -387,15 +391,19 @@ class SecondaryLaunchMenu:
         features = strategy.prepare_features(data["daily"], data["basic"])
         signal_frame = strategy.build_signal_frame(features)
         if signal_frame.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         daily_rows = signal_frame[signal_frame["signal_date"] == pd.Timestamp(trade_date)].copy()
         if daily_rows.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         daily_rows = self._filter_recent_duplicates(trade_date, daily_rows, strategy.params.cooldown_days)
         if daily_rows.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         picks = strategy.generate_signals_from_frame(daily_rows)
         if picks.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         feature_map = (
             daily_rows.sort_values(["signal_date", "ts_code"])
@@ -491,7 +499,31 @@ class SecondaryLaunchMenu:
                     "upper_shadow_pct": gate.get("upper_shadow_pct"),
                 }
             )
+        self._save_runtime_marker(str(trade_date), len(results))
         return results
+
+    def _load_runtime_marker(self) -> dict:
+        try:
+            if not self.selection_runtime_marker_path.exists():
+                return {}
+            raw = json.loads(self.selection_runtime_marker_path.read_text(encoding="utf-8"))
+            return raw if isinstance(raw, dict) else {}
+        except Exception:
+            return {}
+
+    def _save_runtime_marker(self, trade_date: str, row_count: int) -> None:
+        payload = {
+            "trade_date": str(trade_date),
+            "row_count": int(row_count or 0),
+            "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        try:
+            self.selection_runtime_marker_path.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
 
     @staticmethod
     def _compute_v3_daily_gate_fields(feature_row: Any) -> dict:
