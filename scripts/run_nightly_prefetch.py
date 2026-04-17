@@ -21,6 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
 from src.core.logger import get_logger
+from src.modules.message_pusher import MessagePusher
 from src.services.dashboard_task_runner import DashboardTaskRunner
 
 logger = get_logger("nightly_prefetch")
@@ -103,16 +104,80 @@ def run(skip_update: bool = False) -> dict[str, Any]:
     return summary
 
 
+def _build_failure_alert_markdown(payload: dict[str, Any]) -> str:
+    errors = list(payload.get("errors") or [])
+    strategies = payload.get("strategies") or {}
+    lines = [
+        "## 夜间预计算失败告警",
+        "",
+        f"- 任务时间: {payload.get('started_at', '-')} ~ {payload.get('finished_at', '-')}",
+        f"- 交易日: {payload.get('trade_date', '-')}",
+        f"- 数据更新: {'成功' if payload.get('data_update_ok') else '失败'}",
+        "",
+        "### 策略执行结果",
+    ]
+    for name in ("alpha158", "secondary_launch", "breakout", "wide_breakout"):
+        row = strategies.get(name) or {}
+        ok = bool(row.get("ok"))
+        lines.append(
+            f"- `{name}`: {'OK' if ok else 'FAIL'} | selected={int(row.get('selected_count', 0) or 0)} | sync={int(row.get('sync_count', 0) or 0)}"
+        )
+    if errors:
+        lines.append("")
+        lines.append("### 失败详情")
+        for idx, item in enumerate(errors[:5], start=1):
+            stage = str(item.get("stage", "") or "-")
+            err = str(item.get("error", "") or "-")
+            lines.append(f"{idx}. `{stage}` -> {err}")
+    return "\n".join(lines)
+
+
+def _push_failure_alert(config: ConfigManager, payload: dict[str, Any]) -> bool:
+    content = _build_failure_alert_markdown(payload)
+    pusher = MessagePusher(config)
+    ok = bool(pusher.push_markdown(content, channel="wechat", enqueue_on_fail=True))
+    if ok:
+        return True
+
+    # Fallback: if push.enabled is false but webhook exists, send directly.
+    if getattr(pusher, "wechat_pusher", None):
+        try:
+            return bool(pusher.wechat_pusher.send_markdown(content))
+        except Exception:
+            logger.exception("Nightly failure alert direct-send failed")
+    return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run nightly data+strategy prefetch for mobile app.")
     parser.add_argument("--skip-update", action="store_true", help="Skip market data update phase.")
+    parser.add_argument(
+        "--force-alert-test",
+        action="store_true",
+        help="Force a synthetic failure alert after run for webhook verification.",
+    )
     args = parser.parse_args()
 
+    config = ConfigManager()
     payload = run(skip_update=bool(args.skip_update))
+    alert_ok = None
+    should_alert = (not bool(payload.get("ok"))) or bool(args.force_alert_test)
+    if should_alert:
+        alert_payload = dict(payload)
+        if args.force_alert_test and payload.get("ok"):
+            alert_payload["ok"] = False
+            alert_payload.setdefault("errors", []).append(
+                {"stage": "manual_alert_test", "error": "force alert test requested"}
+            )
+        alert_ok = _push_failure_alert(config, alert_payload)
+        payload["failure_alert_sent"] = bool(alert_ok)
+
     out_path = PROJECT_ROOT / "data" / "cache" / "nightly_selection_summary.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False))
+    if args.force_alert_test:
+        return 0 if bool(alert_ok) else 2
     return 0 if payload.get("ok") else 1
 
 
