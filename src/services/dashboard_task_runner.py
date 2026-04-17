@@ -19,6 +19,7 @@ from src.modules.breakout_strategy import (
 )
 from src.modules.daily_report import DailyReportGenerator
 from src.modules.secondary_launch_menu import SecondaryLaunchMenu
+from src.modules.stock_selector import StockSelector
 from src.modules.data_updater import DataUpdater
 from src.services.dashboard_action_record_service import DashboardActionRecordService
 from src.services.dashboard_process_manager import DashboardProcessManager
@@ -149,10 +150,7 @@ class DashboardTaskRunner:
             self.auto_push.invalidate_push_cache()
             trade_date = self.db.get_latest_trade_date("stock_daily")
             raw_strategy_key = str(strategy or "secondary_launch").strip().lower()
-            strategy_alias = {
-                "alpha158": "secondary_launch",
-            }
-            strategy_key = strategy_alias.get(raw_strategy_key, raw_strategy_key)
+            strategy_key = raw_strategy_key
             if strategy_key in {"legacy", "legacy_opt", "enhanced", "both", "strong_start"}:
                 raise ValueError(
                     "已屏蔽基准原策略、enhanced、融合与强势股刚启动选股；"
@@ -210,7 +208,14 @@ class DashboardTaskRunner:
                 reason = f"empty_after_attempts:{','.join(attempted_dates) if attempted_dates else 'none'}"
                 return selected_rows, selected_trade_date, True, reason
 
-            if strategy_key in {"secondary_launch", "secondary"}:
+            if strategy_key in {"alpha158", "alpha"}:
+                selected_count, sync_count, trade_date = self._run_alpha158_selection(trade_date)
+                if selected_count <= 0:
+                    raise ValueError(
+                        "Alpha158 今日未产出候选股票，请先确认 stock_daily 已更新到最近交易日，"
+                        "并检查 Alpha158 参数阈值。"
+                    )
+            elif strategy_key in {"secondary_launch", "secondary"}:
                 if not secondary:
                     secondary, trade_date, fallback_used, fallback_reason = _select_secondary_with_fallback(trade_date)
                     if secondary and trade_date:
@@ -237,9 +242,6 @@ class DashboardTaskRunner:
                 "trade_date": trade_date,
                 "strategy": strategy_key,
             }
-            if raw_strategy_key != strategy_key:
-                payload["requested_strategy"] = raw_strategy_key
-                payload["strategy_alias_applied"] = True
             if fallback_used:
                 payload["fallback_used"] = True
                 payload["fallback_reason"] = fallback_reason or "fallback_applied"
@@ -285,6 +287,89 @@ class DashboardTaskRunner:
             source="wide_breakout_strategy",
         )
         return len(watch_items), int(sync_count), watch_date
+
+    def _run_alpha158_selection(self, trade_date: str | None) -> tuple[int, int, str | None]:
+        selector = StockSelector(self.config, self.db)
+        resolved_trade_date = str(trade_date or "").strip() or self.db.get_latest_trade_date("stock_daily")
+        if not resolved_trade_date:
+            resolved_trade_date = datetime.now().strftime("%Y%m%d")
+
+        try:
+            selections = selector.run_selection(end_date=resolved_trade_date)
+        except TypeError:
+            selections = selector.run_selection()
+
+        sync_count = self._sync_alpha158_to_candidate_pool(
+            trade_date=resolved_trade_date,
+            selections=selections,
+        )
+        return len(selections or []), int(sync_count), resolved_trade_date
+
+    def _sync_alpha158_to_candidate_pool(self, trade_date: str, selections: list[dict]) -> int:
+        if not trade_date:
+            return 0
+
+        candidates: list[dict[str, Any]] = []
+        for idx, row in enumerate(list(selections or []), start=1):
+            if not isinstance(row, dict):
+                continue
+            ts_code = str(row.get("ts_code", "") or "").strip().upper()
+            if not ts_code:
+                continue
+            symbol = ts_code.split(".")[0]
+            score_val = row.get("score_normalized", row.get("total_score", 0.0))
+            rank = int(row.get("rank", idx) or idx)
+            candidate = {
+                "symbol": symbol,
+                "ts_code": ts_code,
+                "name": str(row.get("name", "") or ""),
+                "score": float(score_val or 0.0),
+                "signal_score": float(score_val or 0.0),
+                "rank": rank,
+                "level": str(row.get("level", "alpha158_candidate") or "alpha158_candidate"),
+                "industry": str(row.get("industry", "unknown") or "unknown"),
+                "pool_type": "core" if rank <= 5 else "reserve",
+                "strategy_profile": "alpha158",
+                "strategy_name": "alpha158",
+                "source": "stock_selector",
+                "trade_date": str(trade_date),
+            }
+            if row.get("alpha158_raw") is not None:
+                candidate["alpha158_raw"] = row.get("alpha158_raw")
+            candidates.append(candidate)
+
+        cache_path = self.project_root / "data" / "cache" / "candidate_pool.json"
+        prev_candidates: list[dict[str, Any]] = []
+        if cache_path.exists():
+            try:
+                payload_old = json.loads(cache_path.read_text(encoding="utf-8")) or {}
+                raw = payload_old.get("candidates")
+                if isinstance(raw, list):
+                    prev_candidates = [item for item in raw if isinstance(item, dict)]
+            except Exception as exc:
+                logger.warning("读取 candidate_pool 缓存失败，alpha158 将直接覆盖写入: %s", exc)
+
+        merged = [
+            item
+            for item in prev_candidates
+            if str(item.get("strategy_profile", "")).strip().lower() != "alpha158"
+        ]
+        merged.extend(candidates)
+        merged = sorted(
+            merged,
+            key=lambda item: float(item.get("score", 0) or 0),
+            reverse=True,
+        )[:30]
+
+        payload = {
+            "date": str(trade_date),
+            "candidates": merged,
+            "created_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "strategy_profile": "mixed",
+        }
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        return len(candidates)
 
     def run_push_selection_wecom(self, strategy: str = "secondary_launch") -> Dict[str, Any]:
         return self.submit_background_task(
