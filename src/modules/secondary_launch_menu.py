@@ -47,6 +47,9 @@ class SecondaryLaunchMenu:
         self.history_db = HistoryRecommendationDB(
             db_path=str(self.root / self.config.get("feedback.history_recommendation_db", "data/history_recommendation.db"))
         )
+        self.use_selection_history_cache = bool(
+            self.config.get("stock_selection.secondary_launch.use_selection_history_cache", True)
+        )
         self._ensure_storage()
 
     def _ensure_storage(self):
@@ -373,6 +376,10 @@ class SecondaryLaunchMenu:
             trade_date = self.db.get_latest_trade_date("stock_daily")
         if not trade_date:
             return []
+        if self.use_selection_history_cache:
+            cached = self._load_persisted_daily_selection(trade_date)
+            if cached:
+                return cached
 
         start_date = (pd.Timestamp(trade_date) - pd.Timedelta(days=90)).strftime("%Y%m%d")
         strategy, backtester = self._build_strategy()
@@ -420,6 +427,68 @@ class SecondaryLaunchMenu:
                     "strategy_name": "secondary_launch_walkforward",
                     "strategy_label": self.get_strategy_label(),
                     **gate,
+                }
+            )
+        return results
+
+    def _load_persisted_daily_selection(self, trade_date: str) -> list[dict]:
+        """Load persisted secondary-launch picks for a date to avoid repeated heavy recomputation."""
+        try:
+            rows = self.db.query(
+                """
+                SELECT
+                    ts_code, name, industry, rank, rs20, drawdown_from_peak,
+                    days_since_last_limit_up, strategy_name, strategy_label, extra_json
+                FROM secondary_launch_selection_history
+                WHERE trade_date = ? AND strategy_name = ?
+                ORDER BY rank ASC
+                """,
+                (str(trade_date), "secondary_launch_walkforward"),
+            )
+        except Exception:
+            return []
+        if not rows:
+            return []
+
+        results: list[dict] = []
+        for row in rows:
+            extra_raw = row.get("extra_json")
+            extra: dict = {}
+            if isinstance(extra_raw, str) and extra_raw.strip():
+                try:
+                    obj = json.loads(extra_raw)
+                    if isinstance(obj, dict):
+                        extra = obj
+                except Exception:
+                    extra = {}
+            gate = extra.get("v3_daily_gate", {}) if isinstance(extra.get("v3_daily_gate"), dict) else {}
+            results.append(
+                {
+                    "ts_code": row.get("ts_code"),
+                    "name": row.get("name", ""),
+                    "industry": row.get("industry", "未知"),
+                    "total_score": round(float(extra.get("total_score", 0.0) or 0.0), 2),
+                    "level": "二次启动候选",
+                    "short_cycle_score": round(float(extra.get("short_cycle_score", 0.0) or 0.0), 2),
+                    "tradeability_score": round(float(extra.get("tradeability_score", 0.0) or 0.0), 2),
+                    "signal_score": round(float(extra.get("total_score", 0.0) or 0.0), 2),
+                    "quality_score": round(float(extra.get("quality_score", 0.0) or 0.0), 2),
+                    "risk_penalty_score": round(float(extra.get("risk_penalty_score", 0.0) or 0.0), 2),
+                    "execution_tier_hint": str(extra.get("execution_tier_hint", "confirm") or "confirm"),
+                    "rank": int(row.get("rank", 0) or 0),
+                    "rs20": round(float(row.get("rs20", 0.0) or 0.0), 4),
+                    "drawdown_from_peak": round(float(row.get("drawdown_from_peak", 0.0) or 0.0), 4),
+                    "days_since_last_limit_up": int(row.get("days_since_last_limit_up", 0) or 0),
+                    "lgb_prob": (
+                        round(float(extra.get("lgb_prob", 0.0) or 0.0), 4)
+                        if extra.get("lgb_prob") is not None
+                        else None
+                    ),
+                    "strategy_name": str(row.get("strategy_name", "secondary_launch_walkforward") or "secondary_launch_walkforward"),
+                    "strategy_label": str(row.get("strategy_label", self.get_strategy_label()) or self.get_strategy_label()),
+                    "pct_chg": gate.get("pct_chg"),
+                    "vol_ratio_5": gate.get("vol_ratio_5"),
+                    "upper_shadow_pct": gate.get("upper_shadow_pct"),
                 }
             )
         return results
