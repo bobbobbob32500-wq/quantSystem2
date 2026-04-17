@@ -135,7 +135,11 @@ class DashboardTaskRunner:
                 if isinstance(report.get("secondary_launch_meta"), dict)
                 else None
             ) or self.db.get_latest_trade_date("stock_daily")
-            strategy_key = str(strategy or "secondary_launch").strip().lower()
+            raw_strategy_key = str(strategy or "secondary_launch").strip().lower()
+            strategy_alias = {
+                "alpha158": "secondary_launch",
+            }
+            strategy_key = strategy_alias.get(raw_strategy_key, raw_strategy_key)
             if strategy_key in {"legacy", "legacy_opt", "enhanced", "both", "strong_start"}:
                 raise ValueError(
                     "已屏蔽基准原策略、enhanced、融合与强势股刚启动选股；"
@@ -217,6 +221,9 @@ class DashboardTaskRunner:
                 "trade_date": trade_date,
                 "strategy": strategy_key,
             }
+            if raw_strategy_key != strategy_key:
+                payload["requested_strategy"] = raw_strategy_key
+                payload["strategy_alias_applied"] = True
             if fallback_used:
                 payload["fallback_used"] = True
                 payload["fallback_reason"] = fallback_reason or "fallback_applied"

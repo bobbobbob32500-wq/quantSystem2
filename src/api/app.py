@@ -359,6 +359,13 @@ def _strategy_catalog() -> List[Dict[str, Any]]:
             "scene": "提高观察池覆盖、以突破确认过滤入场",
             "default_params": {"preset": "wide_pool_strict_entry_v2"},
         },
+        {
+            "id": "alpha158",
+            "name": "Alpha158 因子策略",
+            "description": "兼容移动端历史策略ID，当前由云端二次启动链路执行。",
+            "scene": "兼容旧版移动端选股入口",
+            "default_params": {},
+        },
     ]
 
 
@@ -1024,10 +1031,10 @@ async def get_strategy_detail(strategy_id: str):
 
 
 @app.post("/api/strategies/{strategy_id}/run")
-async def run_strategy(strategy_id: str, request: StrategyRunRequest):
+async def run_strategy(strategy_id: str, request: Optional[StrategyRunRequest] = None):
     try:
         payload = {"strategy": strategy_id}
-        if isinstance(request.params, dict):
+        if request is not None and isinstance(request.params, dict):
             payload["params"] = request.params
         result = action_service.execute(
             action="run_stock_selection",
