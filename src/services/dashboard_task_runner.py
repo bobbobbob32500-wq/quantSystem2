@@ -48,6 +48,10 @@ class DashboardTaskRunner:
         self.daily_report = DailyReportGenerator(self.config, self.db)
         self.auto_push = AutoPushManager(self.config, self.db)
         self.secondary_launch = SecondaryLaunchMenu(self.config, self.db)
+        # Prevent duplicate long-running stock selection tasks from piling up.
+        self._selection_task_active_seconds = int(
+            self.config.get("dashboard.selection_task_active_seconds", 900) or 900
+        )
 
     def list_tasks(self, limit: int = 20) -> list[Dict[str, Any]]:
         rows = list(self._load_state().get("tasks", []))
@@ -127,14 +131,16 @@ class DashboardTaskRunner:
         )
 
     def run_stock_selection(self, strategy: str = "secondary_launch") -> Dict[str, Any]:
+        active_task = self._find_active_task(
+            action_key="run_stock_selection",
+            active_seconds=self._selection_task_active_seconds,
+        )
+        if active_task:
+            return dict(active_task)
+
         def _task() -> Dict[str, Any]:
             self.auto_push.invalidate_push_cache()
-            report = self.daily_report.generate_report(skip_data_update=True)
-            trade_date = (
-                report.get("secondary_launch_meta", {}).get("selection_end_date")
-                if isinstance(report.get("secondary_launch_meta"), dict)
-                else None
-            ) or self.db.get_latest_trade_date("stock_daily")
+            trade_date = self.db.get_latest_trade_date("stock_daily")
             raw_strategy_key = str(strategy or "secondary_launch").strip().lower()
             strategy_alias = {
                 "alpha158": "secondary_launch",
@@ -145,7 +151,7 @@ class DashboardTaskRunner:
                     "已屏蔽基准原策略、enhanced、融合与强势股刚启动选股；"
                     "仅支持 secondary_launch、breakout、wide_breakout"
                 )
-            secondary = list(report.get("secondary_launch_selection") or [])
+            secondary: list[dict] = []
             selected_count = 0
             sync_count = 0
             fallback_used = False
@@ -413,6 +419,38 @@ class DashboardTaskRunner:
                 message=str(exc),
                 payload={},
             )
+
+    def _find_active_task(self, action_key: str, active_seconds: int) -> Optional[Dict[str, Any]]:
+        now = datetime.now()
+        threshold = max(30, int(active_seconds or 900))
+        state = self._load_state()
+        for task in state.get("tasks", []):
+            if str(task.get("action_key") or "").strip() != str(action_key or "").strip():
+                continue
+            status = str(task.get("status") or "").strip().lower()
+            if status not in {"queued", "running"}:
+                continue
+
+            started_at = self._parse_time(task.get("started_at"))
+            updated_at = self._parse_time(task.get("updated_at"))
+            last_ts = updated_at or started_at
+            if last_ts is None:
+                continue
+            if (now - last_ts).total_seconds() <= threshold:
+                return task
+        return None
+
+    @staticmethod
+    def _parse_time(raw: Any) -> Optional[datetime]:
+        text = str(raw or "").strip()
+        if not text:
+            return None
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
+            try:
+                return datetime.strptime(text, fmt)
+            except ValueError:
+                continue
+        return None
 
     def _build_task_message(self, payload: Dict[str, Any]) -> str:
         if payload.get("message"):
