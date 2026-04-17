@@ -378,7 +378,12 @@ class SecondaryLaunchMenu:
         if not trade_date:
             return []
         marker = self._load_runtime_marker()
-        if marker.get("trade_date") == str(trade_date) and int(marker.get("row_count", -1) or -1) == 0:
+        marker_row_count = marker.get("row_count", -1)
+        try:
+            marker_row_count = int(marker_row_count)
+        except (TypeError, ValueError):
+            marker_row_count = -1
+        if marker.get("trade_date") == str(trade_date) and marker_row_count == 0:
             return []
         if self.use_selection_history_cache:
             cached = self._load_persisted_daily_selection(trade_date)
