@@ -56,6 +56,9 @@ class DashboardTaskRunner:
         self._selection_fallback_sync_enabled = bool(
             self.config.get("dashboard.selection_fallback_sync_enabled", False)
         )
+        self._selection_signal_fallback_enabled = bool(
+            self.config.get("dashboard.selection_signal_fallback_enabled", False)
+        )
 
     def list_tasks(self, limit: int = 20) -> list[Dict[str, Any]]:
         rows = list(self._load_state().get("tasks", []))
@@ -186,9 +189,10 @@ class DashboardTaskRunner:
                 if _try_date(selected_trade_date):
                     return selected_rows, selected_trade_date, True, "daily_report_empty_retried_same_date"
 
-                latest_signal_date = self.secondary_launch._find_latest_signal_trade_date(lookback_days=240)
-                if _try_date(latest_signal_date):
-                    return selected_rows, selected_trade_date, True, "fallback_latest_signal_trade_date"
+                if self._selection_signal_fallback_enabled:
+                    latest_signal_date = self.secondary_launch._find_latest_signal_trade_date(lookback_days=240)
+                    if _try_date(latest_signal_date):
+                        return selected_rows, selected_trade_date, True, "fallback_latest_signal_trade_date"
 
                 if self._selection_fallback_sync_enabled:
                     try:
@@ -196,9 +200,10 @@ class DashboardTaskRunner:
                         synced_latest = self.db.get_latest_trade_date("stock_daily")
                         if _try_date(synced_latest):
                             return selected_rows, selected_trade_date, True, "fallback_after_market_sync"
-                        latest_signal_after_sync = self.secondary_launch._find_latest_signal_trade_date(lookback_days=240)
-                        if _try_date(latest_signal_after_sync):
-                            return selected_rows, selected_trade_date, True, "fallback_latest_signal_after_sync"
+                        if self._selection_signal_fallback_enabled:
+                            latest_signal_after_sync = self.secondary_launch._find_latest_signal_trade_date(lookback_days=240)
+                            if _try_date(latest_signal_after_sync):
+                                return selected_rows, selected_trade_date, True, "fallback_latest_signal_after_sync"
                     except Exception as exc:
                         logger.warning("Selection fallback sync failed: %s", exc)
 
