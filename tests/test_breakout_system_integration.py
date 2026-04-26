@@ -427,6 +427,53 @@ def test_build_breakout_strategy_from_config_reads_exit_guard():
     assert st.params.exit_grade_overrides["A"]["trail_arm_pct"] == 0.045
 
 
+def test_build_wide_breakout_strategy_from_config_reads_dedicated_exit_guard():
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    from src.modules.breakout_strategy import build_wide_breakout_strategy_from_config
+
+    cm = ConfigManager()
+    cm.set("stock_selection.breakout.params_preset", "baseline", save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.max_hold_days", 3, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.trailing_enabled", True, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.trail_arm_pct", 0.04, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.trailing_stop_pct", 0.025, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.fixed_stop_loss_pct", -0.045, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.use_weakness_rules", False, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.grade_overrides.A.max_hold_days", 4, save=False)
+    cm.set("stock_selection.wide_breakout.exit_guard.grade_overrides.B.max_hold_days", 3, save=False)
+
+    st = build_wide_breakout_strategy_from_config(DatabaseManager(cm), cm)
+
+    assert st.params.rs_quantile_min == 0.78
+    assert st.params.min_signal_score == 58.0
+    assert st.params.top_k == 28
+    assert st.params.breakout_buffer == 0.004
+    assert st.params.volume_confirm_ratio == 1.42
+    assert st.params.enable_trailing_exit_guard is True
+    assert st.params.exit_fixed_stop_loss_pct == -0.045
+    assert st.params.exit_use_weakness_rules is False
+    assert st.resolve_exit_plan("A")["max_hold_days"] == 4
+    assert st.resolve_exit_plan("B")["max_hold_days"] == 3
+
+
+def test_build_wide_breakout_strategy_from_config_reads_dedicated_entry_guard():
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    from src.modules.breakout_strategy import build_wide_breakout_strategy_from_config
+
+    cm = ConfigManager()
+    cm.set("stock_selection.wide_breakout.high_score_weak_confirm_guard.enabled", "true", save=False)
+    cm.set("stock_selection.wide_breakout.high_score_weak_confirm_guard.score_min", 82.0, save=False)
+    cm.set("stock_selection.wide_breakout.high_score_weak_confirm_guard.volume_min", 1.45, save=False)
+
+    st = build_wide_breakout_strategy_from_config(DatabaseManager(cm), cm)
+
+    assert st.params.enable_high_score_weak_confirm_guard is True
+    assert st.params.high_score_weak_confirm_score_min == 82.0
+    assert st.params.high_score_weak_confirm_volume_min == 1.45
+
+
 def test_breakout_check_hold_weakness_trailing_exit_guard():
     from src.modules.breakout_strategy import BreakoutParams, BreakoutStrategy
     from src.core.config import ConfigManager

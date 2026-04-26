@@ -299,6 +299,52 @@ def _resolve_use_ma120_for_breakout(db: DatabaseManager) -> bool:
     return ntd >= 180
 
 
+def _coerce_bool(value: Any, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _apply_breakout_runtime_config(params: BreakoutParams, raw: Dict[str, Any]) -> BreakoutParams:
+    """把灰度入场与退出配置应用到突破参数，标准突破/宽进突破共用。"""
+    guard = raw.get("high_score_weak_confirm_guard", {}) or {}
+    if isinstance(guard, dict):
+        params.enable_high_score_weak_confirm_guard = _coerce_bool(guard.get("enabled"), False)
+        if guard.get("score_min") is not None:
+            params.high_score_weak_confirm_score_min = float(guard.get("score_min"))
+        if guard.get("volume_min") is not None:
+            params.high_score_weak_confirm_volume_min = float(guard.get("volume_min"))
+
+    market_guard = raw.get("market_ret5_median_guard", {}) or {}
+    if isinstance(market_guard, dict):
+        params.enable_market_ret5_median_guard = _coerce_bool(market_guard.get("enabled"), False)
+        if market_guard.get("stop") is not None:
+            params.market_ret5_median_stop = float(market_guard.get("stop"))
+
+    exit_guard = raw.get("exit_guard", {}) or {}
+    if isinstance(exit_guard, dict):
+        if exit_guard.get("max_hold_days") is not None:
+            params.max_hold_days = int(exit_guard.get("max_hold_days"))
+        params.enable_trailing_exit_guard = _coerce_bool(exit_guard.get("trailing_enabled"), False)
+        if exit_guard.get("trail_arm_pct") is not None:
+            params.exit_trail_arm_pct = float(exit_guard.get("trail_arm_pct"))
+        if exit_guard.get("trailing_stop_pct") is not None:
+            params.exit_trailing_stop_pct = float(exit_guard.get("trailing_stop_pct"))
+        if exit_guard.get("fixed_stop_loss_pct") is not None:
+            params.exit_fixed_stop_loss_pct = float(exit_guard.get("fixed_stop_loss_pct"))
+        params.exit_use_weakness_rules = _coerce_bool(exit_guard.get("use_weakness_rules"), True)
+        grade_overrides = exit_guard.get("grade_overrides", {}) or {}
+        if isinstance(grade_overrides, dict):
+            params.exit_grade_overrides = {
+                str(k).upper(): v
+                for k, v in grade_overrides.items()
+                if isinstance(v, dict)
+            }
+    return params
+
+
 def build_breakout_strategy_from_config(
     db: DatabaseManager,
     config: Optional[ConfigManager] = None,
@@ -314,61 +360,7 @@ def build_breakout_strategy_from_config(
     if config is not None:
         raw = config.get("stock_selection.breakout", {}) or {}
         if isinstance(raw, dict):
-            guard = raw.get("high_score_weak_confirm_guard", {}) or {}
-            if isinstance(guard, dict):
-                enabled = guard.get("enabled", False)
-                if isinstance(enabled, bool):
-                    params.enable_high_score_weak_confirm_guard = enabled
-                else:
-                    params.enable_high_score_weak_confirm_guard = (
-                        str(enabled).strip().lower() in {"1", "true", "yes", "on"}
-                    )
-                if guard.get("score_min") is not None:
-                    params.high_score_weak_confirm_score_min = float(guard.get("score_min"))
-                if guard.get("volume_min") is not None:
-                    params.high_score_weak_confirm_volume_min = float(guard.get("volume_min"))
-            market_guard = raw.get("market_ret5_median_guard", {}) or {}
-            if isinstance(market_guard, dict):
-                enabled = market_guard.get("enabled", False)
-                if isinstance(enabled, bool):
-                    params.enable_market_ret5_median_guard = enabled
-                else:
-                    params.enable_market_ret5_median_guard = (
-                        str(enabled).strip().lower() in {"1", "true", "yes", "on"}
-                    )
-                if market_guard.get("stop") is not None:
-                    params.market_ret5_median_stop = float(market_guard.get("stop"))
-            exit_guard = raw.get("exit_guard", {}) or {}
-            if isinstance(exit_guard, dict):
-                if exit_guard.get("max_hold_days") is not None:
-                    params.max_hold_days = int(exit_guard.get("max_hold_days"))
-                enabled = exit_guard.get("trailing_enabled", False)
-                if isinstance(enabled, bool):
-                    params.enable_trailing_exit_guard = enabled
-                else:
-                    params.enable_trailing_exit_guard = (
-                        str(enabled).strip().lower() in {"1", "true", "yes", "on"}
-                    )
-                if exit_guard.get("trail_arm_pct") is not None:
-                    params.exit_trail_arm_pct = float(exit_guard.get("trail_arm_pct"))
-                if exit_guard.get("trailing_stop_pct") is not None:
-                    params.exit_trailing_stop_pct = float(exit_guard.get("trailing_stop_pct"))
-                if exit_guard.get("fixed_stop_loss_pct") is not None:
-                    params.exit_fixed_stop_loss_pct = float(exit_guard.get("fixed_stop_loss_pct"))
-                use_weakness = exit_guard.get("use_weakness_rules", True)
-                if isinstance(use_weakness, bool):
-                    params.exit_use_weakness_rules = use_weakness
-                else:
-                    params.exit_use_weakness_rules = (
-                        str(use_weakness).strip().lower() in {"1", "true", "yes", "on"}
-                    )
-                grade_overrides = exit_guard.get("grade_overrides", {}) or {}
-                if isinstance(grade_overrides, dict):
-                    params.exit_grade_overrides = {
-                        str(k).upper(): v
-                        for k, v in grade_overrides.items()
-                        if isinstance(v, dict)
-                    }
+            _apply_breakout_runtime_config(params, raw)
     return BreakoutStrategy(db=db, params=params)
 
 
@@ -380,11 +372,14 @@ def build_wide_breakout_strategy_from_config(
     宽进突破策略：选股层同「放宽选股」、买点层同 buy_tuning_v1（回测预设 wide_pool_strict_entry_v2）。
 
     与 `build_breakout_strategy_from_config` 独立，不读取 params_preset，供专用菜单与一键选股入口。
-    config 参数预留与主程序签名对齐，当前未参与参数分支。
+    配置路径：stock_selection.wide_breakout。若未配置则保持纯 wide_pool_strict_entry_v2。
     """
-    _ = config
     use_ma120 = _resolve_use_ma120_for_breakout(db)
     params = get_breakout_params_for_backtest("wide_pool_strict_entry_v2", use_ma120)
+    if config is not None:
+        raw = config.get("stock_selection.wide_breakout", {}) or {}
+        if isinstance(raw, dict):
+            _apply_breakout_runtime_config(params, raw)
     return BreakoutStrategy(db=db, params=params)
 
 

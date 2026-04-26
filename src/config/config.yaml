@@ -500,6 +500,38 @@ stock_selection:
           trailing_stop_pct: 0.025
           fixed_stop_loss_pct: -0.045
           use_weakness_rules: false
+  # 宽进突破：固定 wide_pool_strict_entry_v2 入场，独立承接突破 V2/V5 灰度参数。
+  # 宽进交易频率更高、回撤更深，第一阶段优先复用分级退出，不额外做行业拥挤过滤。
+  wide_breakout:
+    high_score_weak_confirm_guard:
+      enabled: true
+      score_min: 80.0
+      volume_min: 1.35
+    market_ret5_median_guard:
+      enabled: false
+      stop: -0.01
+    # 长窗口（20250922~20260403）walk-forward 显示，A=trail4.5/T4、B=trail4.0/T3
+    # 比 A=trail5.0/T4 在样本外和最近段更稳；保留宽进原高收益特征的同时降低过拟合风险。
+    exit_guard:
+      max_hold_days: 3
+      trailing_enabled: true
+      trail_arm_pct: 0.04
+      trailing_stop_pct: 0.025
+      fixed_stop_loss_pct: -0.045
+      use_weakness_rules: false
+      grade_overrides:
+        A:
+          max_hold_days: 4
+          trail_arm_pct: 0.045
+          trailing_stop_pct: 0.025
+          fixed_stop_loss_pct: -0.045
+          use_weakness_rules: false
+        B:
+          max_hold_days: 3
+          trail_arm_pct: 0.04
+          trailing_stop_pct: 0.025
+          fixed_stop_loss_pct: -0.045
+          use_weakness_rules: false
 # Qlib：Alpha158 + LightGBM 超参（与 output/qlib_optuna_alpha_comparison.json 中 Optuna 最优结果对齐）
 qlib:
   use_optuna_alpha_lgb_params: true
