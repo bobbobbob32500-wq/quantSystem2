@@ -159,6 +159,183 @@ def test_breakout_confirm_daily_contract():
     assert sigs[0].volume_ratio >= p.volume_confirm_ratio
 
 
+def test_breakout_high_score_weak_confirm_guard_default_off():
+    """默认关闭灰度保护：高分但弱确认仍按原逻辑输出 B 级。"""
+    from src.modules.breakout_strategy import BreakoutParams, WatchItem, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    p = BreakoutParams()
+    st = BreakoutStrategy(db=DatabaseManager(ConfigManager()), params=p)
+    item = WatchItem(
+        ts_code="000001.SZ",
+        name="测试",
+        watch_date="20240101",
+        close=10.0,
+        pivot=10.0,
+        trigger_price=10.02,
+        stop_loss=9.0,
+        atr14=0.2,
+        rs20=5.0,
+        rs20_xsec_q=0.85,
+        atr_ratio_q60=0.3,
+        box_range=5.0,
+        ma20=10.0,
+        ma60=9.5,
+        ma120=9.0,
+        signal_score=82.0,
+        score_detail="",
+    )
+    row = pd.Series(
+        {
+            "ts_code": "000001.SZ",
+            "trade_date": pd.Timestamp("2024-01-02"),
+            "open": 9.9,
+            "high": 10.1,
+            "low": 9.8,
+            "close": 10.1,
+            "vol": 1_100_000.0,
+            "vol_ma20": 1_000_000.0,
+        }
+    )
+    sigs = st.confirm_breakout_daily([item], {"000001.SZ": row})
+    assert len(sigs) == 1
+    assert sigs[0].signal_grade == "B"
+
+
+def test_breakout_high_score_weak_confirm_guard_filters_daily():
+    """开启灰度保护：高分但量能弱于阈值时过滤。"""
+    from src.modules.breakout_strategy import BreakoutParams, WatchItem, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    p = BreakoutParams(
+        enable_high_score_weak_confirm_guard=True,
+        high_score_weak_confirm_score_min=80.0,
+        high_score_weak_confirm_volume_min=1.35,
+    )
+    st = BreakoutStrategy(db=DatabaseManager(ConfigManager()), params=p)
+    item = WatchItem(
+        ts_code="000001.SZ",
+        name="测试",
+        watch_date="20240101",
+        close=10.0,
+        pivot=10.0,
+        trigger_price=10.02,
+        stop_loss=9.0,
+        atr14=0.2,
+        rs20=5.0,
+        rs20_xsec_q=0.85,
+        atr_ratio_q60=0.3,
+        box_range=5.0,
+        ma20=10.0,
+        ma60=9.5,
+        ma120=9.0,
+        signal_score=82.0,
+        score_detail="",
+    )
+    row = pd.Series(
+        {
+            "ts_code": "000001.SZ",
+            "trade_date": pd.Timestamp("2024-01-02"),
+            "open": 9.9,
+            "high": 10.1,
+            "low": 9.8,
+            "close": 10.1,
+            "vol": 1_100_000.0,
+            "vol_ma20": 1_000_000.0,
+        }
+    )
+    assert st.confirm_breakout_daily([item], {"000001.SZ": row}) == []
+
+
+def test_breakout_high_score_weak_confirm_guard_keeps_strong_volume():
+    """开启灰度保护：高分且真实放量的 A 级仍保留。"""
+    from src.modules.breakout_strategy import BreakoutParams, WatchItem, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    p = BreakoutParams(
+        enable_high_score_weak_confirm_guard=True,
+        high_score_weak_confirm_score_min=80.0,
+        high_score_weak_confirm_volume_min=1.35,
+    )
+    st = BreakoutStrategy(db=DatabaseManager(ConfigManager()), params=p)
+    item = WatchItem(
+        ts_code="000001.SZ",
+        name="测试",
+        watch_date="20240101",
+        close=10.0,
+        pivot=10.0,
+        trigger_price=10.02,
+        stop_loss=9.0,
+        atr14=0.2,
+        rs20=5.0,
+        rs20_xsec_q=0.85,
+        atr_ratio_q60=0.3,
+        box_range=5.0,
+        ma20=10.0,
+        ma60=9.5,
+        ma120=9.0,
+        signal_score=82.0,
+        score_detail="",
+    )
+    row = pd.Series(
+        {
+            "ts_code": "000001.SZ",
+            "trade_date": pd.Timestamp("2024-01-02"),
+            "open": 9.9,
+            "high": 10.1,
+            "low": 9.8,
+            "close": 10.1,
+            "vol": 1_500_000.0,
+            "vol_ma20": 1_000_000.0,
+        }
+    )
+    sigs = st.confirm_breakout_daily([item], {"000001.SZ": row})
+    assert len(sigs) == 1
+    assert sigs[0].signal_grade == "A"
+
+
+def test_breakout_market_ret5_median_guard_falls_back_without_index_data():
+    """指数缺失时，开启市场弱势保护会使用全市场5日中位收益兜底禁开。"""
+    from src.modules.breakout_strategy import BreakoutParams, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    trade_date = pd.Timestamp("2024-01-02")
+    features = pd.DataFrame(
+        {
+            "ts_code": [f"600{i:03d}.SH" for i in range(80)],
+            "trade_date": [trade_date] * 80,
+            "ret_1d": [0.01] * 80,
+            "ret5": [-0.02] * 80,
+        }
+    )
+
+    disabled = BreakoutStrategy(
+        db=DatabaseManager(ConfigManager()),
+        params=BreakoutParams(enable_market_ret5_median_guard=False),
+    )
+    assert disabled._market_gate(features, "20240102") == (
+        disabled.params.min_signal_score,
+        disabled.params.top_k,
+    )
+
+    enabled = BreakoutStrategy(
+        db=DatabaseManager(ConfigManager()),
+        params=BreakoutParams(
+            enable_market_ret5_median_guard=True,
+            market_ret5_median_stop=-0.01,
+        ),
+    )
+    assert enabled._market_gate(features, "20240102") == (999.0, 0)
+
+
 def test_src_modules_exports_breakout():
     import src.modules as m
 
@@ -189,6 +366,180 @@ def test_resolve_breakout_preset_from_config():
 
     cm.set("stock_selection.breakout.params_preset", "wide_pool_strict_entry_v2", save=False)
     assert resolve_breakout_preset_from_config(cm) == "wide_pool_strict_entry_v2"
+
+
+def test_build_breakout_strategy_from_config_reads_high_score_guard():
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    from src.modules.breakout_strategy import build_breakout_strategy_from_config
+
+    cm = ConfigManager()
+    cm.set("stock_selection.breakout.params_preset", "win_rate_priority", save=False)
+    cm.set("stock_selection.breakout.high_score_weak_confirm_guard.enabled", True, save=False)
+    cm.set("stock_selection.breakout.high_score_weak_confirm_guard.score_min", 81.0, save=False)
+    cm.set("stock_selection.breakout.high_score_weak_confirm_guard.volume_min", 1.4, save=False)
+
+    st = build_breakout_strategy_from_config(DatabaseManager(cm), cm)
+    assert st.params.enable_high_score_weak_confirm_guard is True
+    assert st.params.high_score_weak_confirm_score_min == 81.0
+    assert st.params.high_score_weak_confirm_volume_min == 1.4
+
+
+def test_build_breakout_strategy_from_config_reads_market_ret5_guard():
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    from src.modules.breakout_strategy import build_breakout_strategy_from_config
+
+    cm = ConfigManager()
+    cm.set("stock_selection.breakout.params_preset", "win_rate_priority", save=False)
+    cm.set("stock_selection.breakout.market_ret5_median_guard.enabled", "true", save=False)
+    cm.set("stock_selection.breakout.market_ret5_median_guard.stop", -0.012, save=False)
+
+    st = build_breakout_strategy_from_config(DatabaseManager(cm), cm)
+    assert st.params.enable_market_ret5_median_guard is True
+    assert st.params.market_ret5_median_stop == -0.012
+
+
+def test_build_breakout_strategy_from_config_reads_exit_guard():
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    from src.modules.breakout_strategy import build_breakout_strategy_from_config
+
+    cm = ConfigManager()
+    cm.set("stock_selection.breakout.params_preset", "win_rate_priority", save=False)
+    cm.set("stock_selection.breakout.exit_guard.max_hold_days", 3, save=False)
+    cm.set("stock_selection.breakout.exit_guard.trailing_enabled", "true", save=False)
+    cm.set("stock_selection.breakout.exit_guard.trail_arm_pct", 0.04, save=False)
+    cm.set("stock_selection.breakout.exit_guard.trailing_stop_pct", 0.025, save=False)
+    cm.set("stock_selection.breakout.exit_guard.fixed_stop_loss_pct", -0.045, save=False)
+    cm.set("stock_selection.breakout.exit_guard.use_weakness_rules", False, save=False)
+    cm.set("stock_selection.breakout.exit_guard.grade_overrides.A.max_hold_days", 4, save=False)
+    cm.set("stock_selection.breakout.exit_guard.grade_overrides.A.trail_arm_pct", 0.045, save=False)
+
+    st = build_breakout_strategy_from_config(DatabaseManager(cm), cm)
+    assert st.params.max_hold_days == 3
+    assert st.params.enable_trailing_exit_guard is True
+    assert st.params.exit_trail_arm_pct == 0.04
+    assert st.params.exit_trailing_stop_pct == 0.025
+    assert st.params.exit_fixed_stop_loss_pct == -0.045
+    assert st.params.exit_use_weakness_rules is False
+    assert st.params.exit_grade_overrides["A"]["max_hold_days"] == 4
+    assert st.params.exit_grade_overrides["A"]["trail_arm_pct"] == 0.045
+
+
+def test_breakout_check_hold_weakness_trailing_exit_guard():
+    from src.modules.breakout_strategy import BreakoutParams, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    st = BreakoutStrategy(
+        db=DatabaseManager(ConfigManager()),
+        params=BreakoutParams(
+            enable_trailing_exit_guard=True,
+            exit_trail_arm_pct=0.04,
+            exit_trailing_stop_pct=0.025,
+            exit_fixed_stop_loss_pct=-0.045,
+            exit_use_weakness_rules=False,
+            max_hold_days=3,
+        ),
+    )
+    daily = pd.DataFrame(
+        [
+            {"close": 10.3, "high": 10.5, "low": 10.1, "ma5": 9.8},
+            {"close": 10.2, "high": 10.55, "low": 10.0, "ma5": 9.9},
+        ]
+    )
+
+    should_exit, reason = st.check_hold_weakness(
+        "000001.SZ",
+        daily,
+        stop_loss=9.5,
+        hold_days=2,
+        entry_price=10.0,
+    )
+
+    assert should_exit is True
+    assert "移动止盈触发" in reason
+
+
+def test_breakout_check_hold_weakness_can_disable_ma_weakness_rules():
+    from src.modules.breakout_strategy import BreakoutParams, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    st = BreakoutStrategy(
+        db=DatabaseManager(ConfigManager()),
+        params=BreakoutParams(
+            exit_use_weakness_rules=False,
+            exit_fixed_stop_loss_pct=-0.045,
+            max_hold_days=3,
+        ),
+    )
+    daily = pd.DataFrame(
+        [
+            {"close": 10.2, "high": 10.3, "low": 10.1, "ma5": 10.0},
+            {"close": 9.9, "high": 10.1, "low": 9.8, "ma5": 10.0},
+        ]
+    )
+
+    should_exit, reason = st.check_hold_weakness(
+        "000001.SZ",
+        daily,
+        stop_loss=9.0,
+        hold_days=2,
+        entry_price=10.0,
+    )
+
+    assert should_exit is False
+    assert reason == ""
+
+
+def test_breakout_check_hold_weakness_uses_grade_override_max_hold():
+    from src.modules.breakout_strategy import BreakoutParams, BreakoutStrategy
+    from src.core.config import ConfigManager
+    from src.core.database import DatabaseManager
+    import pandas as pd
+
+    st = BreakoutStrategy(
+        db=DatabaseManager(ConfigManager()),
+        params=BreakoutParams(
+            enable_trailing_exit_guard=True,
+            max_hold_days=3,
+            exit_fixed_stop_loss_pct=-0.045,
+            exit_use_weakness_rules=False,
+            exit_grade_overrides={"A": {"max_hold_days": 4}},
+        ),
+    )
+    daily = pd.DataFrame(
+        [
+            {"close": 10.1, "high": 10.2, "low": 10.0, "ma5": 9.9},
+            {"close": 10.2, "high": 10.3, "low": 10.1, "ma5": 10.0},
+            {"close": 10.3, "high": 10.4, "low": 10.2, "ma5": 10.1},
+        ]
+    )
+
+    should_exit, _ = st.check_hold_weakness(
+        "000001.SZ",
+        daily,
+        stop_loss=9.0,
+        hold_days=3,
+        entry_price=10.0,
+        signal_grade="A",
+    )
+    assert should_exit is False
+
+    should_exit, reason = st.check_hold_weakness(
+        "000001.SZ",
+        daily,
+        stop_loss=9.0,
+        hold_days=3,
+        entry_price=10.0,
+        signal_grade="B",
+    )
+    assert should_exit is True
+    assert "时间止损" in reason
 
 
 def test_backtest_menu_has_breakout_runner():
@@ -252,7 +603,10 @@ def test_merge_breakout_candidate_cache_preserves_other_strategies(tmp_path):
         score_detail="",
         industry="银行",
     )
-    n = merge_breakout_watchlist_to_candidate_cache([item], "20240103", project_root=tmp_path)
+    exit_plan = {"by_grade": {"A": {"max_hold_days": 4}, "B": {"max_hold_days": 3}}}
+    n = merge_breakout_watchlist_to_candidate_cache(
+        [item], "20240103", project_root=tmp_path, exit_plan=exit_plan
+    )
     assert n == 1
     data = json.loads(pool_path.read_text(encoding="utf-8"))
     cands = data["candidates"]
@@ -261,6 +615,8 @@ def test_merge_breakout_candidate_cache_preserves_other_strategies(tmp_path):
     assert "breakout" in profiles
     assert sum(1 for x in cands if x.get("strategy_profile") == "breakout") == 1
     assert any(x.get("name") == "保留股" for x in cands)
+    breakout = next(x for x in cands if x.get("strategy_profile") == "breakout")
+    assert breakout["exit_plan"]["by_grade"]["A"]["max_hold_days"] == 4
 
 
 def test_merge_wide_breakout_candidate_cache_preserves_breakout(tmp_path):

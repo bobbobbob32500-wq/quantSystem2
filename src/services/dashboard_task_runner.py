@@ -265,6 +265,7 @@ class DashboardTaskRunner:
             watch_items=watch_items,
             watch_date=watch_date,
             project_root=self.project_root,
+            exit_plan=strategy.export_exit_plan(),
         )
         return len(watch_items), int(sync_count), watch_date
 
@@ -281,6 +282,7 @@ class DashboardTaskRunner:
             watch_items=watch_items,
             watch_date=watch_date,
             project_root=self.project_root,
+            exit_plan=strategy.export_exit_plan(),
             strategy_profile="wide_breakout",
             strategy_name="wide_breakout_watchlist",
             level_label="宽进突破观察池",

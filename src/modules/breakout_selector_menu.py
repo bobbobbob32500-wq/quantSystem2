@@ -47,6 +47,7 @@ def merge_breakout_watchlist_to_candidate_cache(
     strategy_name: str = "breakout_watchlist",
     level_label: str = "突破观察池",
     source: str = "breakout_strategy",
+    exit_plan: Optional[Dict[str, Any]] = None,
 ) -> int:
     """
     将突破观察池写入 data/cache/candidate_pool.json，供首页终端指挥台与 Web 看板「候选池」读取。
@@ -77,6 +78,7 @@ def merge_breakout_watchlist_to_candidate_cache(
 
     new_rows: List[dict] = []
     wd = str(watch_date or "").strip()
+    resolved_exit_plan = exit_plan if isinstance(exit_plan, dict) else {}
     for item in watch_items or []:
         code = str(getattr(item, "ts_code", "") or "").strip()
         if not code:
@@ -98,6 +100,7 @@ def merge_breakout_watchlist_to_candidate_cache(
                 "trigger_price": float(getattr(item, "trigger_price", 0.0) or 0.0),
                 "pivot": float(getattr(item, "pivot", 0.0) or 0.0),
                 "stop_loss": float(getattr(item, "stop_loss", 0.0) or 0.0),
+                "exit_plan": resolved_exit_plan,
             }
         )
 
@@ -457,6 +460,7 @@ def _breakout_selector_menu_impl(
 ) -> None:
     """突破类选股菜单共用循环（原突破 / 宽进突破）。"""
     merge_kw: Dict[str, Any] = dict(sync_merge_kw or {})
+    merge_kw.setdefault("exit_plan", strategy.export_exit_plan())
     params = strategy.params
     last_items: List[WatchItem] = []
 

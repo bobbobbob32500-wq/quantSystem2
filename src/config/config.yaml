@@ -466,6 +466,40 @@ stock_selection:
     # optuna_optimized_v1: Optuna三阶段优化后的参数（2026-04-14），样本外T1胜率59.62%
     # 当前使用 win_rate_priority：买点更严，回测中突破+放量确认胜率84.6%
     params_preset: win_rate_priority
+    # v2 灰度保护：仅在 enabled=true 时过滤「高分但确认弱」的突破信号。
+    # 本地候选默认开启；上线前仍需保留灰度/回滚开关。
+    high_score_weak_confirm_guard:
+      enabled: true
+      score_min: 80.0
+      volume_min: 1.35
+    # v3 灰度保护：指数行情缺失时，使用全市场5日中位收益兜底识别弱势环境。
+    # 当前主线优先保留V2信号样本、研究退出机制；V3作为弱市防守开关保留但默认关闭。
+    market_ret5_median_guard:
+      enabled: false
+      stop: -0.01
+    # V5 退出优化：V2入场 + T3移动止盈；盈利4%启动，回撤2.5%退出。
+    # 保留 ATR/MA5/前低走弱保护，最大持有3天以维持突破策略高胜率风格。
+    exit_guard:
+      max_hold_days: 3
+      trailing_enabled: true
+      trail_arm_pct: 0.04
+      trailing_stop_pct: 0.025
+      fixed_stop_loss_pct: -0.045
+      use_weakness_rules: false
+      # A/B 分层候选：A 级趋势确认更强，最多持有4天；B 级维持T3快进快出。
+      grade_overrides:
+        A:
+          max_hold_days: 4
+          trail_arm_pct: 0.045
+          trailing_stop_pct: 0.025
+          fixed_stop_loss_pct: -0.045
+          use_weakness_rules: false
+        B:
+          max_hold_days: 3
+          trail_arm_pct: 0.04
+          trailing_stop_pct: 0.025
+          fixed_stop_loss_pct: -0.045
+          use_weakness_rules: false
 # Qlib：Alpha158 + LightGBM 超参（与 output/qlib_optuna_alpha_comparison.json 中 Optuna 最优结果对齐）
 qlib:
   use_optuna_alpha_lgb_params: true

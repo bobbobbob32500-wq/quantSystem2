@@ -290,6 +290,15 @@ class BreakoutIntradayMonitor:
         print(f"  综合评分: {sig.signal_score:.1f}")
         print(f"  行业: {sig.industry}")
         print(f"  建议仓位比例: {sig.position_ratio:.0%}")
+        exit_plan = self.strategy.resolve_exit_plan(sig.signal_grade)
+        print(
+            "  退出规则: 最多持有{days}天，移动止盈{arm:.1f}%启动/{trail:.1f}%回撤，固定止损{stop:.1f}%".format(
+                days=int(exit_plan.get("max_hold_days", 0) or 0),
+                arm=float(exit_plan.get("trail_arm_pct", 0.0) or 0.0) * 100,
+                trail=float(exit_plan.get("trailing_stop_pct", 0.0) or 0.0) * 100,
+                stop=float(exit_plan.get("fixed_stop_loss_pct", 0.0) or 0.0) * 100,
+            )
+        )
         pos_size = BreakoutStrategy.calc_position_size(
             equity=100000, entry_price=sig.entry_price,
             stop_loss=sig.stop_loss
