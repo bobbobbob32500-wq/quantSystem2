@@ -1,10 +1,17 @@
 package com.quant.system.ui.screen.viewmodel
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quant.system.BuildConfig
 import com.quant.system.core.NotificationHelper
+import com.quant.system.core.signal.SignalNotificationPolicy
 import com.quant.system.data.model.ActionRecord
 import com.quant.system.data.model.AnalyticsSummaryPayload
 import com.quant.system.data.model.AppUpdatePayload
@@ -26,8 +33,6 @@ import com.quant.system.data.model.WatcherSummary
 import com.quant.system.data.model.DeepReviewResult
 import com.quant.system.data.model.KnowledgeTopic
 import com.quant.system.data.model.KnowledgeArticle
-import com.quant.system.core.data.DataSyncOptimizer
-import com.quant.system.core.performance.AppPerformanceOptimizer
 import com.quant.system.core.ux.PerformanceMonitor
 import com.quant.system.core.ux.UserExperienceOptimizer
 import com.quant.system.data.repository.AIRepository
@@ -147,11 +152,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private val cache = LocalCacheRepository(application)
     private val selectionHistoryRepo = SelectionHistoryRepository(application)
     private val notifier = NotificationHelper(application)
-    private val dataSyncOptimizer = DataSyncOptimizer(application)
-    private val performanceOptimizer = AppPerformanceOptimizer.getInstance(application)
     private val performanceMonitor = PerformanceMonitor(application)
 
-    var uiState = DashboardUiState()
+    var uiState by mutableStateOf(DashboardUiState())
         private set
 
     private var autoRefreshJob: Job? = null
@@ -185,24 +188,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             aiInferenceMode = settings.getAiInferenceMode(),
         )
 
-        // 启用性能优化
-        performanceOptimizer.enableOptimizations()
-        
-        // 启动性能监控
-        performanceMonitor.startMonitoring()
+        if (ENABLE_RUNTIME_PERF_MONITOR) {
+            performanceMonitor.startMonitoring(intervalMs = 15_000L)
+        }
 
         viewModelScope.launch {
             loadLocalBootstrapData()
             refreshDashboardInternal(showNotice = false, force = true)
-            refreshActionHistory(false)
             refreshStockSelectionHistory(false)
-            refreshBackgroundTasks(false)
-            refreshStrategies(false)
-            refreshAnalyticsSummary(false)
-            refreshWatchlist(false)
-            refreshAIStatus(false)
         }
-        setAutoRefreshEnabled(true)
     }
 
     fun refreshDashboard() = viewModelScope.launch { 
@@ -250,7 +244,10 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             )
             startActionTimer(45_000L)
 
-            val result = safeExecuteWithRetry("execute_stock_selection") {
+            val result = safeExecuteWithRetry(
+                operationName = "execute_stock_selection",
+                maxRetries = 1,
+            ) {
                 withTimeout(45_000L) {
                     repo.executeAction(
                         baseUrl = uiState.currentBaseUrl,
@@ -685,6 +682,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
      * 记录用户交互
      */
     fun recordUserInteraction(interactionType: String) {
+        if (!ENABLE_RUNTIME_PERF_MONITOR) return
         performanceMonitor.recordUserInteraction(interactionType)
     }
     
@@ -692,6 +690,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
      * 记录操作性能
      */
     fun recordOperationPerformance(operationName: String, durationMs: Long) {
+        if (!ENABLE_RUNTIME_PERF_MONITOR) return
         performanceMonitor.recordOperationPerformance(operationName, durationMs)
     }
     
@@ -699,6 +698,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
      * 记录网络请求时间
      */
     fun recordNetworkRequestTime(endpoint: String, requestTimeMs: Long) {
+        if (!ENABLE_RUNTIME_PERF_MONITOR) return
         performanceMonitor.recordNetworkRequestTime(endpoint, requestTimeMs)
     }
     
@@ -706,6 +706,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
      * 记录UI渲染时间
      */
     fun recordUIRenderTime(screenName: String, renderTimeMs: Long) {
+        if (!ENABLE_RUNTIME_PERF_MONITOR) return
         performanceMonitor.recordUIRenderTime(screenName, renderTimeMs)
     }
     
@@ -713,6 +714,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
      * 记录错误
      */
     fun recordError(errorType: String) {
+        if (!ENABLE_RUNTIME_PERF_MONITOR) return
         performanceMonitor.recordError(errorType)
     }
     
@@ -776,7 +778,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         autoRefreshJob?.cancel()
         if (!enabled) return
         autoRefreshJob = viewModelScope.launch {
-            var remain = 30
+            var remain = DASHBOARD_AUTO_REFRESH_INTERVAL_SECONDS
             while (isActive) {
                 uiState = uiState.copy(autoRefreshSecondsRemaining = remain)
                 delay(1_000L)
@@ -785,7 +787,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     if (!uiState.isActionRunning) {
                         refreshDashboardInternal(false)
                     }
-                    remain = 30
+                    remain = DASHBOARD_AUTO_REFRESH_INTERVAL_SECONDS
                 }
             }
         }
@@ -811,65 +813,99 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 return@withLock
             }
             lastDashboardRefreshAtMs = lockedNow
-            uiState = uiState.copy(isLoading = true)
-            
+            val hadUsableSnapshot = uiState.snapshot?.let(::isMeaningfulSnapshotForUi) == true
+            uiState = uiState.copy(isLoading = !hadUsableSnapshot)
+
+            if (!isNetworkAvailable()) {
+                val cached = withContext(Dispatchers.IO) {
+                    withLocalSelectionFallbackOrNull(cache.getDashboardSnapshot())
+                        ?.takeIf(::isMeaningfulSnapshotForUi)
+                }
+                if (cached != null) {
+                    uiState = uiState.copy(
+                        snapshot = cached,
+                        isLoading = false,
+                        isUsingCachedData = true,
+                        dataSourceLabel = "本地缓存",
+                        networkStatusLabel = "网络状态：离线（已切缓存）",
+                        lastSyncedAtLabel = withContext(Dispatchers.IO) { cache.getDashboardCachedAt() }?.let(::formatMillis) ?: "--",
+                    )
+                    if (showNotice) post("网络离线，已切换本地缓存", NoticeType.Info)
+                } else {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        networkStatusLabel = "网络状态：离线",
+                    )
+                    if (showNotice) post("网络离线，且本地暂无可用缓存", NoticeType.Error)
+                }
+                return@withLock
+            }
+             
             val startTime = System.currentTimeMillis()
             
-            // 使用数据同步优化器进行智能同步
-            dataSyncOptimizer.startSync(
-                baseUrl = uiState.currentBaseUrl,
-                onSuccess = { snapshot ->
-                    val duration = System.currentTimeMillis() - startTime
-                    recordNetworkRequestTime("dashboard_sync", duration)
-                    
-                    viewModelScope.launch {
-                        val snapshotWithFallback = withContext(Dispatchers.IO) {
-                            withLocalSelectionFallback(snapshot)
-                        }
-                        withContext(Dispatchers.IO) {
-                            cache.saveDashboardSnapshot(snapshotWithFallback)
-                        }
-                        uiState = uiState.copy(
-                            snapshot = snapshotWithFallback,
-                            isLoading = false,
-                            isUsingCachedData = false,
-                            dataSourceLabel = "实时数据",
-                            networkStatusLabel = "网络状态：正常",
-                            lastSyncedAtLabel = snapshotWithFallback.meta?.generatedLabel ?: nowLabel(),
-                            tradeNotes = buildTradeNotes(snapshotWithFallback),
-                            tradeReminders = buildTradeReminders(snapshotWithFallback),
-                            monitorExpectedActive = snapshotWithFallback.monitorSession?.isActive
-                                ?: uiState.monitorExpectedActive,
-                        )
-                        notifySignals(snapshotWithFallback)
-                        if (showNotice) post("数据已刷新 (${duration}ms)", NoticeType.Success)
-                    }
-                },
-                onError = { error ->
-                    val duration = System.currentTimeMillis() - startTime
-                    recordNetworkRequestTime("dashboard_sync_error", duration)
-                    recordError("dashboard_sync_failed")
-                    
-                    viewModelScope.launch {
-                        val cached = withContext(Dispatchers.IO) { cache.getDashboardSnapshot() }
-                        if (cached != null) {
-                            uiState = uiState.copy(
-                                snapshot = cached, isLoading = false, isUsingCachedData = true, dataSourceLabel = "本地缓存",
-                                networkStatusLabel = if ((error.message ?: "").contains("超时")) "网络状态：较慢（已切缓存）" else "网络状态：异常（已切缓存）",
-                                lastSyncedAtLabel = withContext(Dispatchers.IO) { cache.getDashboardCachedAt() }?.let(::formatMillis) ?: "--",
-                            )
-                            if (showNotice) post("网络异常，已使用缓存 (${duration}ms)", NoticeType.Info)
-                        } else {
-                            uiState = uiState.copy(
-                                isLoading = false,
-                                networkStatusLabel = if ((error.message ?: "").contains("超时")) "网络状态：较慢" else "网络状态：离线",
-                            )
-                            post("${error.message ?: "加载失败"} (${duration}ms)", NoticeType.Error)
-                        }
-                    }
-                },
-                forceRefresh = force
-            )
+            val result = safeExecute("refresh_dashboard") {
+                withTimeout(DASHBOARD_FOREGROUND_TIMEOUT_MS) {
+                    repo.getDashboard(uiState.currentBaseUrl).getOrThrow()
+                }
+            }
+
+            result.onSuccess { snapshot ->
+                val duration = System.currentTimeMillis() - startTime
+                recordNetworkRequestTime("dashboard_sync", duration)
+                val snapshotWithFallback = withContext(Dispatchers.IO) {
+                    withLocalSelectionFallback(snapshot)
+                }
+                withContext(Dispatchers.IO) {
+                    cache.saveDashboardSnapshot(snapshotWithFallback)
+                }
+                uiState = uiState.copy(
+                    snapshot = snapshotWithFallback,
+                    isLoading = false,
+                    isUsingCachedData = false,
+                    dataSourceLabel = "实时数据",
+                    networkStatusLabel = buildSuccessNetworkStatusLabel(duration),
+                    lastSyncedAtLabel = snapshotWithFallback.meta?.generatedLabel ?: nowLabel(),
+                    tradeNotes = buildTradeNotes(snapshotWithFallback),
+                    tradeReminders = buildTradeReminders(snapshotWithFallback),
+                    monitorExpectedActive = snapshotWithFallback.monitorSession?.isActive
+                        ?: uiState.monitorExpectedActive,
+                )
+                notifySignals(snapshotWithFallback)
+                if (showNotice) post("数据已刷新 (${duration}ms)", NoticeType.Success)
+            }.onFailure { error ->
+                val duration = System.currentTimeMillis() - startTime
+                recordNetworkRequestTime("dashboard_sync_error", duration)
+                recordError("dashboard_sync_failed")
+                val cached = withContext(Dispatchers.IO) {
+                    withLocalSelectionFallbackOrNull(cache.getDashboardSnapshot())
+                        ?.takeIf(::isMeaningfulSnapshotForUi)
+                }
+                if (cached != null) {
+                    uiState = uiState.copy(
+                        snapshot = cached,
+                        isLoading = false,
+                        isUsingCachedData = true,
+                        dataSourceLabel = "本地缓存",
+                        networkStatusLabel = buildFailureNetworkStatusLabel(
+                            errorMessage = error.message,
+                            durationMs = duration,
+                            usingCache = true,
+                        ),
+                        lastSyncedAtLabel = withContext(Dispatchers.IO) { cache.getDashboardCachedAt() }?.let(::formatMillis) ?: "--",
+                    )
+                    if (showNotice) post("云端响应慢，已使用缓存 (${duration}ms)", NoticeType.Info)
+                } else {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        networkStatusLabel = buildFailureNetworkStatusLabel(
+                            errorMessage = error.message,
+                            durationMs = duration,
+                            usingCache = false,
+                        ),
+                    )
+                    post("${error.message ?: "加载失败"} (${duration}ms)", NoticeType.Error)
+                }
+            }
         }
     }
 
@@ -882,18 +918,21 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private fun notifySignals(snapshot: DashboardSnapshot) {
         val items = snapshot.signals?.latestItems.orEmpty()
-        val current = items.mapNotNull { it.tsCode?.let { code -> "$code|${it.signalTime.orEmpty()}|${it.signalType.orEmpty()}" } }.toSet()
+        val current = items.mapNotNull(SignalNotificationPolicy::signalKey).toSet()
         val news = items.filter {
-            val code = it.tsCode ?: return@filter false
-            "$code|${it.signalTime.orEmpty()}|${it.signalType.orEmpty()}" !in previousSignalKeys
+            val key = SignalNotificationPolicy.signalKey(it) ?: return@filter false
+            key !in previousSignalKeys && SignalNotificationPolicy.isBuySignal(it)
         }
-        if (news.isNotEmpty() && uiState.isNotificationPermissionGranted && !isSilentNow()) {
-            val finalNews = if (uiState.notifyHighPrioritySignalOnly) filterByKeywords(news) else news
-            finalNews.firstOrNull()?.let {
-                val title = "新信号 ${it.tsCode.orEmpty()}"
-                val content = it.triggerReason ?: it.suggestion ?: it.signalType ?: "有新的交易信号"
+        if (news.isNotEmpty() && uiState.isNotificationPermissionGranted) {
+            news.firstOrNull()?.let { first ->
+                val title = SignalNotificationPolicy.buildTitle(first)
+                val content = if (news.size == 1) {
+                    SignalNotificationPolicy.buildContent(first)
+                } else {
+                    "${first.tsCode.orEmpty()} 等${news.size}只触发买点"
+                }
                 notifier.notifySignalUpdate(title, content)
-                appendLog("SIGNAL|$title|$content")
+                appendLog("BUY_SIGNAL|$title|$content")
             }
         }
         previousSignalKeys = current
@@ -927,6 +966,43 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private fun nowLabel(): String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     private fun formatMillis(v: Long): String = runCatching { java.time.Instant.ofEpochMilli(v).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) }.getOrDefault("--")
 
+    private fun buildSuccessNetworkStatusLabel(durationMs: Long): String {
+        return when {
+            durationMs <= 800L -> "网络状态：正常"
+            durationMs <= 2_500L -> "网络状态：较慢"
+            else -> "网络状态：偏慢"
+        }
+    }
+
+    private fun buildFailureNetworkStatusLabel(
+        errorMessage: String?,
+        durationMs: Long,
+        usingCache: Boolean,
+    ): String {
+        val normalized = errorMessage.orEmpty().lowercase(Locale.getDefault())
+        val isTimeout = normalized.contains("timeout") || errorMessage.orEmpty().contains("超时")
+        val isOffline = normalized.contains("unable to resolve host") ||
+            normalized.contains("failed to connect") ||
+            normalized.contains("no address associated with hostname") ||
+            normalized.contains("connection refused")
+
+        val base = when {
+            isOffline -> "网络状态：离线"
+            isTimeout || durationMs > 2_500L -> "网络状态：较慢"
+            else -> "网络状态：异常"
+        }
+        return if (usingCache) "$base（已切缓存）" else base
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val cm = getApplication<Application>().getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        val activeNetwork = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(activeNetwork) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }
+
     private fun isSilentNow(): Boolean {
         val start = runCatching { LocalTime.parse(uiState.silentStart, DateTimeFormatter.ofPattern("HH:mm")) }.getOrNull() ?: return false
         val end = runCatching { LocalTime.parse(uiState.silentEnd, DateTimeFormatter.ofPattern("HH:mm")) }.getOrNull() ?: return false
@@ -943,6 +1019,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private suspend fun loadLocalBootstrapData() {
         val snapshot = withContext(Dispatchers.IO) {
             withLocalSelectionFallbackOrNull(cache.getDashboardSnapshot())
+                ?.takeIf(::isMeaningfulSnapshotForUi)
         }
         val localSelectionHistory = withContext(Dispatchers.IO) {
             selectionHistoryRepo.getRecentSelections(limit = 20)
@@ -995,26 +1072,42 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private fun strategyLabelOf(strategy: String): String {
         return when (strategy) {
             "secondary_launch" -> "二次启动"
-            "legacy" -> "原策略"
             "breakout" -> "突破策略"
+            "wide_breakout" -> "宽进突破"
+            "alpha158", "alpha", "strong_start" -> "Alpha158"
+            "legacy" -> "原策略"
             "both" -> "融合策略"
             else -> strategy.ifBlank { "默认策略" }
         }
     }
 
     private fun DashboardSnapshot?.toSignalKeys(): Set<String> =
-        this?.signals?.latestItems.orEmpty().mapNotNull { it.tsCode?.let { c -> "$c|${it.signalTime.orEmpty()}|${it.signalType.orEmpty()}" } }.toSet()
+        this?.signals?.latestItems.orEmpty().mapNotNull(SignalNotificationPolicy::signalKey).toSet()
+
+    private fun isMeaningfulSnapshotForUi(snapshot: DashboardSnapshot): Boolean {
+        val candidateCount = snapshot.candidatePool?.count ?: snapshot.candidatePool?.topCandidates?.size ?: 0
+        val signalCount = snapshot.signals?.recentCount ?: snapshot.signals?.latestItems?.size ?: 0
+        val tradeCount = snapshot.virtualTrades?.openCount ?: snapshot.virtualTrades?.openTrades?.size ?: 0
+        val hasMeta = snapshot.meta?.generatedAt?.isNotBlank() == true ||
+            snapshot.meta?.generatedLabel?.isNotBlank() == true
+        return hasMeta || candidateCount > 0 || signalCount > 0 || tradeCount > 0
+    }
 
     override fun onCleared() {
         autoRefreshJob?.cancel()
         historyJob?.cancel()
         actionTimerJob?.cancel()
-        performanceMonitor.stopMonitoring()
+        if (ENABLE_RUNTIME_PERF_MONITOR) {
+            performanceMonitor.stopMonitoring()
+        }
         super.onCleared()
     }
 
     private companion object {
-        const val DASHBOARD_REFRESH_MIN_INTERVAL_MS = 2_500L
+        const val DASHBOARD_REFRESH_MIN_INTERVAL_MS = 30_000L
+        const val DASHBOARD_AUTO_REFRESH_INTERVAL_SECONDS = 120
+        const val DASHBOARD_FOREGROUND_TIMEOUT_MS = 8_000L
+        const val ENABLE_RUNTIME_PERF_MONITOR = false
     }
     
     // ==================== AI管家相关方法 ====================

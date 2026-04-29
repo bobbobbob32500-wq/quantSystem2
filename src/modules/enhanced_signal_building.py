@@ -147,6 +147,24 @@ def build_buy_signal(
         ),
     }
 
+    suggested_hold_days = system._parse_optional_float(candidate.get("suggested_hold_days"))
+    holding_route = str(candidate.get("holding_route", "") or "").strip()
+    if suggested_hold_days is not None and suggested_hold_days > 0:
+        buy_signal["suggested_hold_days"] = float(suggested_hold_days)
+    if holding_route:
+        buy_signal["holding_route"] = holding_route
+        signal_details = dict(buy_signal.get("signal_details", {}) or {})
+        signal_details["holding_route"] = holding_route
+        buy_signal["signal_details"] = signal_details
+
+    if (
+        strategy_profile == "alpha158"
+        and suggested_hold_days is not None
+        and suggested_hold_days > 0
+        and "max_hold_hours" not in buy_signal
+    ):
+        buy_signal["max_hold_hours"] = float(suggested_hold_days) * 24.0
+
     if strategy_profile == "secondary_launch":
         replay_exit_profile = _get_secondary_launch_exit_profile(signal_subtype)
         if replay_exit_profile:

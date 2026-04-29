@@ -14,7 +14,7 @@ val resolvedVersionName = (findProperty("APP_VERSION_NAME") as String?)
     ?: "1.0"
 
 /** 默认后端 API 根地址（仅首次安装且无本地保存时使用；可在应用「设置」中修改） */
-val defaultApiBaseUrl = "https://silvicultural-nonrectangularly-lyle.ngrok-free.dev/"
+val defaultApiBaseUrl = "http://101.133.149.141/"
 
 android {
     namespace = "com.quant.system"
@@ -35,6 +35,8 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix = ".uifix"
+            versionNameSuffix = "-uifix"
             buildConfigField("String", "API_BASE_URL", "\"$defaultApiBaseUrl\"")
         }
         release {

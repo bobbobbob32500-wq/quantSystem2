@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.quant.system.ui.screen.viewmodel.NoticeType
+import com.quant.system.ui.theme.Background
 import com.quant.system.ui.theme.Border
 import com.quant.system.ui.theme.Error
 import com.quant.system.ui.theme.ErrorDark
@@ -79,7 +80,11 @@ fun RefreshContainer(
 ) {
     val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
-        onRefresh = onRefresh,
+        onRefresh = {
+            if (!isRefreshing) {
+                onRefresh()
+            }
+        },
     )
     Box(
         modifier = Modifier
@@ -105,41 +110,60 @@ fun ScreenHeader(
     title: String,
     subtitle: String,
     actions: @Composable () -> Unit = {},
-) = TopBar(title, subtitle, actions)
+    eyebrow: String? = null,
+) = TopBar(title, subtitle, actions, eyebrow)
 
 @Composable
 fun TopBar(
     title: String,
     subtitle: String,
     actions: @Composable () -> Unit = {},
+    eyebrow: String? = null,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Surface)
-            .padding(top = 60.dp, start = 20.dp, end = 20.dp, bottom = 16.dp)
+            .background(Background)
+            .padding(top = 16.dp, start = 20.dp, end = 20.dp, bottom = 8.dp)
             .semantics { contentDescription = "$title，$subtitle" },
     ) {
-        Row(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.94f)),
+            shape = RoundedCornerShape(28.dp),
+            elevation = CardDefaults.cardElevation(0.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.75f)),
         ) {
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = TextPrimary,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                actions()
+            Row(
+                modifier = Modifier.padding(horizontal = 22.dp, vertical = 18.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    eyebrow?.takeIf { it.isNotBlank() }?.let { label ->
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = TextSecondary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    actions()
+                }
             }
         }
     }
@@ -180,10 +204,11 @@ fun ValueCard(title: String, value: String, detail: String) {
             .fillMaxWidth()
             .semantics { contentDescription = "$title，$value。$detail" },
         colors = CardDefaults.cardColors(containerColor = Surface),
-        shape = RoundedCornerShape(CornerMedium),
+        shape = RoundedCornerShape(22.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall, color = TextPrimary)
@@ -208,11 +233,12 @@ fun DetailCard(title: String, lines: List<String>) {
                 }
             },
         colors = CardDefaults.cardColors(containerColor = Surface),
-        shape = RoundedCornerShape(CornerMedium),
+        shape = RoundedCornerShape(22.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall, color = TextPrimary)
             lines.filter { it.isNotBlank() }.forEach { line ->
@@ -290,9 +316,9 @@ fun StatusPill(text: String, tone: PillTone) {
     }
     Box(
         modifier = Modifier
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(999.dp))
             .background(background)
-            .padding(horizontal = 12.dp, vertical = 7.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
             .semantics {
                 contentDescription = text
                 stateDescription = when (tone) {
@@ -306,7 +332,7 @@ fun StatusPill(text: String, tone: PillTone) {
             text = text,
             color = foreground,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
@@ -356,11 +382,11 @@ fun HeroSection(
                 contentDescription = "$title，$value。$subtitle"
             },
         colors = CardDefaults.cardColors(containerColor = Primary),
-        shape = RoundedCornerShape(CornerLarge),
+        shape = RoundedCornerShape(30.dp),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(22.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Column {
                 Text(
@@ -413,8 +439,8 @@ fun HeroSection(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White.copy(alpha = 0.15f))
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color.White.copy(alpha = 0.14f))
                             .padding(vertical = 12.dp, horizontal = 8.dp)
                             .semantics { contentDescription = "$label，$itemValue" },
                     ) {
@@ -514,16 +540,17 @@ fun QuickActions(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(CornerSmall))
+                    .clip(RoundedCornerShape(18.dp))
                     .then(clickableModifier)
-                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                    .background(Surface)
+                    .padding(vertical = 14.dp, horizontal = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
-                    .clip(RoundedCornerShape(CornerMedium))
+                        .size(54.dp)
+                        .clip(RoundedCornerShape(18.dp))
                         .background(action.background ?: Primary),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -556,9 +583,9 @@ fun StrategyTabs(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(CornerSmall))
-            .background(SurfaceVariant.copy(alpha = 0.5f))
-            .padding(4.dp),
+            .clip(RoundedCornerShape(18.dp))
+            .background(SurfaceVariant.copy(alpha = 0.82f))
+            .padding(5.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         strategies.forEach { (key, label) ->
@@ -566,7 +593,7 @@ fun StrategyTabs(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(14.dp))
                     .background(if (isSelected) Surface else Color.Transparent)
                     .then(
                         if (!isSelected) {
@@ -616,7 +643,7 @@ fun PrimaryButton(
             containerColor = Primary,
             disabledContainerColor = PrimaryLight,
         ),
-        shape = RoundedCornerShape(CornerSmall),
+        shape = RoundedCornerShape(18.dp),
     ) {
         icon?.invoke()
         if (icon != null) {
@@ -679,7 +706,7 @@ fun SecondaryButton(
             containerColor = Surface,
             contentColor = TextPrimary,
         ),
-        shape = RoundedCornerShape(CornerSmall),
+        shape = RoundedCornerShape(18.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Border),
     ) {
         Text(text, fontWeight = FontWeight.Bold)

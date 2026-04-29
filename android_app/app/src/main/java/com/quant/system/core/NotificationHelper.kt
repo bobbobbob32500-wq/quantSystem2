@@ -48,12 +48,17 @@ class NotificationHelper(private val context: Context) {
 
     private fun post(channelId: String, title: String, content: String) {
         if (!isNotificationAllowed()) return
+        val priority = if (channelId == CHANNEL_SIGNALS) {
+            NotificationCompat.PRIORITY_HIGH
+        } else {
+            NotificationCompat.PRIORITY_DEFAULT
+        }
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(content)
             .setStyle(NotificationCompat.BigTextStyle().bigText(content))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(priority)
             .setAutoCancel(true)
         safeNotify(builder)
     }
@@ -86,7 +91,7 @@ class NotificationHelper(private val context: Context) {
         val signalChannel = NotificationChannel(
             CHANNEL_SIGNALS,
             "信号提醒",
-            NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = "出现新交易信号时提醒"
         }
@@ -107,6 +112,6 @@ class NotificationHelper(private val context: Context) {
 
     private companion object {
         const val CHANNEL_ACTIONS = "quant_actions"
-        const val CHANNEL_SIGNALS = "quant_signals"
+        const val CHANNEL_SIGNALS = "quant_signals_buy_v2"
     }
 }

@@ -2,16 +2,20 @@ package com.quant.system.core.data
 
 import android.content.Context
 import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.quant.system.core.network.NetworkMonitor
 import com.quant.system.core.network.NetworkMonitorImpl
 import com.quant.system.core.network.NetworkQuality
 import com.quant.system.core.network.NetworkState
+import com.quant.system.data.api.ApiService
 import com.quant.system.data.model.DashboardSnapshot
+import com.quant.system.core.network.EnhancedRetrofitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,6 +38,7 @@ import java.util.concurrent.TimeUnit
 @OptIn(ExperimentalSerializationApi::class)
 class DataSyncOptimizer(private val context: Context) {
     private val networkMonitor = NetworkMonitorImpl(context)
+    private val retrofitClient = EnhancedRetrofitClient(context)
     private val workManager = WorkManager.getInstance(context)
     private val scope = CoroutineScope(Dispatchers.IO + Job())
     
@@ -98,7 +103,7 @@ class DataSyncOptimizer(private val context: Context) {
                 when (syncStrategy) {
                     SyncStrategy.FULL_REFRESH -> {
                         // 全量刷新
-                        val data = fetchFullData()
+                        val data = fetchFullData(baseUrl)
                         saveToCache(data)
                         onSuccess(data)
                         _syncState.value = SyncState.COMPLETED_FULL
@@ -115,7 +120,7 @@ class DataSyncOptimizer(private val context: Context) {
                             // 后台增量更新
                             launch {
                                 try {
-                                    val incrementalData = fetchIncrementalData()
+                                    val incrementalData = fetchIncrementalData(baseUrl)
                                     val mergedData = mergeData(incrementalData)
                                     saveToCache(mergedData)
                                     _syncState.value = SyncState.COMPLETED_INCREMENTAL
@@ -125,7 +130,7 @@ class DataSyncOptimizer(private val context: Context) {
                             }
                         } else {
                             // 缓存过期或无缓存，全量刷新
-                            val data = fetchFullData()
+                            val data = fetchFullData(baseUrl)
                             saveToCache(data)
                             onSuccess(data)
                             _syncState.value = SyncState.COMPLETED_FULL
@@ -173,13 +178,28 @@ class DataSyncOptimizer(private val context: Context) {
             intervalMinutes, TimeUnit.MINUTES
         )
             .setConstraints(constraints)
-            .setInitialDelay(intervalMinutes, TimeUnit.MINUTES)
+            .setInitialDelay(1, TimeUnit.MINUTES)
             .build()
         
         workManager.enqueueUniquePeriodicWork(
-            "data_sync_work",
+            DataSyncWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.UPDATE,
             syncRequest
+        )
+    }
+
+    fun scheduleImmediateSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+        val request = OneTimeWorkRequestBuilder<DataSyncWorker>()
+            .setConstraints(constraints)
+            .build()
+        workManager.enqueueUniqueWork(
+            "${DataSyncWorker.WORK_NAME}_bootstrap",
+            ExistingWorkPolicy.REPLACE,
+            request,
         )
     }
     
@@ -187,7 +207,7 @@ class DataSyncOptimizer(private val context: Context) {
      * 取消定期同步
      */
     fun cancelPeriodicSync() {
-        workManager.cancelUniqueWork("data_sync_work")
+        workManager.cancelUniqueWork(DataSyncWorker.WORK_NAME)
     }
     
     /**
@@ -247,18 +267,15 @@ class DataSyncOptimizer(private val context: Context) {
         )
     }
     
-    private suspend fun fetchFullData(): DashboardSnapshot {
-        // 这里应该调用实际的API
-        // 暂时返回空对象，实际项目中需要实现
-        delay(1000) // 模拟网络延迟
-        return DashboardSnapshot()
+    private suspend fun fetchFullData(baseUrl: String): DashboardSnapshot {
+        val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
+        val response = apiService.getOverview()
+        return response.data
+            ?: throw IllegalStateException(response.detail ?: response.message ?: "仪表盘数据为空")
     }
     
-    private suspend fun fetchIncrementalData(): DashboardSnapshot {
-        // 这里应该调用增量更新API
-        // 暂时返回空对象，实际项目中需要实现
-        delay(500) // 模拟网络延迟
-        return DashboardSnapshot()
+    private suspend fun fetchIncrementalData(baseUrl: String): DashboardSnapshot {
+        return fetchFullData(baseUrl)
     }
     
     private fun mergeData(incremental: DashboardSnapshot): DashboardSnapshot {

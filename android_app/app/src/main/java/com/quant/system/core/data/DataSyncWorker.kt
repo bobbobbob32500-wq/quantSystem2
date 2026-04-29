@@ -3,9 +3,13 @@ package com.quant.system.core.data
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.quant.system.core.NotificationHelper
 import com.quant.system.core.network.NetworkMonitor
 import com.quant.system.core.network.NetworkMonitorImpl
 import com.quant.system.core.network.NetworkQuality
+import com.quant.system.core.signal.SignalNotificationPolicy
+import com.quant.system.data.repository.DashboardRepository
+import com.quant.system.data.repository.LocalCacheRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -22,46 +26,54 @@ class DataSyncWorker(
     override suspend fun doWork(): Result {
         return try {
             withContext(Dispatchers.IO) {
-                // 获取基础URL
                 val settings = com.quant.system.data.repository.SettingsRepository(applicationContext)
                 val baseUrl = settings.getBaseUrl()
-                
                 if (baseUrl.isBlank()) {
                     return@withContext Result.failure()
                 }
-                
-                // 创建数据同步优化器
-                val syncOptimizer = DataSyncOptimizer(applicationContext)
-                
-                // 执行数据同步
-                var syncSuccess = false
-                
-                syncOptimizer.startSync(
-                    baseUrl = baseUrl,
-                    onSuccess = { _ ->
-                        // 同步成功，可以在这里处理数据
-                        // 例如：更新本地数据库、发送通知等
-                        syncSuccess = true
-                    },
-                    onError = { error ->
-                        // 同步失败，记录错误日志
-                        android.util.Log.e("DataSyncWorker", "数据同步失败: ${error.message}")
-                    },
-                    forceRefresh = false
-                )
-                
-                // 等待同步完成（简化实现，实际应该使用回调或Flow）
-                kotlinx.coroutines.delay(30000) // 最多等待30秒
-                
-                if (syncSuccess) {
-                    Result.success()
-                } else {
-                    Result.retry()
+
+                val repo = DashboardRepository(applicationContext)
+                val cache = LocalCacheRepository(applicationContext)
+                val notifier = NotificationHelper(applicationContext)
+
+                val previousKeys = cache.getDashboardSnapshot()
+                    ?.signals
+                    ?.latestItems
+                    .orEmpty()
+                    .mapNotNull(SignalNotificationPolicy::signalKey)
+                    .toSet()
+
+                val snapshot = repo.getDashboard(baseUrl).getOrElse { error ->
+                    android.util.Log.e("DataSyncWorker", "后台同步失败: ${error.message}", error)
+                    return@withContext Result.retry()
                 }
+
+                cache.saveDashboardSnapshot(snapshot)
+
+                if (notifier.canPostNotifications()) {
+                    val buyNews = snapshot.signals?.latestItems
+                        .orEmpty()
+                        .filter {
+                            val key = SignalNotificationPolicy.signalKey(it) ?: return@filter false
+                            key !in previousKeys && SignalNotificationPolicy.isBuySignal(it)
+                        }
+                    buyNews.firstOrNull()?.let { first ->
+                        val title = SignalNotificationPolicy.buildTitle(first)
+                        val content = if (buyNews.size == 1) {
+                            SignalNotificationPolicy.buildContent(first)
+                        } else {
+                            "${first.tsCode.orEmpty()} 等${buyNews.size}只触发买点"
+                        }
+                        notifier.notifySignalUpdate(title, content)
+                        settings.appendNotificationLog("BUY_SIGNAL_BG|$title|$content")
+                    }
+                }
+
+                Result.success()
             }
         } catch (e: Exception) {
             android.util.Log.e("DataSyncWorker", "数据同步工作器异常: ${e.message}", e)
-            Result.failure()
+            Result.retry()
         }
     }
     

@@ -23,6 +23,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
@@ -54,8 +55,8 @@ class EnhancedRetrofitClient(private val context: Context) {
     )
     
     private val dispatcher = Dispatcher().apply {
-        maxRequests = 20
-        maxRequestsPerHost = 5
+        maxRequests = 10
+        maxRequestsPerHost = 4
     }
     
     /** 常规接口超时 */
@@ -88,7 +89,6 @@ class EnhancedRetrofitClient(private val context: Context) {
         callTimeout(callTimeoutSec, TimeUnit.SECONDS)
         retryOnConnectionFailure(true)
         addInterceptor(NetworkAwareInterceptor())
-        addInterceptor(RetryInterceptor())
         addInterceptor(CacheControlInterceptor())
         if (BuildConfig.DEBUG) {
             val logging = HttpLoggingInterceptor().apply {
@@ -146,6 +146,8 @@ class EnhancedRetrofitClient(private val context: Context) {
     private inner class NetworkAwareInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val request = chain.request()
+            val requestUrl = request.url.toString()
+            val isDashboardRequest = requestUrl.contains("/api/dashboard")
             
             // 检查网络状态
             if (!networkMonitor.isNetworkAvailable()) {
@@ -167,13 +169,16 @@ class EnhancedRetrofitClient(private val context: Context) {
                 NetworkQuality.VERY_POOR, NetworkQuality.POOR -> {
                     // 弱网环境下，优先使用缓存，减少数据量
                     request.newBuilder()
-                        .header("Cache-Control", "public, max-age=60") // 缓存60秒
-                        .header("Accept-Encoding", "gzip") // 启用压缩
+                        .header("Cache-Control", "public, max-age=120")
                         .build()
                 }
                 else -> {
-                    // 良好网络环境下，使用正常策略
-                    request
+                    val builder = request.newBuilder()
+                    if (isDashboardRequest) {
+                        // dashboard 响应在云端较慢，允许命中极短缓存，避免 20s+ 的重复等待。
+                        builder.header("Cache-Control", "public, max-age=30")
+                    }
+                    builder.build()
                 }
             }
             
@@ -188,7 +193,7 @@ class EnhancedRetrofitClient(private val context: Context) {
         override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
             val request = chain.request()
             var response: okhttp3.Response? = null
-            var lastException: Exception? = null
+            var lastException: IOException? = null
             
             val maxRetries = calculateMaxRetries()
             val retryDelayBase = calculateRetryDelayBase()
@@ -224,10 +229,11 @@ class EnhancedRetrofitClient(private val context: Context) {
                         }
                     }
                 } catch (e: Exception) {
-                    lastException = e
+                    val ioException = if (e is IOException) e else IOException(e.message ?: "网络请求失败", e)
+                    lastException = ioException
                     
                     // 检查是否为可重试的异常
-                    if (isRetryableException(e) && attempt < maxRetries) {
+                    if (isRetryableException(ioException) && attempt < maxRetries) {
                         // 指数退避延迟
                         val delayMs = retryDelayBase * (2.0.pow(attempt - 1).toLong())
                         delay(delayMs)
@@ -240,7 +246,7 @@ class EnhancedRetrofitClient(private val context: Context) {
             
             // 所有重试都失败
             response?.close()
-            throw lastException ?: RuntimeException("请求失败")
+            throw lastException ?: IOException("请求失败")
         }
         
         private fun calculateMaxRetries(): Int {
@@ -353,7 +359,7 @@ class EnhancedRetrofitClient(private val context: Context) {
     /**
      * 网络不可用异常
      */
-    class NetworkUnavailableException(message: String, cause: Throwable? = null) : Exception(message, cause)
+    class NetworkUnavailableException(message: String, cause: Throwable? = null) : IOException(message, cause)
     
     /**
      * 缓存统计信息

@@ -225,6 +225,8 @@ def run_watchlist_open_backtest_loop(
       - ret_t1 = close(T+1) / open(T+1) - 1
       - ret_t2 = close(T+2) / open(T+1) - 1
       - ret_t3 = close(T+3) / open(T+1) - 1
+      - ret_t4 = close(T+4) / open(T+1) - 1
+      - ret_t5 = close(T+5) / open(T+1) - 1
     """
     price_map = _build_price_map(features)
     date_pos = {d: i for i, d in enumerate(all_dates)}
@@ -359,7 +361,7 @@ def run_watchlist_open_backtest_loop(
                 "box_range": box_r,
                 "entry_open": round(entry_open, 4),
             }
-            for hn, off in [(1, 0), (2, 1), (3, 2)]:
+            for hn, off in [(1, 0), (2, 1), (3, 2), (4, 3), (5, 4)]:
                 j = t1_idx + off
                 if j < len(sub):
                     cx = float(sub.loc[j, "close"])

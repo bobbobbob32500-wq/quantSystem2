@@ -19,6 +19,12 @@ from src.core.exceptions import StockSelectionException
 from src.modules.alpha158_regime_router import Alpha158RegimeRouter
 from src.modules.factor_cache import FactorValueStorage
 from src.modules.feedback_guard import FeedbackPerformanceGuard
+from src.modules.institutional_core_selector import InstitutionalCoreSelector
+from src.modules.daily_multi_strategy_selector import DailyMultiStrategySelector
+from src.modules.alpha158_position_sizer import Alpha158PositionSizer
+from src.modules.loss_avoidance_filter import LossAvoidanceFilter
+from src.modules.portfolio_gate import PortfolioGate
+from src.modules.selection_abstain_guard import SelectionAbstainGuard
 
 # 导入自动优化系统
 try:
@@ -41,7 +47,16 @@ ENHANCED_WEIGHT_CONFIG_MAP = {
 
 LEGACY_BASE_PROFILE = "alpha158"
 ENHANCED_PROFILE = "alpha158"
-SUPPORTED_STRATEGY_PROFILES = {LEGACY_BASE_PROFILE, ENHANCED_PROFILE, "legacy", "enhanced"}
+INSTITUTIONAL_CORE_PROFILE = "institutional_core"
+DAILY_MULTI_STRATEGY_PROFILE = "daily_multi_strategy"
+SUPPORTED_STRATEGY_PROFILES = {
+    LEGACY_BASE_PROFILE,
+    ENHANCED_PROFILE,
+    INSTITUTIONAL_CORE_PROFILE,
+    DAILY_MULTI_STRATEGY_PROFILE,
+    "legacy",
+    "enhanced",
+}
 
 
 class StockSelector:
@@ -172,6 +187,18 @@ class StockSelector:
         self.alpha158_score_threshold = float(
             config.get("stock_selection.alpha158_score_threshold", 0.5)
         )
+        self.alpha158_fallback_enabled = bool(
+            config.get("stock_selection.fallback_enabled", False)
+        )
+        self.alpha158_trend_near_threshold_fallback_enabled = bool(
+            config.get("stock_selection.trend_near_threshold_fallback_enabled", True)
+        )
+        self.alpha158_fallback_margin = float(
+            config.get("stock_selection.fallback_margin", 0.03)
+        )
+        self.alpha158_fallback_max_count_mode = str(
+            config.get("stock_selection.fallback_max_count_mode", "top_n")
+        ).strip().lower()
         self.alpha158_weak_filter_enabled = bool(
             config.get("stock_selection.alpha158_weak_filter_enabled", True)
         )
@@ -189,6 +216,95 @@ class StockSelector:
         )
         self.alpha158_max_roc5_chase = float(
             config.get("stock_selection.alpha158_max_roc5_chase", 0.04)
+        )
+        self.alpha158_extension_enabled = bool(
+            config.get("stock_selection.alpha158_extension_enabled", False)
+        )
+        self.alpha158_extension_trend_quality_bonus = float(
+            config.get("stock_selection.alpha158_extension_trend_quality_bonus", 0.18)
+        )
+        self.alpha158_extension_compression_bonus = float(
+            config.get("stock_selection.alpha158_extension_compression_bonus", 0.14)
+        )
+        self.alpha158_extension_leadership_bonus = float(
+            config.get("stock_selection.alpha158_extension_leadership_bonus", 0.16)
+        )
+        self.alpha158_extension_overheat_penalty = float(
+            config.get("stock_selection.alpha158_extension_overheat_penalty", 0.20)
+        )
+        self.alpha158_extension_trend_multiplier = float(
+            config.get("stock_selection.alpha158_extension_trend_multiplier", 1.0)
+        )
+        self.alpha158_extension_sideways_multiplier = float(
+            config.get("stock_selection.alpha158_extension_sideways_multiplier", 0.75)
+        )
+        self.alpha158_extension_weak_multiplier = float(
+            config.get("stock_selection.alpha158_extension_weak_multiplier", 0.45)
+        )
+        self.alpha158_prototype_router_enabled = bool(
+            config.get("stock_selection.alpha158_prototype_router_enabled", False)
+        )
+        self.alpha158_prototype_trend_continuation_bonus = float(
+            config.get("stock_selection.alpha158_prototype_trend_continuation_bonus", 0.08)
+        )
+        self.alpha158_prototype_trend_pullback_bonus = float(
+            config.get("stock_selection.alpha158_prototype_trend_pullback_bonus", 0.03)
+        )
+        self.alpha158_prototype_trend_quality_bonus = float(
+            config.get("stock_selection.alpha158_prototype_trend_quality_bonus", 0.05)
+        )
+        self.alpha158_prototype_trend_risk_penalty = float(
+            config.get("stock_selection.alpha158_prototype_trend_risk_penalty", 0.12)
+        )
+        self.alpha158_prototype_sideways_continuation_bonus = float(
+            config.get("stock_selection.alpha158_prototype_sideways_continuation_bonus", -0.01)
+        )
+        self.alpha158_prototype_sideways_pullback_bonus = float(
+            config.get("stock_selection.alpha158_prototype_sideways_pullback_bonus", 0.09)
+        )
+        self.alpha158_prototype_sideways_quality_bonus = float(
+            config.get("stock_selection.alpha158_prototype_sideways_quality_bonus", 0.07)
+        )
+        self.alpha158_prototype_sideways_risk_penalty = float(
+            config.get("stock_selection.alpha158_prototype_sideways_risk_penalty", 0.14)
+        )
+        self.alpha158_prototype_weak_continuation_bonus = float(
+            config.get("stock_selection.alpha158_prototype_weak_continuation_bonus", -0.05)
+        )
+        self.alpha158_prototype_weak_pullback_bonus = float(
+            config.get("stock_selection.alpha158_prototype_weak_pullback_bonus", 0.05)
+        )
+        self.alpha158_prototype_weak_quality_bonus = float(
+            config.get("stock_selection.alpha158_prototype_weak_quality_bonus", 0.09)
+        )
+        self.alpha158_prototype_weak_risk_penalty = float(
+            config.get("stock_selection.alpha158_prototype_weak_risk_penalty", 0.18)
+        )
+        self.alpha158_hold_router_name = str(
+            config.get("stock_selection.alpha158_hold_router_name", "regime_router_v3_selective")
+        )
+        self.alpha158_hold_router = self._load_alpha158_hold_router(config)
+        self.alpha158_hold_router_apply = self._load_alpha158_hold_router_apply(config)
+        self.alpha158_lgb_model_enabled = bool(
+            config.get("stock_selection.alpha158_lgb_model_enabled", True)
+        )
+        self.alpha158_lgb_model_path = str(
+            config.get("stock_selection.alpha158_lgb_model_path", "models/alpha158_lgb_model.txt")
+        )
+        self.alpha158_lgb_config_path = str(
+            config.get("stock_selection.alpha158_lgb_config_path", "models/alpha158_lgb_config.json")
+        )
+        self.alpha158_secondary_lgb_overlay_enabled = bool(
+            config.get("stock_selection.alpha158_secondary_lgb_overlay_enabled", False)
+        )
+        self.alpha158_secondary_lgb_model_path = str(
+            config.get("stock_selection.alpha158_secondary_lgb_model_path", "models/alpha158_t5_lgb_model.txt")
+        )
+        self.alpha158_secondary_lgb_config_path = str(
+            config.get("stock_selection.alpha158_secondary_lgb_config_path", "models/alpha158_t5_lgb_config.json")
+        )
+        self.alpha158_secondary_lgb_weight = float(
+            config.get("stock_selection.alpha158_secondary_lgb_weight", 0.15)
         )
         self.alpha158_regime_router_enabled = bool(
             config.get("stock_selection.alpha158_regime_router_enabled", True)
@@ -223,6 +339,30 @@ class StockSelector:
         self.alpha158_regime_weak_top_n_multiplier = float(
             config.get("stock_selection.alpha158_regime_weak_top_n_multiplier", 0.45)
         )
+        self.alpha158_regime_trend_breadth_min_up_ratio = float(
+            config.get("stock_selection.alpha158_regime_trend_breadth_min_up_ratio", 0.52)
+        )
+        self.alpha158_regime_trend_breadth_min_median_ret = float(
+            config.get("stock_selection.alpha158_regime_trend_breadth_min_median_ret", 0.0)
+        )
+        self.alpha158_regime_trend_breadth_min_new_high_ratio = float(
+            config.get("stock_selection.alpha158_regime_trend_breadth_min_new_high_ratio", 0.08)
+        )
+        self.alpha158_regime_weak_breadth_max_up_ratio = float(
+            config.get("stock_selection.alpha158_regime_weak_breadth_max_up_ratio", 0.42)
+        )
+        self.alpha158_regime_weak_breadth_max_median_ret = float(
+            config.get("stock_selection.alpha158_regime_weak_breadth_max_median_ret", -0.003)
+        )
+        self.alpha158_regime_weak_breadth_max_new_high_ratio = float(
+            config.get("stock_selection.alpha158_regime_weak_breadth_max_new_high_ratio", 0.05)
+        )
+        self.alpha158_regime_weak_extra_score_threshold_delta = float(
+            config.get("stock_selection.alpha158_regime_weak_extra_score_threshold_delta", 0.03)
+        )
+        self.alpha158_regime_weak_extra_top_n_multiplier = float(
+            config.get("stock_selection.alpha158_regime_weak_extra_top_n_multiplier", 0.85)
+        )
         self.alpha158_regime_router = Alpha158RegimeRouter(
             db=self.db,
             lookback=self.alpha158_regime_lookback,
@@ -235,8 +375,30 @@ class StockSelector:
             trend_top_n_multiplier=self.alpha158_regime_trend_top_n_multiplier,
             sideways_top_n_multiplier=self.alpha158_regime_sideways_top_n_multiplier,
             weak_top_n_multiplier=self.alpha158_regime_weak_top_n_multiplier,
+            trend_breadth_min_up_ratio=self.alpha158_regime_trend_breadth_min_up_ratio,
+            trend_breadth_min_median_ret=self.alpha158_regime_trend_breadth_min_median_ret,
+            trend_breadth_min_new_high_ratio=self.alpha158_regime_trend_breadth_min_new_high_ratio,
+            weak_breadth_max_up_ratio=self.alpha158_regime_weak_breadth_max_up_ratio,
+            weak_breadth_max_median_ret=self.alpha158_regime_weak_breadth_max_median_ret,
+            weak_breadth_max_new_high_ratio=self.alpha158_regime_weak_breadth_max_new_high_ratio,
+            weak_extra_score_threshold_delta=self.alpha158_regime_weak_extra_score_threshold_delta,
+            weak_extra_top_n_multiplier=self.alpha158_regime_weak_extra_top_n_multiplier,
             enable=self.alpha158_regime_router_enabled,
         )
+        self.institutional_core_selector = InstitutionalCoreSelector(
+            config=self.config,
+            db=self.db,
+            regime_router=self.alpha158_regime_router,
+        )
+        self.daily_multi_strategy_selector = DailyMultiStrategySelector(
+            config=self.config,
+            db=self.db,
+            regime_router=self.alpha158_regime_router,
+        )
+        self.position_sizer = Alpha158PositionSizer(config=self.config)
+        self.loss_avoidance_filter = LossAvoidanceFilter(config=self.config)
+        self.portfolio_gate = PortfolioGate(config=self.config, db=self.db)
+        self.selection_abstain_guard = SelectionAbstainGuard(config=self.config)
         self.max_recent_limit_up_count_20d = int(
             config.get("stock_selection.max_recent_limit_up_count_20d", 2)
         )
@@ -344,6 +506,72 @@ class StockSelector:
         self.feedback_guard_max_latest_pct_multiplier_defensive = float(
             config.get("stock_selection.feedback_guard_max_latest_pct_multiplier_defensive", 0.85)
         )
+        self.exit_guard_enabled = bool(
+            config.get("stock_selection.exit_guard.enabled", True)
+        )
+        self.exit_guard_stop_loss_pct = float(
+            config.get("stock_selection.exit_guard.stop_loss_pct", -0.045)
+        )
+        self.exit_guard_trail_arm_pct = float(
+            config.get("stock_selection.exit_guard.trail_arm_pct", 0.05)
+        )
+        self.exit_guard_trail_drawdown_pct = float(
+            config.get("stock_selection.exit_guard.trail_drawdown_pct", 0.03)
+        )
+        self.exit_guard_weak_time_stop_days = int(
+            config.get("stock_selection.exit_guard.weak_time_stop_days", 2)
+        )
+        raw_exit_guard_activation = config.get("stock_selection.exit_guard.activation_loss_avoidance_threshold", None)
+        self.exit_guard_activation_loss_avoidance_threshold: Optional[float]
+        if raw_exit_guard_activation is None:
+            self.exit_guard_activation_loss_avoidance_threshold = None
+        else:
+            try:
+                self.exit_guard_activation_loss_avoidance_threshold = float(raw_exit_guard_activation)
+            except Exception:
+                self.exit_guard_activation_loss_avoidance_threshold = None
+        self.exit_guard_activation_threshold_by_regime: Dict[str, Optional[float]] = {}
+        raw_exit_guard_activation_by_regime = config.get(
+            "stock_selection.exit_guard.activation_loss_avoidance_threshold_by_regime",
+            {},
+        )
+        if isinstance(raw_exit_guard_activation_by_regime, dict):
+            for regime_name in ("trend", "sideways", "weak"):
+                raw_val = raw_exit_guard_activation_by_regime.get(
+                    regime_name,
+                    self.exit_guard_activation_loss_avoidance_threshold,
+                )
+                if raw_val is None:
+                    self.exit_guard_activation_threshold_by_regime[regime_name] = None
+                else:
+                    try:
+                        self.exit_guard_activation_threshold_by_regime[regime_name] = float(raw_val)
+                    except Exception:
+                        self.exit_guard_activation_threshold_by_regime[regime_name] = (
+                            self.exit_guard_activation_loss_avoidance_threshold
+                        )
+        else:
+            for regime_name in ("trend", "sideways", "weak"):
+                self.exit_guard_activation_threshold_by_regime[regime_name] = (
+                    self.exit_guard_activation_loss_avoidance_threshold
+                )
+        self.exit_guard_profile_by_regime = self._load_exit_guard_profile_by_regime(config)
+        self.alpha158_light_entry_filter_enabled = bool(
+            config.get("stock_selection.light_entry_filter.enabled", True)
+        )
+        raw_entry_filter_apply_regimes = config.get("stock_selection.light_entry_filter.apply_regimes", ["weak"])
+        if isinstance(raw_entry_filter_apply_regimes, list):
+            self.alpha158_light_entry_filter_apply_regimes = {
+                str(item or "").strip().lower()
+                for item in raw_entry_filter_apply_regimes
+                if str(item or "").strip()
+            }
+        else:
+            self.alpha158_light_entry_filter_apply_regimes = {"weak"}
+        self.alpha158_light_entry_filter_preserve_top1_on_empty = bool(
+            config.get("stock_selection.light_entry_filter.preserve_top1_on_empty", True)
+        )
+        self.alpha158_light_entry_filter_profiles = self._load_light_entry_filter_profiles(config)
 
         # 运行时行业热度缓存（按end_date维度）
         self._industry_strength_cache_date: Optional[str] = None
@@ -361,6 +589,7 @@ class StockSelector:
         # 是否保存因子值
         self.save_factor_values = config.get("stock_selection.save_factor_values", True)
         self.feedback_guard = FeedbackPerformanceGuard(config, db)
+        self.last_selection_trace: Dict[str, Any] = {}
         
         # 自动优化系统（保留接口，legacy档不使用）
         self.enable_auto_optimization = False
@@ -2732,6 +2961,22 @@ class StockSelector:
         
         return diversified
 
+    def _should_apply_portfolio_gate(self) -> bool:
+        apply_profiles = self.config.get(
+            "stock_selection.portfolio_gate.apply_profiles",
+            ["institutional_core"],
+        )
+        if not isinstance(apply_profiles, list):
+            apply_profiles = ["institutional_core"]
+        apply_profiles = {str(item or "").strip().lower() for item in apply_profiles}
+        return self.portfolio_gate.enabled and self.strategy_profile in apply_profiles
+
+    def _should_apply_loss_avoidance(self) -> bool:
+        return self.loss_avoidance_filter.should_apply(self.strategy_profile)
+
+    def _should_apply_abstain_guard(self) -> bool:
+        return self.selection_abstain_guard.should_apply(self.strategy_profile)
+
     def _build_legacy_tradeability_profile(
         self,
         dynamic_tradeability_thresholds: Optional[Dict] = None,
@@ -3064,6 +3309,16 @@ class StockSelector:
     # Alpha158 IC加权选股核心
     # ========================================================================
 
+    def _get_strategy_title(self) -> str:
+        mapping = {
+            "alpha158": "Alpha158 IC加权模型",
+            "legacy": "Alpha158 IC加权模型",
+            "enhanced": "Alpha158 IC加权模型",
+            "institutional_core": "机构核心多袖口模型",
+            "daily_multi_strategy": "日线多策略协同模型",
+        }
+        return mapping.get(self.strategy_profile, self.strategy_profile)
+
     # Alpha158 高IC因子权重 (12个长期 + 3个短期)
     ALPHA158_WEIGHTS = {
         # ── 原有15因子 ──
@@ -3256,11 +3511,575 @@ class StockSelector:
 
         return f
 
-    def _run_alpha158_selection(self, end_date: str) -> List[Dict]:
+    @staticmethod
+    def _alpha_clip(series: pd.Series, low: float, high: float) -> pd.Series:
+        span = max(high - low, 1e-8)
+        return ((pd.to_numeric(series, errors="coerce").fillna(low) - low) / span).clip(0.0, 1.0)
+
+    @staticmethod
+    def _alpha_band(series: pd.Series, low: float, mid: float, high: float) -> pd.Series:
+        values = pd.to_numeric(series, errors="coerce").fillna(mid)
+        left = ((values - low) / max(mid - low, 1e-8)).clip(0.0, 1.0)
+        right = ((high - values) / max(high - mid, 1e-8)).clip(0.0, 1.0)
+        return np.minimum(left, right)
+
+    def _augment_alpha158_context_features(
+        self,
+        fdf: pd.DataFrame,
+        end_date: str,
+    ) -> pd.DataFrame:
+        if fdf.empty:
+            return fdf
+
+        roc10 = pd.to_numeric(fdf.get("RAW__ROC10", fdf.get("ROC10", 0.0)), errors="coerce").fillna(0.0)
+        qltu20 = pd.to_numeric(fdf.get("RAW__QTLU20", fdf.get("QTLU20", 0.0)), errors="coerce").fillna(0.0)
+        vol_ratio20 = pd.to_numeric(
+            fdf.get("RAW__VOL_RATIO20", fdf.get("VOL_RATIO20", 1.0)),
+            errors="coerce",
+        ).fillna(1.0)
+        rsi14 = pd.to_numeric(fdf.get("RAW__RSI14", fdf.get("RSI14", 50.0)), errors="coerce").fillna(50.0)
+        upper_shadow = pd.to_numeric(fdf.get("RAW__DAY_UPPER_SHADOW", fdf.get("DAY_UPPER_SHADOW", 0.0)), errors="coerce").fillna(0.0)
+        amp1 = pd.to_numeric(fdf.get("RAW__DAY_AMP1", fdf.get("DAY_AMP1", 0.0)), errors="coerce").fillna(0.0)
+        gap_pct = pd.to_numeric(fdf.get("RAW__DAY_GAP_PCT", fdf.get("DAY_GAP_PCT", 0.0)), errors="coerce").fillna(0.0)
+        down_days = pd.to_numeric(fdf.get("RAW__DOWN_DAYS", fdf.get("DOWN_DAYS", 0.0)), errors="coerce").fillna(0.0)
+        recent_limit_ups = pd.to_numeric(
+            fdf.get("RAW__RECENT_LIMIT_UP_COUNT20", fdf.get("RECENT_LIMIT_UP_COUNT20", 0.0)),
+            errors="coerce",
+        ).fillna(0.0)
+
+        fdf["CS_ROC10_PCT"] = roc10.rank(pct=True, method="average")
+        fdf["CS_QTLU20_PCT"] = qltu20.rank(pct=True, method="average")
+        fdf["CS_VOL_RATIO20_PCT"] = vol_ratio20.rank(pct=True, method="average")
+        fdf["CS_RSI14_BALANCE"] = 1.0 - ((rsi14 - 55.0).abs() / 25.0).clip(0.0, 1.0)
+
+        if "industry" in fdf.columns:
+            industry_mean_roc10 = roc10.groupby(fdf["industry"]).transform("mean")
+            fdf["INDUSTRY_REL_ROC10"] = roc10 - industry_mean_roc10
+        else:
+            fdf["INDUSTRY_REL_ROC10"] = 0.0
+
+        industry_heat_score = pd.Series(0.5, index=fdf.index, dtype=float)
+        industry_rank_inv = pd.Series(0.5, index=fdf.index, dtype=float)
+        if "industry" in fdf.columns and self.use_dynamic_industry_strength:
+            industry_map = self._prepare_dynamic_industry_strength(end_date=end_date)
+            ranked = self._industry_strength_ranked or []
+            denom = max(len(ranked) - 1, 1)
+
+            def _heat_value(industry_name: str) -> float:
+                info = industry_map.get(industry_name, {}) if industry_map else {}
+                return float(info.get("heat_score", 50.0)) / 100.0
+
+            def _rank_value(industry_name: str) -> float:
+                info = industry_map.get(industry_name, {}) if industry_map else {}
+                rank = float(info.get("rank", denom / 2 + 1))
+                return 1.0 - ((rank - 1.0) / denom)
+
+            industry_heat_score = fdf["industry"].map(_heat_value).fillna(0.5).astype(float)
+            industry_rank_inv = fdf["industry"].map(_rank_value).fillna(0.5).astype(float)
+
+        path_risk = (
+            0.30 * self._alpha_clip(upper_shadow, 0.12, 0.55)
+            + 0.25 * self._alpha_clip(amp1, 0.03, 0.12)
+            + 0.20 * self._alpha_clip(gap_pct.abs(), 0.01, 0.06)
+            + 0.15 * self._alpha_clip(down_days, 1.0, 4.0)
+            + 0.10 * self._alpha_clip(recent_limit_ups, 1.0, 3.0)
+        )
+        entry_quality = (
+            0.30 * fdf["CS_ROC10_PCT"].astype(float)
+            + 0.20 * fdf["CS_QTLU20_PCT"].astype(float)
+            + 0.15 * (1.0 - path_risk)
+            + 0.20 * industry_heat_score.astype(float)
+            + 0.15 * fdf["CS_RSI14_BALANCE"].astype(float)
+        )
+
+        fdf["INDUSTRY_HEAT_SCORE_NORM"] = industry_heat_score.astype(float)
+        fdf["INDUSTRY_RANK_INV"] = industry_rank_inv.astype(float)
+        fdf["PATH_RISK_SCORE"] = path_risk.astype(float)
+        fdf["ENTRY_QUALITY_SCORE"] = entry_quality.astype(float)
+        return fdf
+
+    def _apply_alpha158_prototype_router(
+        self,
+        fdf: pd.DataFrame,
+        regime_name: str,
+    ) -> pd.DataFrame:
+        if not self.alpha158_prototype_router_enabled or fdf.empty:
+            return fdf
+
+        roc5 = pd.to_numeric(fdf.get("RAW__ROC5", fdf.get("ROC5", 0.0)), errors="coerce").fillna(0.0)
+        roc10 = pd.to_numeric(fdf.get("RAW__ROC10", fdf.get("ROC10", 0.0)), errors="coerce").fillna(0.0)
+        ma_cross = pd.to_numeric(fdf.get("RAW__MA_CROSS", fdf.get("MA_CROSS", 0.0)), errors="coerce").fillna(0.0)
+        qltu20 = pd.to_numeric(fdf.get("RAW__QTLU20", fdf.get("QTLU20", 0.0)), errors="coerce").fillna(0.0)
+        boll_pos = pd.to_numeric(fdf.get("RAW__BOLL_POS", fdf.get("BOLL_POS", 0.0)), errors="coerce").fillna(0.0)
+        vol_ratio5 = pd.to_numeric(
+            fdf.get("RAW__VOL_RATIO5", fdf.get("VOL_RATIO5", 1.0)),
+            errors="coerce",
+        ).fillna(1.0)
+        vol_ratio20 = pd.to_numeric(
+            fdf.get("RAW__VOL_RATIO20", fdf.get("VOL_RATIO20", 1.0)),
+            errors="coerce",
+        ).fillna(1.0)
+        vwap_dev = pd.to_numeric(fdf.get("RAW__VWAP_DEV", fdf.get("VWAP_DEV", 0.0)), errors="coerce").fillna(0.0)
+        rsi14 = pd.to_numeric(fdf.get("RAW__RSI14", fdf.get("RSI14", 50.0)), errors="coerce").fillna(50.0)
+        vstd30 = pd.to_numeric(fdf.get("RAW__VSTD30", fdf.get("VSTD30", 0.0)), errors="coerce").fillna(0.0)
+        amp20 = pd.to_numeric(fdf.get("RAW__AMP20", fdf.get("AMP20", 0.0)), errors="coerce").fillna(0.0)
+        high_low_ratio = pd.to_numeric(
+            fdf.get("RAW__HIGH_LOW_RATIO", fdf.get("HIGH_LOW_RATIO", 0.5)),
+            errors="coerce",
+        ).fillna(0.5)
+        upper_shadow = pd.to_numeric(
+            fdf.get("RAW__DAY_UPPER_SHADOW", fdf.get("DAY_UPPER_SHADOW", 0.0)),
+            errors="coerce",
+        ).fillna(0.0)
+        gap_pct = pd.to_numeric(fdf.get("RAW__DAY_GAP_PCT", fdf.get("DAY_GAP_PCT", 0.0)), errors="coerce").fillna(0.0)
+        day_pct_chg = pd.to_numeric(
+            fdf.get("RAW__DAY_PCT_CHG", fdf.get("DAY_PCT_CHG", 0.0)),
+            errors="coerce",
+        ).fillna(0.0)
+        recent_limit_ups = pd.to_numeric(
+            fdf.get("RAW__RECENT_LIMIT_UP_COUNT20", fdf.get("RECENT_LIMIT_UP_COUNT20", 0.0)),
+            errors="coerce",
+        ).fillna(0.0)
+        industry_heat = pd.to_numeric(
+            fdf.get("INDUSTRY_HEAT_SCORE_NORM", 0.5),
+            errors="coerce",
+        ).fillna(0.5)
+        entry_quality = pd.to_numeric(
+            fdf.get("ENTRY_QUALITY_SCORE", 0.5),
+            errors="coerce",
+        ).fillna(0.5)
+
+        continuation_score = (
+            0.28 * self._alpha_clip(roc10, 0.01, 0.10)
+            + 0.22 * self._alpha_clip(ma_cross, 0.00, 0.05)
+            + 0.18 * self._alpha_clip(qltu20, 0.55, 0.90)
+            + 0.12 * self._alpha_band(boll_pos, 0.05, 0.45, 0.95)
+            + 0.10 * self._alpha_band(vol_ratio20, 0.85, 1.00, 1.20)
+            + 0.10 * industry_heat
+        )
+        pullback_score = (
+            0.28 * self._alpha_band(roc5, -0.07, -0.02, 0.01)
+            + 0.24 * self._alpha_band(rsi14, 42.0, 52.0, 62.0)
+            + 0.18 * self._alpha_band(vwap_dev, -0.03, -0.005, 0.02)
+            + 0.12 * self._alpha_band(boll_pos, -0.7, -0.10, 0.55)
+            + 0.10 * (1.0 - self._alpha_clip(upper_shadow, 0.12, 0.45))
+            + 0.08 * industry_heat
+        )
+        quality_score = (
+            0.24 * self._alpha_band(vstd30, 0.08, 0.22, 0.42)
+            + 0.22 * self._alpha_band(amp20, 0.05, 0.11, 0.20)
+            + 0.20 * industry_heat
+            + 0.14 * self._alpha_band(high_low_ratio, 0.25, 0.55, 0.82)
+            + 0.10 * self._alpha_band(rsi14, 46.0, 56.0, 64.0)
+            + 0.10 * entry_quality
+        )
+        risk_score = (
+            0.24 * self._alpha_clip(boll_pos, 0.95, 1.40)
+            + 0.18 * self._alpha_clip(vol_ratio5, 1.50, 2.40)
+            + 0.18 * self._alpha_clip(upper_shadow, 0.20, 0.55)
+            + 0.12 * self._alpha_clip(gap_pct.abs(), 0.02, 0.07)
+            + 0.10 * self._alpha_clip(recent_limit_ups, 1.0, 3.0)
+            + 0.10 * self._alpha_clip(day_pct_chg, 0.05, 0.10)
+            + 0.08 * (1.0 - industry_heat)
+        )
+
+        regime_key = str(regime_name or "sideways").lower()
+        if regime_key == "trend":
+            continuation_bonus = self.alpha158_prototype_trend_continuation_bonus
+            pullback_bonus = self.alpha158_prototype_trend_pullback_bonus
+            quality_bonus = self.alpha158_prototype_trend_quality_bonus
+            risk_penalty = self.alpha158_prototype_trend_risk_penalty
+        elif regime_key == "weak":
+            continuation_bonus = self.alpha158_prototype_weak_continuation_bonus
+            pullback_bonus = self.alpha158_prototype_weak_pullback_bonus
+            quality_bonus = self.alpha158_prototype_weak_quality_bonus
+            risk_penalty = self.alpha158_prototype_weak_risk_penalty
+        else:
+            continuation_bonus = self.alpha158_prototype_sideways_continuation_bonus
+            pullback_bonus = self.alpha158_prototype_sideways_pullback_bonus
+            quality_bonus = self.alpha158_prototype_sideways_quality_bonus
+            risk_penalty = self.alpha158_prototype_sideways_risk_penalty
+
+        route_bonus = (
+            continuation_score * continuation_bonus
+            + pullback_score * pullback_bonus
+            + quality_score * quality_bonus
+            - risk_score * risk_penalty
+        )
+        scores_df = pd.DataFrame(
+            {
+                "continuation": continuation_score,
+                "pullback": pullback_score,
+                "quality": quality_score,
+                "risk": risk_score,
+            },
+            index=fdf.index,
+        )
+        dominant = scores_df[["continuation", "pullback", "quality"]].idxmax(axis=1)
+        dominant = dominant.where(risk_score < scores_df[["continuation", "pullback", "quality"]].max(axis=1) + 0.05, "risk")
+
+        out = fdf.copy()
+        out["alpha158_prototype_continuation_score"] = continuation_score.astype(float)
+        out["alpha158_prototype_pullback_score"] = pullback_score.astype(float)
+        out["alpha158_prototype_quality_score"] = quality_score.astype(float)
+        out["alpha158_prototype_risk_score"] = risk_score.astype(float)
+        out["alpha158_prototype_bonus"] = route_bonus.astype(float)
+        out["alpha158_prototype_label"] = dominant.astype(str)
+        out["alpha158_score"] = out["alpha158_score"].astype(float) + route_bonus.astype(float)
+        return out
+
+    def _apply_alpha158_extension_overlay(
+        self,
+        fdf: pd.DataFrame,
+        regime_name: str,
+    ) -> pd.DataFrame:
+        if not self.alpha158_extension_enabled or fdf.empty:
+            return fdf
+
+        roc10 = pd.to_numeric(fdf.get("RAW__ROC10", fdf.get("ROC10", 0.0)), errors="coerce").fillna(0.0)
+        ma_cross = pd.to_numeric(fdf.get("RAW__MA_CROSS", fdf.get("MA_CROSS", 0.0)), errors="coerce").fillna(0.0)
+        rsi14 = pd.to_numeric(fdf.get("RAW__RSI14", fdf.get("RSI14", 50.0)), errors="coerce").fillna(50.0)
+        amp20 = pd.to_numeric(fdf.get("RAW__AMP20", fdf.get("AMP20", 0.0)), errors="coerce").fillna(0.0)
+        vol_ratio20 = pd.to_numeric(fdf.get("RAW__VOL_RATIO20", fdf.get("VOL_RATIO20", 1.0)), errors="coerce").fillna(1.0)
+        vwap_dev = pd.to_numeric(fdf.get("RAW__VWAP_DEV", fdf.get("VWAP_DEV", 0.0)), errors="coerce").fillna(0.0)
+        qltu20 = pd.to_numeric(fdf.get("RAW__QTLU20", fdf.get("QTLU20", 0.0)), errors="coerce").fillna(0.0)
+        vol_price_corr = pd.to_numeric(fdf.get("RAW__VOL_PRICE_CORR", fdf.get("VOL_PRICE_CORR", 0.0)), errors="coerce").fillna(0.0)
+        high_low_ratio = pd.to_numeric(
+            fdf.get("RAW__HIGH_LOW_RATIO", fdf.get("HIGH_LOW_RATIO", 0.5)),
+            errors="coerce",
+        ).fillna(0.5)
+        boll_pos = pd.to_numeric(fdf.get("RAW__BOLL_POS", fdf.get("BOLL_POS", 0.0)), errors="coerce").fillna(0.0)
+        vol_ratio5 = pd.to_numeric(fdf.get("RAW__VOL_RATIO5", fdf.get("VOL_RATIO5", 1.0)), errors="coerce").fillna(1.0)
+
+        trend_quality = (
+            0.40 * self._alpha_clip(roc10, 0.01, 0.10)
+            + 0.35 * self._alpha_clip(ma_cross, 0.00, 0.05)
+            + 0.25 * self._alpha_band(rsi14, 48.0, 58.0, 68.0)
+        )
+        compression_quality = (
+            0.40 * self._alpha_band(amp20, 0.04, 0.10, 0.18)
+            + 0.35 * self._alpha_band(vol_ratio20, 0.80, 1.00, 1.15)
+            + 0.25 * self._alpha_band(vwap_dev, -0.01, 0.01, 0.04)
+        )
+        leadership_quality = (
+            0.35 * self._alpha_clip(qltu20, 0.45, 0.85)
+            + 0.35 * self._alpha_clip(vol_price_corr, 0.00, 0.60)
+            + 0.30 * self._alpha_band(high_low_ratio, 0.25, 0.55, 0.82)
+        )
+        overheat_risk = (
+            0.30 * self._alpha_clip(high_low_ratio, 0.82, 1.00)
+            + 0.25 * self._alpha_clip(boll_pos, 0.90, 1.40)
+            + 0.25 * self._alpha_clip(vol_ratio5, 1.60, 2.40)
+            + 0.20 * self._alpha_clip(rsi14, 67.0, 78.0)
+        )
+
+        regime_scale = {
+            "trend": self.alpha158_extension_trend_multiplier,
+            "sideways": self.alpha158_extension_sideways_multiplier,
+            "weak": self.alpha158_extension_weak_multiplier,
+        }.get(str(regime_name or "").strip().lower(), self.alpha158_extension_sideways_multiplier)
+
+        extension_score = (
+            trend_quality * self.alpha158_extension_trend_quality_bonus
+            + compression_quality * self.alpha158_extension_compression_bonus
+            + leadership_quality * self.alpha158_extension_leadership_bonus
+            - overheat_risk * self.alpha158_extension_overheat_penalty
+        ) * float(regime_scale)
+
+        fdf["alpha158_extension_score"] = extension_score.astype(float)
+        fdf["alpha158_score"] = fdf["alpha158_score"] + fdf["alpha158_extension_score"]
+        logger.info(
+            "alpha158 extension overlay applied: regime=%s avg=%.4f max=%.4f min=%.4f",
+            regime_name,
+            float(fdf["alpha158_extension_score"].mean()),
+            float(fdf["alpha158_extension_score"].max()),
+            float(fdf["alpha158_extension_score"].min()),
+        )
+        return fdf
+
+    def _alpha158_min_score_to_raw_threshold(self, min_score: float, use_lgb_model: bool) -> float:
+        score = float(min_score)
+        if use_lgb_model:
+            return float(np.clip(score / 100.0, 0.0, 1.0))
+        return float((score - 50.0) / 10.0)
+
+    def _resolve_alpha158_fallback_keep(self, candidate_count: int) -> int:
+        mode = str(self.alpha158_fallback_max_count_mode or "top_n").strip().lower()
+        if mode == "legacy":
+            keep = max(self.top_n * 3, 12)
+        elif mode.isdigit():
+            keep = int(mode)
+        else:
+            keep = int(self.top_n)
+        return int(max(1, min(int(candidate_count), int(keep))))
+
+    def _load_exit_guard_profile_by_regime(self, config: ConfigManager) -> Dict[str, Dict[str, float]]:
+        def _as_float(value: Any, fallback: float, floor: Optional[float] = None, ceil: Optional[float] = None) -> float:
+            if isinstance(value, bool):
+                return float(fallback)
+            try:
+                out = float(value)
+            except Exception:
+                out = float(fallback)
+            if floor is not None:
+                out = max(float(floor), out)
+            if ceil is not None:
+                out = min(float(ceil), out)
+            return float(out)
+
+        def _as_int(value: Any, fallback: int, floor: Optional[int] = None, ceil: Optional[int] = None) -> int:
+            if isinstance(value, bool):
+                return int(fallback)
+            try:
+                out = int(value)
+            except Exception:
+                out = int(fallback)
+            if floor is not None:
+                out = max(int(floor), out)
+            if ceil is not None:
+                out = min(int(ceil), out)
+            return int(out)
+
+        base_profile = {
+            "stop_loss_pct": _as_float(self.exit_guard_stop_loss_pct, -0.045, floor=-0.20, ceil=-0.01),
+            "trail_arm_pct": _as_float(self.exit_guard_trail_arm_pct, 0.05, floor=0.01, ceil=0.30),
+            "trail_drawdown_pct": _as_float(self.exit_guard_trail_drawdown_pct, 0.03, floor=0.005, ceil=0.20),
+            "weak_time_stop_days": _as_int(self.exit_guard_weak_time_stop_days, 2, floor=1, ceil=5),
+        }
+        profiles: Dict[str, Dict[str, float]] = {
+            "trend": dict(base_profile),
+            "sideways": dict(base_profile),
+            "weak": dict(base_profile),
+        }
+
+        raw_regimes = config.get("stock_selection.exit_guard.regimes", {})
+        if not isinstance(raw_regimes, dict):
+            return profiles
+
+        for regime_name in ("trend", "sideways", "weak"):
+            raw = raw_regimes.get(regime_name, {})
+            if not isinstance(raw, dict):
+                continue
+            profile = dict(profiles[regime_name])
+            if "stop_loss_pct" in raw:
+                profile["stop_loss_pct"] = _as_float(raw.get("stop_loss_pct"), profile["stop_loss_pct"], floor=-0.20, ceil=-0.01)
+            if "trail_arm_pct" in raw:
+                profile["trail_arm_pct"] = _as_float(raw.get("trail_arm_pct"), profile["trail_arm_pct"], floor=0.01, ceil=0.30)
+            if "trail_drawdown_pct" in raw:
+                profile["trail_drawdown_pct"] = _as_float(raw.get("trail_drawdown_pct"), profile["trail_drawdown_pct"], floor=0.005, ceil=0.20)
+            if "weak_time_stop_days" in raw:
+                profile["weak_time_stop_days"] = _as_int(raw.get("weak_time_stop_days"), int(profile["weak_time_stop_days"]), floor=1, ceil=5)
+            profiles[regime_name] = profile
+        return profiles
+
+    @staticmethod
+    def _default_light_entry_filter_profiles() -> Dict[str, Dict[str, float]]:
+        return {
+            "trend": {
+                "max_gap_pct": 0.070,
+                "max_day_pct_chg": 0.095,
+                "max_upper_shadow": 0.45,
+                "max_path_risk_score": 0.85,
+                "min_entry_quality_score": 0.32,
+                "max_recent_limit_up_count20": 3,
+                "max_vol_ratio5": 2.40,
+            },
+            "sideways": {
+                "max_gap_pct": 0.052,
+                "max_day_pct_chg": 0.078,
+                "max_upper_shadow": 0.35,
+                "max_path_risk_score": 0.74,
+                "min_entry_quality_score": 0.40,
+                "max_recent_limit_up_count20": 2,
+                "max_vol_ratio5": 2.00,
+            },
+            "weak": {
+                "max_gap_pct": 0.038,
+                "max_day_pct_chg": 0.058,
+                "max_upper_shadow": 0.30,
+                "max_path_risk_score": 0.64,
+                "min_entry_quality_score": 0.48,
+                "max_recent_limit_up_count20": 1,
+                "max_vol_ratio5": 1.70,
+            },
+        }
+
+    def _load_light_entry_filter_profiles(self, config: ConfigManager) -> Dict[str, Dict[str, float]]:
+        defaults = self._default_light_entry_filter_profiles()
+        raw_profiles = config.get("stock_selection.light_entry_filter.regimes", {})
+        if not isinstance(raw_profiles, dict):
+            return defaults
+
+        out: Dict[str, Dict[str, float]] = {
+            k: dict(v) for k, v in defaults.items()
+        }
+        for regime_name in ("trend", "sideways", "weak"):
+            raw = raw_profiles.get(regime_name, {})
+            if not isinstance(raw, dict):
+                continue
+            profile = dict(out[regime_name])
+            for key in (
+                "max_gap_pct",
+                "max_day_pct_chg",
+                "max_upper_shadow",
+                "max_path_risk_score",
+                "min_entry_quality_score",
+                "max_recent_limit_up_count20",
+                "max_vol_ratio5",
+            ):
+                if key not in raw:
+                    continue
+                try:
+                    value = float(raw.get(key))
+                except Exception:
+                    continue
+                if key == "min_entry_quality_score":
+                    profile[key] = float(np.clip(value, 0.0, 1.0))
+                elif key == "max_recent_limit_up_count20":
+                    profile[key] = float(max(0, int(value)))
+                else:
+                    profile[key] = float(max(0.0, value))
+            out[regime_name] = profile
+        return out
+
+    def _resolve_exit_guard_profile(self, regime_name: str) -> Dict[str, float]:
+        regime_key = str(regime_name or "sideways").strip().lower()
+        if regime_key not in ("trend", "sideways", "weak"):
+            regime_key = "sideways"
+        profile = dict(self.exit_guard_profile_by_regime.get(regime_key, {}))
+        if not profile:
+            profile = {
+                "stop_loss_pct": float(self.exit_guard_stop_loss_pct),
+                "trail_arm_pct": float(self.exit_guard_trail_arm_pct),
+                "trail_drawdown_pct": float(self.exit_guard_trail_drawdown_pct),
+                "weak_time_stop_days": int(self.exit_guard_weak_time_stop_days),
+            }
+        profile["weak_time_stop_days"] = int(profile.get("weak_time_stop_days", self.exit_guard_weak_time_stop_days))
+        return profile
+
+    def _apply_alpha158_light_entry_filter(
+        self,
+        fdf: pd.DataFrame,
+        regime_name: str,
+    ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+        meta: Dict[str, Any] = {
+            "enabled": bool(self.alpha158_light_entry_filter_enabled),
+            "regime": str(regime_name or ""),
+            "applied": False,
+            "before_count": int(len(fdf)),
+            "after_count": int(len(fdf)),
+            "removed_count": 0,
+            "preserved_top1_on_empty": False,
+            "active_rules": [],
+        }
+        if not self.alpha158_light_entry_filter_enabled or fdf.empty:
+            return fdf, meta
+
+        regime_key = str(regime_name or "sideways").strip().lower()
+        if regime_key not in ("trend", "sideways", "weak"):
+            regime_key = "sideways"
+        if regime_key not in self.alpha158_light_entry_filter_apply_regimes:
+            return fdf, meta
+        profile = self.alpha158_light_entry_filter_profiles.get(regime_key, self.alpha158_light_entry_filter_profiles["sideways"])
+
+        keep_mask = pd.Series(True, index=fdf.index)
+        active_rules: List[str] = []
+        meta["applied"] = True
+
+        if "DAY_GAP_PCT" in fdf.columns:
+            keep_mask &= fdf["DAY_GAP_PCT"].fillna(0.0).abs() <= float(profile["max_gap_pct"])
+            active_rules.append("max_gap_pct")
+        if "DAY_PCT_CHG" in fdf.columns:
+            keep_mask &= fdf["DAY_PCT_CHG"].fillna(0.0) <= float(profile["max_day_pct_chg"])
+            active_rules.append("max_day_pct_chg")
+        if "DAY_UPPER_SHADOW" in fdf.columns:
+            keep_mask &= fdf["DAY_UPPER_SHADOW"].fillna(0.0) <= float(profile["max_upper_shadow"])
+            active_rules.append("max_upper_shadow")
+        if "PATH_RISK_SCORE" in fdf.columns:
+            keep_mask &= fdf["PATH_RISK_SCORE"].fillna(0.0) <= float(profile["max_path_risk_score"])
+            active_rules.append("max_path_risk_score")
+        if "ENTRY_QUALITY_SCORE" in fdf.columns:
+            keep_mask &= fdf["ENTRY_QUALITY_SCORE"].fillna(0.0) >= float(profile["min_entry_quality_score"])
+            active_rules.append("min_entry_quality_score")
+        if "RECENT_LIMIT_UP_COUNT20" in fdf.columns:
+            keep_mask &= fdf["RECENT_LIMIT_UP_COUNT20"].fillna(0.0) <= float(profile["max_recent_limit_up_count20"])
+            active_rules.append("max_recent_limit_up_count20")
+        if "VOL_RATIO5" in fdf.columns:
+            keep_mask &= fdf["VOL_RATIO5"].fillna(1.0) <= float(profile["max_vol_ratio5"])
+            active_rules.append("max_vol_ratio5")
+
+        out = fdf[keep_mask].copy()
+        if out.empty and self.alpha158_light_entry_filter_preserve_top1_on_empty and not fdf.empty:
+            out = fdf.sort_values("alpha158_score", ascending=False).head(1).copy()
+            meta["preserved_top1_on_empty"] = True
+
+        meta["after_count"] = int(len(out))
+        meta["removed_count"] = int(max(0, len(fdf) - len(out)))
+        meta["active_rules"] = list(active_rules)
+        meta["profile"] = dict(profile)
+        return out, meta
+
+    def _load_alpha158_daily_windows(
+        self,
+        ts_codes: List[str],
+        end_date: str,
+        window: int = 61,
+        chunk_size: int = 700,
+    ) -> Dict[str, pd.DataFrame]:
+        """Load recent daily windows for Alpha158 in bulk.
+
+        The old path queried one symbol at a time. Walk-forward validation runs
+        this selector repeatedly, so reducing SQLite round-trips is the biggest
+        local speed win while keeping the scoring logic unchanged.
+        """
+        codes = [str(code) for code in ts_codes if str(code or "").strip()]
+        if not codes:
+            return {}
+
+        frames: List[pd.DataFrame] = []
+        for start in range(0, len(codes), max(1, int(chunk_size))):
+            chunk = codes[start : start + max(1, int(chunk_size))]
+            placeholders = ",".join(["?"] * len(chunk))
+            sql = f"""
+                SELECT ts_code, close, open, high, low, vol, amount, pct_chg
+                FROM (
+                    SELECT
+                        ts_code, trade_date, close, open, high, low, vol, amount, pct_chg,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY ts_code ORDER BY trade_date DESC
+                        ) AS rn
+                    FROM stock_daily
+                    WHERE trade_date <= ?
+                      AND ts_code IN ({placeholders})
+                )
+                WHERE rn <= ?
+                ORDER BY ts_code, trade_date DESC
+            """
+            rows = self.db.query(sql, tuple([end_date, *chunk, int(window)]))
+            if rows:
+                frames.append(pd.DataFrame(rows))
+
+        if not frames:
+            return {}
+
+        daily = pd.concat(frames, ignore_index=True)
+        if daily.empty or "ts_code" not in daily.columns:
+            return {}
+        return {
+            str(ts_code): group.drop(columns=["ts_code"], errors="ignore").reset_index(drop=True)
+            for ts_code, group in daily.groupby("ts_code", sort=False)
+        }
+
+    def _run_alpha158_selection(
+        self,
+        end_date: str,
+        effective_min_score: Optional[float] = None,
+        feedback_guard_profile: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict]:
         '''Alpha158 IC加权选股核心逻辑'''
         regime_decision = self.alpha158_regime_router.decide(end_date=end_date)
 
-        stock_list = self.get_stock_list(end_date=end_date, point_in_time=False)
+        stock_list = self.get_stock_list(end_date=end_date, point_in_time=True)
         if stock_list.empty:
             logger.error("股票列表为空，请先更新数据")
             raise StockSelectionException("股票列表为空")
@@ -3283,6 +4102,15 @@ class StockSelector:
         total_count = len(stock_list)
         logger.info("沪深主板候选: %d 只", total_count)
 
+        daily_windows = self._load_alpha158_daily_windows(
+            stock_list["ts_code"].astype(str).tolist(),
+            end_date=end_date,
+            window=61,
+        )
+        if not daily_windows:
+            logger.warning("Alpha158批量日线窗口为空，回退为空候选")
+            return []
+
         all_factors = []
         processed = 0
         for _, row in stock_list.iterrows():
@@ -3291,15 +4119,8 @@ class StockSelector:
             industry = row.get("industry", "")
 
             try:
-                rows = self.db.query(
-                    "SELECT close, open, high, low, vol, amount FROM stock_daily "
-                    "WHERE ts_code = ? AND trade_date <= ? ORDER BY trade_date DESC LIMIT 61",
-                    (ts_code, end_date),
-                )
-                if not rows or len(rows) < 61:
-                    continue
-                daily_df = pd.DataFrame(rows)
-                if daily_df.empty or len(daily_df) < 61:
+                daily_df = daily_windows.get(str(ts_code))
+                if daily_df is None or daily_df.empty or len(daily_df) < 61:
                     continue
 
                 daily_df = daily_df.iloc[::-1]
@@ -3338,6 +4159,23 @@ class StockSelector:
                 f["ts_code"] = ts_code
                 f["name"] = name
                 f["industry"] = industry
+                prev_close = float(close[-2]) if n >= 2 else float(close[-1])
+                day_range = max(float(high[-1] - low[-1]), 1e-8)
+                upper_shadow = max(float(high[-1] - max(close[-1], daily_df["open"].iloc[-1])), 0.0) / day_range
+                gap_pct = (float(daily_df["open"].iloc[-1]) / (prev_close + 1e-8) - 1.0) if prev_close > 0 else 0.0
+                pct_series = pd.to_numeric(daily_df["pct_chg"], errors="coerce").fillna(0.0).astype(float)
+                down_days = 0
+                for value in reversed(pct_series.tolist()):
+                    if float(value) < 0:
+                        down_days += 1
+                    else:
+                        break
+                f["DAY_PCT_CHG"] = float(pct_series.iloc[-1] / 100.0) if not pct_series.empty else 0.0
+                f["DAY_AMP1"] = float((high[-1] - low[-1]) / (prev_close + 1e-8)) if prev_close > 0 else 0.0
+                f["DAY_UPPER_SHADOW"] = float(upper_shadow)
+                f["DAY_GAP_PCT"] = float(gap_pct)
+                f["DOWN_DAYS"] = int(down_days)
+                f["RECENT_LIMIT_UP_COUNT20"] = int((pct_series.tail(20) >= self.limit_up_threshold).sum())
                 all_factors.append(f)
 
             except Exception as e:
@@ -3355,6 +4193,35 @@ class StockSelector:
         logger.info("通过过滤: %d 只, 开始评分...", len(all_factors))
 
         fdf = pd.DataFrame(all_factors)
+        for raw_col in (
+            "ROC5",
+            "ROC10",
+            "_ROC5",
+            "VOL_RATIO5",
+            "VOL_RATIO20",
+            "VWAP_DEV",
+            "VSTD30",
+            "AMP20",
+            "BOLL_POS",
+            "RSI14",
+            "QTLU20",
+            "MA_CROSS",
+            "VOL_PRICE_CORR",
+            "HIGH_LOW_RATIO",
+            "DAY_PCT_CHG",
+            "DAY_AMP1",
+            "DAY_UPPER_SHADOW",
+            "DAY_GAP_PCT",
+            "DOWN_DAYS",
+            "RECENT_LIMIT_UP_COUNT20",
+        ):
+            if raw_col in fdf.columns:
+                fdf[f"RAW__{raw_col}"] = fdf[raw_col]
+
+        fdf = self._augment_alpha158_context_features(
+            fdf=fdf,
+            end_date=end_date,
+        )
 
         factor_cols = [c for c in fdf.columns if c in self.ALPHA158_WEIGHTS]
         for col in factor_cols:
@@ -3371,11 +4238,15 @@ class StockSelector:
         try:
             import os
             import re
-            # 从项目根目录查找模型
-            _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            model_path = os.path.join(_root, "models", "alpha158_lgb_model.txt")
-            config_path = os.path.join(_root, "models", "alpha158_lgb_config.json")
-            if os.path.exists(model_path) and os.path.exists(config_path):
+            if self.alpha158_lgb_model_enabled:
+                # 从项目根目录查找模型
+                _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                model_path = os.path.join(_root, self.alpha158_lgb_model_path)
+                config_path = os.path.join(_root, self.alpha158_lgb_config_path)
+            else:
+                model_path = ""
+                config_path = ""
+            if model_path and config_path and os.path.exists(model_path) and os.path.exists(config_path):
                 # Pre-validate text model to avoid LightGBM fatal log flood on malformed files.
                 with open(model_path, "r", encoding="utf-8", errors="replace") as mf:
                     model_text = mf.read()
@@ -3431,6 +4302,72 @@ class StockSelector:
                     score += fdf[fname].fillna(0).values * w
             fdf["alpha158_score"] = score
 
+        secondary_lgb_score = None
+        try:
+            import os
+            import re
+            if self.alpha158_secondary_lgb_overlay_enabled:
+                _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                secondary_model_path = os.path.join(_root, self.alpha158_secondary_lgb_model_path)
+                secondary_config_path = os.path.join(_root, self.alpha158_secondary_lgb_config_path)
+            else:
+                secondary_model_path = ""
+                secondary_config_path = ""
+            if (
+                secondary_model_path
+                and secondary_config_path
+                and os.path.exists(secondary_model_path)
+                and os.path.exists(secondary_config_path)
+            ):
+                with open(secondary_model_path, "r", encoding="utf-8", errors="replace") as mf:
+                    secondary_model_text = mf.read()
+                tree_match = re.search(r"tree_sizes=([0-9\s]+)", secondary_model_text)
+                expected_trees = (
+                    len([x for x in tree_match.group(1).split() if x.strip()])
+                    if tree_match
+                    else 0
+                )
+                actual_trees = secondary_model_text.count("\nTree=")
+                text_model_valid = (
+                    secondary_model_text.startswith("tree\n")
+                    and ("feature_names=" in secondary_model_text)
+                    and ("tree_sizes=" in secondary_model_text)
+                    and actual_trees > 0
+                    and (expected_trees == 0 or actual_trees == expected_trees)
+                    and secondary_model_text.rstrip().endswith("pandas_categorical:[]")
+                )
+                if not text_model_valid:
+                    raise ValueError("invalid alpha158 secondary lgb model")
+
+                import lightgbm as lgb
+                with open(secondary_config_path, "r", encoding="utf-8") as f:
+                    secondary_lgb_config = json.load(f)
+                secondary_feature_cols = secondary_lgb_config.get("feature_cols", [])
+                secondary_lgb_model = lgb.Booster(model_file=secondary_model_path)
+                X_overlay = pd.DataFrame(index=fdf.index)
+                for c in secondary_feature_cols:
+                    if c in fdf.columns:
+                        X_overlay[c] = fdf[c].fillna(0.0)
+                    else:
+                        X_overlay[c] = 0.0
+                secondary_lgb_score = secondary_lgb_model.predict(X_overlay)
+                overlay_weight = max(0.0, min(1.0, float(self.alpha158_secondary_lgb_weight)))
+                if overlay_weight > 0:
+                    if lgb_score is not None:
+                        base_prob = np.clip(fdf["alpha158_score"].astype(float).values, 0.0, 1.0)
+                    else:
+                        base_prob = 1.0 / (1.0 + np.exp(-fdf["alpha158_score"].astype(float).values))
+                    blended_prob = (1.0 - overlay_weight) * base_prob + overlay_weight * secondary_lgb_score
+                    fdf["alpha158_score"] = blended_prob
+                    fdf["alpha158_secondary_lgb_score"] = secondary_lgb_score
+                    logger.info(
+                        "使用Alpha158二级监督overlay (weight=%.2f, metric=%.4f)",
+                        overlay_weight,
+                        secondary_lgb_config.get("best_auc", 0),
+                    )
+        except Exception as e:
+            logger.debug("Alpha158二级监督overlay失败，忽略: %s", e)
+
         # 双引擎状态融合（趋势 / 回调）
         fdf["_end_date"] = end_date
         fdf["alpha158_score"] = self.alpha158_regime_router.apply_dual_engine_score(
@@ -3449,6 +4386,15 @@ class StockSelector:
                     np.where(roc5_vals > 0.03, -0.2, 0.0)  # 追涨减分
                 )
                 fdf["alpha158_score"] = fdf["alpha158_score"] + pullback_bonus
+
+        fdf = self._apply_alpha158_extension_overlay(
+            fdf=fdf,
+            regime_name=regime_decision.regime,
+        )
+        fdf = self._apply_alpha158_prototype_router(
+            fdf=fdf,
+            regime_name=regime_decision.regime,
+        )
 
         # 去弱留强过滤：剔除过热追涨与高波动弱质样本
         if self.alpha158_weak_filter_enabled and not fdf.empty:
@@ -3485,8 +4431,65 @@ class StockSelector:
                 regime_decision.regime,
             )
 
-        dynamic_score_threshold = self.alpha158_score_threshold + regime_decision.score_threshold_delta
-        fdf = fdf[fdf["alpha158_score"] > dynamic_score_threshold]
+        entry_filter_meta: Dict[str, Any] = {
+            "enabled": bool(self.alpha158_light_entry_filter_enabled),
+            "before_count": int(len(fdf)),
+            "after_count": int(len(fdf)),
+            "removed_count": 0,
+            "preserved_top1_on_empty": False,
+        }
+        entry_filter_removed_count = 0
+        entry_filter_preserved_top1 = False
+
+        feedback_min_score_applied = float(
+            effective_min_score if effective_min_score is not None else self.min_score
+        )
+        feedback_min_score_threshold = self._alpha158_min_score_to_raw_threshold(
+            min_score=feedback_min_score_applied,
+            use_lgb_model=lgb_score is not None,
+        )
+        base_dynamic_threshold = float(self.alpha158_score_threshold + regime_decision.score_threshold_delta)
+        dynamic_score_threshold = float(max(base_dynamic_threshold, feedback_min_score_threshold))
+        threshold_source = "primary"
+        if feedback_min_score_threshold > base_dynamic_threshold + 1e-12:
+            threshold_source = "primary+feedback_min_score"
+        scored_fdf = fdf.sort_values("alpha158_score", ascending=False).copy()
+        fdf = scored_fdf[scored_fdf["alpha158_score"] > dynamic_score_threshold].copy()
+        fallback_triggered = False
+        fallback_count = 0
+        if fdf.empty and not scored_fdf.empty:
+            top_score = float(scored_fdf["alpha158_score"].iloc[0])
+            near_threshold = top_score >= float(dynamic_score_threshold - self.alpha158_fallback_margin)
+            allow_fallback = bool(self.alpha158_fallback_enabled)
+            if (
+                (not allow_fallback)
+                and self.alpha158_trend_near_threshold_fallback_enabled
+                and regime_decision.regime == "trend"
+                and near_threshold
+            ):
+                allow_fallback = True
+
+            if allow_fallback:
+                fallback_keep = self._resolve_alpha158_fallback_keep(len(scored_fdf))
+                fdf = scored_fdf.head(fallback_keep).copy()
+                threshold_source = f"fallback_top_{fallback_keep}"
+                fallback_triggered = True
+                fallback_count = int(fallback_keep)
+                logger.warning(
+                    "Alpha158 主阈值后无候选，启用回退候选池: %s (阈值=%.2f, regime=%s, near=%.4f)",
+                    threshold_source,
+                    dynamic_score_threshold,
+                    regime_decision.regime,
+                    top_score,
+                )
+            else:
+                threshold_source = "no_fallback_empty"
+                logger.warning(
+                    "Alpha158 主阈值后无候选，保持空仓: 阈值=%.2f, regime=%s, near=%.4f",
+                    dynamic_score_threshold,
+                    regime_decision.regime,
+                    top_score,
+                )
 
         # 行业周期权重调整
         try:
@@ -3535,14 +4538,33 @@ class StockSelector:
         except Exception as e:
             logger.debug("大盘过滤失败: %s", e)
 
+        # 轻入场过滤放在主阈值与行业权重之后，只约束候选池，避免过早损失高分样本。
+        fdf, entry_filter_meta = self._apply_alpha158_light_entry_filter(
+            fdf=fdf,
+            regime_name=regime_decision.regime,
+        )
+        if entry_filter_meta.get("applied", False):
+            logger.info(
+                "轻入场过滤(候选池): %d -> %d (状态=%s, 移除=%d, preserve_top1=%s)",
+                int(entry_filter_meta.get("before_count", 0)),
+                int(entry_filter_meta.get("after_count", 0)),
+                regime_decision.regime,
+                int(entry_filter_meta.get("removed_count", 0)),
+                bool(entry_filter_meta.get("preserved_top1_on_empty", False)),
+            )
+        entry_filter_removed_count = int(entry_filter_meta.get("removed_count", 0))
+        entry_filter_preserved_top1 = bool(entry_filter_meta.get("preserved_top1_on_empty", False))
+
         fdf = fdf.sort_values("alpha158_score", ascending=False)
 
         logger.info(
-            "超阈值候选: %d 只 (阈值=%.2f, 状态=%s)%s",
-            len(fdf), dynamic_score_threshold, regime_decision.regime,
+            "超阈值候选: %d 只 (阈值=%.2f, 状态=%s, source=%s)%s",
+            len(fdf), dynamic_score_threshold, regime_decision.regime, threshold_source,
             " [弱市]" if market_below_ma20 else "",
         )
 
+        feedback_level = str((feedback_guard_profile or {}).get("level", "normal") or "normal")
+        feedback_active = bool((feedback_guard_profile or {}).get("active", False))
         results = []
         for _, row in fdf.iterrows():
             score_val = float(row["alpha158_score"])
@@ -3554,6 +4576,10 @@ class StockSelector:
                 mapped_score = max(0, min(100, 50 + score_val * 10))
                 level = "strong" if score_val > 1.0 else ("medium" if score_val > 0.7 else "weak")
 
+            suggested_hold_days, holding_route = self._resolve_alpha158_holding_plan(
+                prototype_label=str(row.get("alpha158_prototype_label", "")),
+                regime_name=regime_decision.regime,
+            )
             results.append(
                 {
                     "ts_code": row["ts_code"],
@@ -3562,12 +4588,70 @@ class StockSelector:
                     "total_score": mapped_score,
                     "level": level,
                     "alpha158_raw": score_val,
-                    "feedback_guard_level": "normal",
-                    "feedback_guard_active": False,
+                    "alpha158_extension_score": round(float(row.get("alpha158_extension_score", 0.0) or 0.0), 4),
+                    "alpha158_prototype_bonus": round(float(row.get("alpha158_prototype_bonus", 0.0) or 0.0), 4),
+                    "alpha158_prototype_label": str(row.get("alpha158_prototype_label", "")),
+                    "suggested_hold_days": int(suggested_hold_days),
+                    "holding_route": str(holding_route),
+                    "alpha158_secondary_lgb_score": round(float(row.get("alpha158_secondary_lgb_score", 0.0) or 0.0), 4),
+                    "feedback_guard_level": feedback_level,
+                    "feedback_guard_active": feedback_active,
+                    "effective_min_score_applied": float(feedback_min_score_applied),
                     "market_below_ma20": market_below_ma20,
+                    "regime_name": regime_decision.regime,
                     "alpha158_regime": regime_decision.regime,
                     "alpha158_regime_reason": regime_decision.reason,
+                    "regime_breadth_state": regime_decision.breadth_state,
+                    "regime_breadth_up_ratio": float(regime_decision.breadth_up_ratio),
+                    "regime_breadth_median_return": float(regime_decision.breadth_median_return),
+                    "regime_breadth_new_high_ratio": float(regime_decision.breadth_new_high_ratio),
+                    "regime_downgraded": bool(regime_decision.regime_downgraded),
+                    "regime_top_n_multiplier": regime_decision.top_n_multiplier,
                     "alpha158_top_n_multiplier": regime_decision.top_n_multiplier,
+                    "alpha158_threshold_source": threshold_source,
+                    "fallback_triggered": bool(fallback_triggered),
+                    "fallback_count": int(fallback_count),
+                    "point_in_time_enabled": True,
+                    "empty_signal_day": False,
+                    "entry_filter_enabled": bool(entry_filter_meta.get("applied", False)),
+                    "entry_filter_removed_count": int(entry_filter_removed_count),
+                    "entry_filter_preserved_top1": bool(entry_filter_preserved_top1),
+                    "exit_reason": "pending",
+                    "exit_day": 0,
+                    "exit_price_rule": "pending_by_backtest",
+                    "armed_trailing": False,
+                    "exit_guard_enabled": bool(self.exit_guard_enabled),
+                    "exit_guard_profile": {
+                        **self._resolve_exit_guard_profile(regime_decision.regime),
+                        "activation_loss_avoidance_threshold": (
+                            self.exit_guard_activation_threshold_by_regime.get(
+                                regime_decision.regime,
+                                self.exit_guard_activation_loss_avoidance_threshold,
+                            )
+                        ),
+                    },
+                    "risk_flags": self._build_alpha158_risk_flags(
+                        roc5=float(row.get("RAW__ROC5", row.get("ROC5", 0.0)) or 0.0),
+                        vol_ratio5=float(row.get("RAW__VOL_RATIO5", row.get("VOL_RATIO5", 1.0)) or 1.0),
+                        upper_shadow=float(row.get("RAW__DAY_UPPER_SHADOW", 0.0) or 0.0),
+                        vstd30=float(row.get("RAW__VSTD30", row.get("VSTD30", 0.0)) or 0.0),
+                        boll_pos=float(row.get("RAW__BOLL_POS", row.get("BOLL_POS", 0.0)) or 0.0),
+                    ),
+                    "metrics": {
+                        "ret5": round(float(row.get("RAW__ROC5", row.get("ROC5", 0.0)) or 0.0), 4),
+                        "close_to_ma20": round(float(row.get("RAW__BOLL_POS", row.get("BOLL_POS", 0.0)) or 0.0) * 0.08, 4),
+                        "pct_chg_day": round(float(row.get("RAW__DAY_PCT_CHG", 0.0) or 0.0), 4),
+                        "vol_ratio5": round(float(row.get("RAW__VOL_RATIO5", row.get("VOL_RATIO5", 1.0)) or 1.0), 4),
+                        "upper_shadow_day": round(float(row.get("RAW__DAY_UPPER_SHADOW", 0.0) or 0.0), 4),
+                        "gap_pct": round(float(row.get("RAW__DAY_GAP_PCT", 0.0) or 0.0), 4),
+                        "down_days": int(row.get("RAW__DOWN_DAYS", 0) or 0),
+                        "amplitude1": round(float(row.get("RAW__DAY_AMP1", 0.0) or 0.0), 4),
+                        "amplitude20": round(float(row.get("RAW__AMP20", row.get("AMP20", 0.0)) or 0.0), 4),
+                        "recent_limit_up_count20": int(row.get("RAW__RECENT_LIMIT_UP_COUNT20", 0) or 0),
+                        "vstd30": round(float(row.get("RAW__VSTD30", row.get("VSTD30", 0.0)) or 0.0), 4),
+                        "rsi14": round(float(row.get("RAW__RSI14", row.get("RSI14", 50.0)) or 50.0), 4),
+                        "extension_score": round(float(row.get("alpha158_extension_score", 0.0) or 0.0), 4),
+                    },
                 }
             )
 
@@ -3584,12 +4668,147 @@ class StockSelector:
 
         return results
 
+    def _run_institutional_core_selection(self, end_date: str) -> List[Dict]:
+        stock_list = self.get_stock_list(end_date=end_date, point_in_time=True)
+        if stock_list.empty:
+            logger.error("股票列表为空，请先更新数据")
+            raise StockSelectionException("股票列表为空")
+
+        stock_list = self.filter_basic(stock_list, end_date=end_date)
+        if stock_list.empty:
+            logger.warning("基础过滤后无股票可用于机构核心策略")
+            return []
+
+        if self.use_dynamic_industry_strength:
+            self._prepare_dynamic_industry_strength(end_date=end_date)
+
+        results = self.institutional_core_selector.run(
+            end_date=end_date,
+            stock_list=stock_list,
+            industry_strength_map=self._industry_strength_map,
+        )
+        return results
+
+    @staticmethod
+    def _build_alpha158_risk_flags(
+        roc5: float,
+        vol_ratio5: float,
+        upper_shadow: float,
+        vstd30: float,
+        boll_pos: float,
+    ) -> List[str]:
+        flags: List[str] = []
+        if roc5 >= 0.05 or boll_pos >= 1.0:
+            flags.append("chasing_extension")
+        if vol_ratio5 >= 1.5:
+            flags.append("volume_spike")
+        if upper_shadow >= 0.35:
+            flags.append("upper_shadow")
+        if vstd30 >= 0.50:
+            flags.append("high_volatility")
+        return flags
+
+    @staticmethod
+    def _default_alpha158_hold_router() -> Dict[str, Dict[str, int]]:
+        return {
+            "trend": {"continuation": 5, "pullback": 4, "quality": 5, "risk": 3, "default": 4},
+            "sideways": {"continuation": 4, "pullback": 3, "quality": 5, "risk": 2, "default": 4},
+            "weak": {"continuation": 3, "pullback": 2, "quality": 4, "risk": 2, "default": 3},
+        }
+
+    @classmethod
+    def _load_alpha158_hold_router(cls, config) -> Dict[str, Dict[str, int]]:
+        router = cls._default_alpha158_hold_router()
+        raw_router = config.get("stock_selection.alpha158_hold_router", {})
+        if not isinstance(raw_router, dict):
+            return router
+
+        for regime_name, mapping in raw_router.items():
+            if not isinstance(mapping, dict):
+                continue
+            regime_key = str(regime_name or "").lower()
+            if regime_key not in router:
+                continue
+            for prototype_name, hold_days in mapping.items():
+                try:
+                    normalized = int(hold_days)
+                except Exception:
+                    continue
+                router[regime_key][str(prototype_name or "").lower()] = int(min(max(normalized, 2), 5))
+        return router
+
+    @staticmethod
+    def _default_alpha158_hold_router_apply() -> Dict[str, Dict[str, bool]]:
+        return {
+            "trend": {
+                "continuation": False,
+                "pullback": True,
+                "quality": False,
+                "risk": False,
+                "default": False,
+            },
+            "sideways": {
+                "continuation": False,
+                "pullback": False,
+                "quality": True,
+                "risk": False,
+                "default": False,
+            },
+            "weak": {
+                "continuation": False,
+                "pullback": False,
+                "quality": True,
+                "risk": False,
+                "default": False,
+            },
+        }
+
+    @classmethod
+    def _load_alpha158_hold_router_apply(cls, config) -> Dict[str, Dict[str, bool]]:
+        apply_map = cls._default_alpha158_hold_router_apply()
+        raw_map = config.get("stock_selection.alpha158_hold_router_apply", {})
+        if not isinstance(raw_map, dict):
+            return apply_map
+
+        for regime_name, mapping in raw_map.items():
+            if not isinstance(mapping, dict):
+                continue
+            regime_key = str(regime_name or "").lower()
+            if regime_key not in apply_map:
+                continue
+            for prototype_name, enabled in mapping.items():
+                apply_map[regime_key][str(prototype_name or "").lower()] = bool(enabled)
+        return apply_map
+
+    def _resolve_alpha158_holding_plan(
+        self,
+        prototype_label: str,
+        regime_name: str,
+    ) -> tuple[int, str]:
+        prototype = str(prototype_label or "").lower()
+        regime = str(regime_name or "sideways").lower()
+        apply_mapping = self.alpha158_hold_router_apply.get(regime, self.alpha158_hold_router_apply["sideways"])
+        use_dynamic = bool(apply_mapping.get(prototype, apply_mapping.get("default", False)))
+        if not use_dynamic:
+            return 5, "fixed_t5"
+        return self._suggest_alpha158_holding_days(prototype_label=prototype, regime_name=regime), self.alpha158_hold_router_name
+
+    def _suggest_alpha158_holding_days(
+        self,
+        prototype_label: str,
+        regime_name: str,
+    ) -> int:
+        prototype = str(prototype_label or "").lower()
+        regime = str(regime_name or "sideways").lower()
+        mapping = self.alpha158_hold_router.get(regime, self.alpha158_hold_router["sideways"])
+        return int(mapping.get(prototype, mapping["default"]))
+
     def run_selection(self, market_score: float = None, end_date: str = None) -> List[Dict]:
         if end_date is None:
             end_date = datetime.now().strftime("%Y%m%d")
 
         logger.info("=" * 50)
-        logger.info("开始执行选股（Alpha158 IC加权模型）...")
+        logger.info("开始执行选股（%s）...", self._get_strategy_title())
         logger.info("选股日期: %s", end_date)
         logger.info("=" * 50)
 
@@ -3597,13 +4816,90 @@ class StockSelector:
             self.market_score = market_score
 
         feedback_guard_profile = self._get_feedback_guard_profile(end_date=end_date)
+        effective_min_score = float(feedback_guard_profile.get("effective_min_score", self.min_score))
         effective_top_n = int(feedback_guard_profile.get("effective_top_n", self.top_n))
+        trace: Dict[str, Any] = {
+            "strategy_profile": self.strategy_profile,
+            "end_date": end_date,
+            "effective_min_score_initial": float(effective_min_score),
+            "effective_min_score_applied": float(effective_min_score),
+            "effective_top_n_initial": int(effective_top_n),
+            "effective_top_n_after_regime": int(effective_top_n),
+            "effective_top_n_final": int(effective_top_n),
+            "regime_name": "",
+            "regime_breadth_state": "unknown",
+            "market_below_ma20": False,
+            "point_in_time_enabled": bool(self.use_point_in_time_universe),
+            "fallback_triggered": False,
+            "fallback_count": 0,
+            "entry_filter_removed_count": 0,
+            "entry_filter_preserved_top1": False,
+            "empty_signal_day": False,
+            "raw_count": 0,
+            "after_loss_count": 0,
+            "after_diversify_count": 0,
+            "after_portfolio_gate_count": 0,
+            "final_count": 0,
+            "gross_exposure": 0.0,
+            "loss_meta": {"enabled": False},
+            "portfolio_gate_meta": {"enabled": False},
+            "abstain_meta": {"enabled": False, "abstain": False, "effective_top_n": int(effective_top_n)},
+            "raw_codes": [],
+            "after_loss_codes": [],
+            "after_diversify_codes": [],
+            "after_portfolio_gate_codes": [],
+            "final_codes": [],
+        }
 
-        results = self._run_alpha158_selection(end_date=end_date)
+        if self.strategy_profile == INSTITUTIONAL_CORE_PROFILE:
+            results = self._run_institutional_core_selection(end_date=end_date)
+        elif self.strategy_profile == DAILY_MULTI_STRATEGY_PROFILE:
+            alpha_results = self._run_alpha158_selection(
+                end_date=end_date,
+                effective_min_score=effective_min_score,
+                feedback_guard_profile=feedback_guard_profile,
+            )
+            results = self.daily_multi_strategy_selector.run(
+                end_date=end_date,
+                alpha158_results=alpha_results,
+            )
+        else:
+            results = self._run_alpha158_selection(
+                end_date=end_date,
+                effective_min_score=effective_min_score,
+                feedback_guard_profile=feedback_guard_profile,
+            )
+        trace["raw_count"] = len(results)
+        trace["raw_codes"] = [str(item.get("ts_code", "")) for item in results[:10]]
         if results:
-            regime_top_n_multiplier = float(results[0].get("alpha158_top_n_multiplier", 1.0))
+            trace["regime_name"] = str(results[0].get("regime_name", results[0].get("alpha158_regime", "")) or "")
+            trace["regime_breadth_state"] = str(results[0].get("regime_breadth_state", "unknown") or "unknown")
+            trace["market_below_ma20"] = bool(results[0].get("market_below_ma20", False))
+            trace["fallback_triggered"] = bool(results[0].get("fallback_triggered", False))
+            trace["fallback_count"] = int(results[0].get("fallback_count", 0) or 0)
+            trace["entry_filter_removed_count"] = int(results[0].get("entry_filter_removed_count", 0) or 0)
+            trace["entry_filter_preserved_top1"] = bool(results[0].get("entry_filter_preserved_top1", False))
+            trace["effective_min_score_applied"] = float(results[0].get("effective_min_score_applied", effective_min_score))
+        else:
+            trace["empty_signal_day"] = True
+        if results and self._should_apply_loss_avoidance():
+            regime_name = str(results[0].get("regime_name", results[0].get("alpha158_regime", "")) or "")
+            results, loss_meta = self.loss_avoidance_filter.apply(
+                results=results,
+                regime_name=regime_name,
+            )
+            trace["loss_meta"] = dict(loss_meta or {})
+            for item in results:
+                item["loss_avoidance_meta"] = loss_meta
+        trace["after_loss_count"] = len(results)
+        trace["after_loss_codes"] = [str(item.get("ts_code", "")) for item in results[:10]]
+        if results:
+            regime_top_n_multiplier = float(
+                results[0].get("regime_top_n_multiplier", results[0].get("alpha158_top_n_multiplier", 1.0))
+            )
             # 向下取整，确保收缩仓位在小样本下也能真实生效（避免 round 导致 0.8/0.7 同为4）
             effective_top_n = max(1, int(effective_top_n * regime_top_n_multiplier))
+            trace["effective_top_n_after_regime"] = int(effective_top_n)
             logger.info(
                 "状态路由调整后有效选股数: %d (x%.2f)",
                 effective_top_n,
@@ -3616,13 +4912,75 @@ class StockSelector:
         )
 
         diversified_results = self.diversify_by_industry(results)
+        trace["after_diversify_count"] = len(diversified_results)
+        trace["after_diversify_codes"] = [str(item.get("ts_code", "")) for item in diversified_results[:10]]
+
+        portfolio_gate_meta: Dict[str, Any] = {"enabled": False}
+        if diversified_results and self._should_apply_portfolio_gate():
+            regime_name = str(diversified_results[0].get("regime_name", diversified_results[0].get("alpha158_regime", "")) or "")
+            gated_results, portfolio_gate_meta = self.portfolio_gate.apply(
+                results=diversified_results,
+                end_date=end_date,
+                target_count=effective_top_n,
+                regime_name=regime_name,
+                industry_strength_map=self._industry_strength_map,
+            )
+            if gated_results:
+                diversified_results = gated_results
+                logger.info(
+                    "组合预算层生效: selected=%d blocked=%d shortlist=%d",
+                    portfolio_gate_meta.get("selected", len(gated_results)),
+                    portfolio_gate_meta.get("blocked_count", 0),
+                    portfolio_gate_meta.get("shortlist_size", len(diversified_results)),
+                )
+        trace["portfolio_gate_meta"] = dict(portfolio_gate_meta or {})
+        trace["after_portfolio_gate_count"] = len(diversified_results)
+        trace["after_portfolio_gate_codes"] = [str(item.get("ts_code", "")) for item in diversified_results[:10]]
 
         # 大盘弱市时减少选股数量（实证：大盘<MA20时均收-0.18%）
         if diversified_results and diversified_results[0].get("market_below_ma20", False):
             effective_top_n = max(1, effective_top_n // 2)
             logger.info("弱市模式: 选股数量减半为 %d", effective_top_n)
 
+        abstain_meta: Dict[str, Any] = {"enabled": False, "abstain": False, "effective_top_n": effective_top_n}
+        if diversified_results and self._should_apply_abstain_guard():
+            regime_name = str(diversified_results[0].get("regime_name", diversified_results[0].get("alpha158_regime", "")) or "")
+            abstain_meta = self.selection_abstain_guard.decide(
+                results=diversified_results,
+                strategy_profile=self.strategy_profile,
+                regime_name=regime_name,
+                market_below_ma20=bool(diversified_results[0].get("market_below_ma20", False)),
+                effective_top_n=effective_top_n,
+            )
+            effective_top_n = int(abstain_meta.get("effective_top_n", effective_top_n))
+            if abstain_meta.get("abstain", False):
+                diversified_results = []
+                logger.info("abstain 生效: %s", abstain_meta.get("reason", "unknown"))
+        trace["abstain_meta"] = dict(abstain_meta or {})
+
         top_results = diversified_results[:effective_top_n]
+        top_results = self.position_sizer.allocate(top_results, strategy_profile=self.strategy_profile)
+        for stock in top_results:
+            stock["portfolio_gate_meta"] = portfolio_gate_meta
+            stock["abstain_meta"] = abstain_meta
+            stock.setdefault("fallback_triggered", bool(trace.get("fallback_triggered", False)))
+            stock.setdefault("fallback_count", int(trace.get("fallback_count", 0)))
+            stock.setdefault("entry_filter_removed_count", int(trace.get("entry_filter_removed_count", 0)))
+            stock.setdefault("entry_filter_preserved_top1", bool(trace.get("entry_filter_preserved_top1", False)))
+            stock.setdefault("effective_min_score_applied", float(trace.get("effective_min_score_applied", effective_min_score)))
+            stock.setdefault("point_in_time_enabled", bool(self.use_point_in_time_universe))
+            stock.setdefault("empty_signal_day", False)
+            stock.setdefault("regime_breadth_state", str(trace.get("regime_breadth_state", "unknown")))
+        if top_results:
+            trace["gross_exposure"] = round(
+                float(sum(float(item.get("position_weight", 0.0) or 0.0) for item in top_results)),
+                4,
+            )
+        trace["effective_top_n_final"] = int(effective_top_n)
+        trace["final_count"] = len(top_results)
+        trace["empty_signal_day"] = bool(len(top_results) == 0)
+        trace["final_codes"] = [str(item.get("ts_code", "")) for item in top_results[:10]]
+        self.last_selection_trace = trace
 
         industry_dist: Dict[str, int] = {}
         for stock in top_results:
@@ -3656,7 +5014,7 @@ class StockSelector:
     def generate_report(self, results: List[Dict]) -> str:
         report_lines = [
             "=" * 70,
-            "每日选股报告（Alpha158 IC加权）",
+            f"每日选股报告（{self._get_strategy_title()}）",
             f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"市场环境: {self.market_score}分",
             f"策略档位: {self.strategy_profile}",
@@ -3688,6 +5046,7 @@ class StockSelector:
                 [
                     f"【{i}】{stock['ts_code']} {stock['name']} [{stock.get('industry', '未知')}]",
                     f"    综合得分: {stock['total_score']}分 (标准化:{sn}分) ({stock['level']})",
+                    f"    建议仓位: {float(stock.get('position_weight', 0.0) or 0.0):.2%}",
                 ]
             )
             if raw is not None:

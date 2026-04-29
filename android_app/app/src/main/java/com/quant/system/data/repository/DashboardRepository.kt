@@ -43,7 +43,7 @@ class DashboardRepository(private val context: Context) {
     private val retrofitClient = EnhancedRetrofitClient(context)
     private val networkMonitor = NetworkMonitorImpl(context)
     
-    suspend fun getDashboard(baseUrl: String): Result<DashboardSnapshot> = safeApiCall(retryOnTransientNetwork = true) {
+    suspend fun getDashboard(baseUrl: String): Result<DashboardSnapshot> = safeApiCall(retryOnTransientNetwork = false) {
         val apiService = retrofitClient.createApiService(baseUrl, ApiService::class.java)
         val response = apiService.getOverview()
         response.requireData("数据解析失败")
@@ -359,9 +359,15 @@ class DashboardRepository(private val context: Context) {
     }
 
     private fun mapErrorMessage(error: Throwable): String {
+        val timeoutType = resolveTimeoutType(error)
         return when (error) {
             is SocketTimeoutException,
-            is InterruptedIOException -> "请求超时，请稍后重试"
+            is InterruptedIOException -> when (timeoutType) {
+                TimeoutType.Connect -> "连接超时，请检查服务器地址或网络"
+                TimeoutType.Read -> "读取超时，服务器响应较慢"
+                TimeoutType.Call -> "请求超时，请稍后重试"
+                TimeoutType.Unknown -> "请求超时，请稍后重试"
+            }
             is UnknownHostException,
             is ConnectException,
             is IOException -> "网络不可用或服务器不可达"
@@ -386,5 +392,26 @@ class DashboardRepository(private val context: Context) {
 
     private companion object {
         const val RETRY_BASE_DELAY_MS = 400L
+    }
+
+    private enum class TimeoutType {
+        Connect,
+        Read,
+        Call,
+        Unknown,
+    }
+
+    private fun resolveTimeoutType(error: Throwable): TimeoutType {
+        val hint = buildString {
+            append(error.message.orEmpty())
+            append(' ')
+            append(error.cause?.message.orEmpty())
+        }.lowercase()
+        return when {
+            hint.contains("connect timed out") || hint.contains("failed to connect") -> TimeoutType.Connect
+            hint.contains("read timed out") || hint.contains("timeout reading") -> TimeoutType.Read
+            hint.contains("call timeout") -> TimeoutType.Call
+            else -> TimeoutType.Unknown
+        }
     }
 }

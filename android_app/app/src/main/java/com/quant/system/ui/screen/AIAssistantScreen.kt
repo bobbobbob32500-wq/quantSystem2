@@ -21,10 +21,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,6 +43,12 @@ import com.quant.system.data.model.AIStatus
 import com.quant.system.data.model.ButlerAlert
 import com.quant.system.data.model.ButlerStatus
 import com.quant.system.data.model.ChatMessage
+import com.quant.system.ui.theme.Border
+import com.quant.system.ui.theme.Primary
+import com.quant.system.ui.theme.Surface
+import com.quant.system.ui.theme.SurfaceVariant
+import com.quant.system.ui.theme.TextPrimary
+import com.quant.system.ui.theme.TextSecondary
 
 @Composable
 fun AIAssistantScreen(
@@ -69,69 +76,104 @@ fun AIAssistantScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        AIStatusBar(
+        TopBar(
+            title = "AI 管家",
+            subtitle = "把候选、信号和持仓上下文交给 AI，总结判断、风险和后续动作。",
+            eyebrow = "AI Butler",
+        )
+
+        HeroSection(
+            title = "AI 工作台",
+            value = if (aiAvailable) "在线" else "离线",
+            subtitle = when (inferenceMode.lowercase()) {
+                "cloud" -> "云端优先"
+                "local" -> "本地优先"
+                else -> "自动推理"
+            },
+            stats = listOf(
+                Triple("会话", messages.size.toString(), ""),
+                Triple("预警", (butlerStatus?.activeAlertsCount ?: 0).toString(), ""),
+                Triple("管家", if (butlerStatus?.running == true) "运行中" else "空闲", ""),
+            ),
+        )
+
+        AIStatusPanel(
             aiAvailable = aiAvailable,
             aiStatus = aiStatus,
             inferenceMode = inferenceMode,
-            butlerRunning = butlerStatus?.running ?: false,
+            butlerStatus = butlerStatus,
             onStartButler = onStartButler,
             onStopButler = onStopButler,
+            onClearHistory = onClearHistory,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        ButlerAlertsPanel(alerts = butlerStatus?.activeAlerts.orEmpty())
 
-        ButlerAlertsSection(alerts = butlerStatus?.activeAlerts.orEmpty())
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        QuickActionButtons(
+        AIQuickActionsCard(
             enabled = aiAvailable,
             onQuickAsk = onQuickAsk,
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Box(
+        Card(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            shape = RoundedCornerShape(24.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
         ) {
-            if (messages.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "对话记录",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                 ) {
-                    Text(
-                        text = "你好！我是 AI 管家，可结合你当前候选池与持仓做说明（摘要由本机随请求传给后端，不含账户密码）。\n\n请问有什么可以帮你的？",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(messages) { message ->
-                        ChatMessageBubble(message)
+                    if (messages.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "你好，我是 AI 管家。\n\n我可以结合当前候选池、信号和持仓，帮你解释为什么触发、哪里该谨慎、下一步该先看什么。",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            items(messages) { message ->
+                                ChatMessageBubble(message)
+                            }
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         Text(
-            text = "提示：大模型输出仅供参考，不构成投资建议；实盘请严格风控并注意滑点与过拟合风险。",
+            text = "提示：模型输出仅供辅助判断，不构成投资建议；实盘请继续以风控和策略纪律为准。",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = TextSecondary,
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         ChatInputArea(
             inputText = inputText,
@@ -144,145 +186,174 @@ fun AIAssistantScreen(
 }
 
 @Composable
-private fun AIStatusBar(
+private fun AIStatusPanel(
     aiAvailable: Boolean,
     aiStatus: AIStatus?,
     inferenceMode: String,
-    butlerRunning: Boolean,
+    butlerStatus: ButlerStatus?,
     onStartButler: () -> Unit,
     onStopButler: () -> Unit,
+    onClearHistory: () -> Unit,
 ) {
-    val modelLine = aiStatus?.llmStatus?.defaultModel?.takeIf { it.isNotBlank() }?.let { "模型：$it" } ?: ""
-    val inferenceLine = when (inferenceMode.lowercase()) {
-        "cloud" -> "推理策略：云端优先"
-        "local" -> "推理策略：本地优先"
-        else -> "推理策略：自动"
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                if (aiAvailable) Color(0xFF22C55E).copy(alpha = 0.1f)
-                else Color(0xFFEF4444).copy(alpha = 0.1f),
-                RoundedCornerShape(8.dp),
-            )
-            .padding(12.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            if (aiAvailable) Color(0xFF22C55E) else Color(0xFFEF4444),
-                            RoundedCornerShape(4.dp),
-                        ),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (aiAvailable) "AI服务在线" else "AI服务离线",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                if (butlerRunning) {
-                    Spacer(modifier = Modifier.width(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "| 管家运行中",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF6366F1),
+                        text = if (aiAvailable) "AI 服务在线" else "AI 服务离线",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = aiStatus?.llmStatus?.defaultModel?.takeIf { it.isNotBlank() }?.let { "模型：$it" } ?: "模型信息暂不可用",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
                     )
                 }
+                StatusPill(
+                    text = if (butlerStatus?.running == true) "管家运行中" else "管家空闲",
+                    tone = if (butlerStatus?.running == true) PillTone.Positive else PillTone.Neutral,
+                )
             }
-            Row {
-                if (!butlerRunning) {
-                    TextButton(onClick = onStartButler) {
-                        Text("启动管家", fontSize = 12.sp)
-                    }
-                } else {
-                    TextButton(onClick = onStopButler) {
-                        Text("停止管家", fontSize = 12.sp)
-                    }
-                }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                AIPanelMetric(
+                    label = "推理",
+                    value = when (inferenceMode.lowercase()) {
+                        "cloud" -> "云端优先"
+                        "local" -> "本地优先"
+                        else -> "自动"
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+                AIPanelMetric(
+                    label = "最近简报",
+                    value = butlerStatus?.lastBriefingTime ?: "--",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PrimaryButton(
+                    text = if (butlerStatus?.running == true) "停止管家" else "启动管家",
+                    onClick = if (butlerStatus?.running == true) onStopButler else onStartButler,
+                    modifier = Modifier.weight(1f),
+                )
+                SecondaryButton(
+                    text = "清空对话",
+                    onClick = onClearHistory,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
-        if (modelLine.isNotBlank()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = modelLine,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = inferenceLine,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
 @Composable
-private fun ButlerAlertsSection(alerts: List<ButlerAlert>) {
+private fun ButlerAlertsPanel(alerts: List<ButlerAlert>) {
     if (alerts.isEmpty()) return
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
-                RoundedCornerShape(8.dp),
-            )
-            .padding(10.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfaceVariant.copy(alpha = 0.58f)),
+        shape = RoundedCornerShape(22.dp),
     ) {
-        Text(
-            text = "管家预警（${alerts.size}）",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        alerts.take(6).forEach { a ->
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Text(
-                text = "[${a.level}] ${a.type}：${a.message}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                text = "管家预警",
+                style = MaterialTheme.typography.titleSmall,
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
             )
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-        if (alerts.size > 6) {
-            Text(
-                text = "… 其余 ${alerts.size - 6} 条已省略",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            alerts.take(6).forEach { alert ->
+                Text(
+                    text = "[${alert.level}] ${alert.type}：${alert.message}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                )
+            }
+            if (alerts.size > 6) {
+                Text(
+                    text = "其余 ${alerts.size - 6} 条已折叠。",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondary,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun QuickActionButtons(
+private fun AIQuickActionsCard(
     enabled: Boolean,
     onQuickAsk: (String) -> Unit,
 ) {
     val quickActions = listOf("市场分析", "选股逻辑", "风控策略", "策略优化")
-
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
     ) {
-        quickActions.forEach { action ->
-            OutlinedButton(
-                onClick = { onQuickAsk(action) },
-                modifier = Modifier.weight(1f),
-                enabled = enabled,
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "快捷提问",
+                style = MaterialTheme.typography.titleSmall,
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(action, fontSize = 12.sp)
+                quickActions.forEach { action ->
+                    SecondaryButton(
+                        text = action,
+                        onClick = { onQuickAsk(action) },
+                        modifier = Modifier.weight(1f),
+                        enabled = enabled,
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun AIPanelMetric(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = SurfaceVariant.copy(alpha = 0.58f)),
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text(text = value, style = MaterialTheme.typography.titleSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -298,20 +369,20 @@ private fun ChatMessageBubble(message: ChatMessage) {
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(if (isSystem) 1f else 0.85f)
+                .fillMaxWidth(if (isSystem) 1f else 0.86f)
                 .background(
                     when {
-                        isUser -> MaterialTheme.colorScheme.primary
-                        isSystem -> Color(0xFF6366F1).copy(alpha = 0.1f)
-                        else -> MaterialTheme.colorScheme.surfaceVariant
+                        isUser -> Primary
+                        isSystem -> Color(0xFFE9EFF6)
+                        else -> SurfaceVariant
                     },
-                    RoundedCornerShape(12.dp),
+                    RoundedCornerShape(18.dp),
                 )
-                .padding(12.dp),
+                .padding(14.dp),
         ) {
             Text(
                 text = if (message.isLoading) "思考中…" else message.content,
-                color = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface,
+                color = if (isUser) Color.White else TextPrimary,
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -335,7 +406,7 @@ private fun ChatInputArea(
             value = inputText,
             onValueChange = onInputTextChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text(if (enabled) "输入问题…" else "请先配置后端并确保 AI 可用") },
+            placeholder = { Text(if (enabled) "输入问题…" else "请先确保 AI 可用") },
             enabled = enabled,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
             keyboardActions = KeyboardActions(
@@ -346,11 +417,12 @@ private fun ChatInputArea(
                 },
             ),
             maxLines = 3,
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(18.dp),
         )
 
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             IconButton(
                 onClick = {
@@ -363,10 +435,7 @@ private fun ChatInputArea(
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "发送")
             }
 
-            TextButton(
-                onClick = onClear,
-                modifier = Modifier.padding(0.dp),
-            ) {
+            TextButton(onClick = onClear) {
                 Text("清空", fontSize = 11.sp)
             }
         }

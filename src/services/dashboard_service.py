@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import subprocess
 import time
+import urllib.parse
+import urllib.request
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -190,7 +193,7 @@ class DashboardDataService:
         """
         now = self.now_provider()
         candidate_pool = self._build_candidate_pool_section()
-        virtual_trades = self._build_virtual_trade_section()
+        virtual_trades = self._build_virtual_trade_section(include_realtime_quotes=False)
         holdings = self._build_holdings_section()
         signals = self._build_signal_section()
         health = self._build_health_section(now)
@@ -207,6 +210,18 @@ class DashboardDataService:
             "signals": signals,
             "health": health,
         }
+
+    def build_candidate_pool_payload(self) -> Dict[str, Any]:
+        """Build only the candidate pool payload for lightweight mobile endpoints."""
+        return self._build_candidate_pool_section()
+
+    def build_signal_payload(self) -> Dict[str, Any]:
+        """Build only the signal payload for lightweight mobile endpoints."""
+        return self._build_signal_section()
+
+    def build_virtual_trades_payload(self) -> Dict[str, Any]:
+        """Build mobile virtual-trade data without blocking on realtime quote providers."""
+        return self._build_virtual_trade_section(include_realtime_quotes=False)
 
     def _build_overview(
         self,
@@ -478,6 +493,213 @@ class DashboardDataService:
             "quote_time": dt_str,
             "quote_source": "tushare新浪",
         }
+
+    @staticmethod
+    def _quote_float(value: Any) -> Optional[float]:
+        try:
+            text = str(value).strip()
+            if text in {"", "-", "None", "nan"}:
+                return None
+            return float(text)
+        except (TypeError, ValueError):
+            return None
+
+    def _eastmoney_secid(self, value: Any) -> Optional[str]:
+        ts_code = self._normalize_ts_code(value)
+        if not ts_code:
+            return None
+        code = ts_code.split(".", 1)[0]
+        suffix = ts_code.split(".", 1)[1] if "." in ts_code else ""
+        market = "1" if suffix == "SH" or code.startswith(("5", "6", "9")) else "0"
+        return f"{market}.{code}"
+
+    def _tencent_symbol(self, value: Any) -> Optional[str]:
+        ts_code = self._normalize_ts_code(value)
+        if not ts_code:
+            return None
+        code = ts_code.split(".", 1)[0]
+        suffix = ts_code.split(".", 1)[1] if "." in ts_code else ""
+        prefix = "sh" if suffix == "SH" or code.startswith(("5", "6", "9")) else "sz"
+        return f"{prefix}{code}"
+
+    def _fetch_eastmoney_realtime_quotes_map(
+        self,
+        symbols: List[Any],
+        timeout_seconds: float = 2.5,
+    ) -> Dict[str, Dict[str, Any]]:
+        secids: List[str] = []
+        seen: set[str] = set()
+        for symbol in symbols:
+            secid = self._eastmoney_secid(symbol)
+            if secid and secid not in seen:
+                seen.add(secid)
+                secids.append(secid)
+        if not secids:
+            return {}
+
+        query = urllib.parse.urlencode(
+            {
+                "fltt": "2",
+                "invt": "2",
+                "fields": "f12,f14,f2,f3,f4,f15,f16,f17,f18,f5,f6,f124",
+                "secids": ",".join(secids),
+            },
+            safe=",",
+        )
+        url = f"https://push2.eastmoney.com/api/qt/ulist.np/get?{query}"
+        request = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0",
+                "Referer": "https://quote.eastmoney.com/",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+                raw_body = response.read().decode("utf-8", errors="ignore")
+        except Exception as exc:
+            logger.warning("东方财富实时行情 urllib 拉取失败，尝试 curl 兜底: %s", exc)
+            try:
+                result = subprocess.run(
+                    [
+                        "curl",
+                        "-L",
+                        "-s",
+                        "--max-time",
+                        str(max(1, int(timeout_seconds))),
+                        "-H",
+                        "User-Agent: Mozilla/5.0",
+                        "-H",
+                        "Referer: https://quote.eastmoney.com/",
+                        url,
+                    ],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_seconds + 1.0,
+                )
+                raw_body = result.stdout or ""
+                if result.returncode != 0 or not raw_body.strip():
+                    logger.warning("东方财富实时行情 curl 兜底失败: code=%s stderr=%s", result.returncode, result.stderr[:120])
+                    return {}
+            except Exception as fallback_exc:
+                logger.warning("东方财富实时行情 curl 兜底异常: %s", fallback_exc)
+                return {}
+
+        try:
+            payload = json.loads(raw_body)
+        except json.JSONDecodeError as exc:
+            logger.warning("东方财富实时行情响应解析失败: %s", exc)
+            return {}
+
+        rows = ((payload.get("data") or {}).get("diff") or []) if isinstance(payload, dict) else []
+        out: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            code = str(row.get("f12") or "").strip()
+            if not code:
+                continue
+            ts_code = self._normalize_ts_code(code)
+            price = self._quote_float(row.get("f2"))
+            pct_change = self._quote_float(row.get("f3"))
+            timestamp = self._quote_float(row.get("f124"))
+            quote_time = ""
+            quote_trade_date = ""
+            if timestamp:
+                try:
+                    dt = datetime.fromtimestamp(int(timestamp))
+                    quote_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+                    quote_trade_date = dt.strftime("%Y-%m-%d")
+                except (OSError, OverflowError, ValueError):
+                    quote_time = ""
+            out[ts_code] = {
+                "quote_ok": price is not None and price > 0,
+                "quote_price": price,
+                "quote_pct_change": pct_change,
+                "quote_high": self._quote_float(row.get("f15")),
+                "quote_low": self._quote_float(row.get("f16")),
+                "quote_open": self._quote_float(row.get("f17")),
+                "quote_pre_close": self._quote_float(row.get("f18")),
+                "quote_volume": self._quote_float(row.get("f5")),
+                "quote_amount": self._quote_float(row.get("f6")),
+                "quote_time": quote_time,
+                "quote_trade_date": quote_trade_date,
+                "quote_source": "东方财富实时",
+                "quote_is_realtime": True,
+            }
+        return out
+
+    def _fetch_tencent_realtime_quotes_map(
+        self,
+        symbols: List[Any],
+        timeout_seconds: float = 2.5,
+    ) -> Dict[str, Dict[str, Any]]:
+        query_symbols: List[str] = []
+        seen: set[str] = set()
+        for symbol in symbols:
+            query_symbol = self._tencent_symbol(symbol)
+            if query_symbol and query_symbol not in seen:
+                seen.add(query_symbol)
+                query_symbols.append(query_symbol)
+        if not query_symbols:
+            return {}
+
+        url = f"https://qt.gtimg.cn/q={','.join(query_symbols)}"
+        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+                raw_body = response.read().decode("gbk", errors="ignore")
+        except Exception as exc:
+            logger.warning("腾讯实时行情 urllib 拉取失败，尝试 curl 兜底: %s", exc)
+            try:
+                result = subprocess.run(
+                    ["curl", "-L", "-s", "--max-time", str(max(1, int(timeout_seconds))), "-H", "User-Agent: Mozilla/5.0", url],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_seconds + 1.0,
+                )
+                raw_body = result.stdout or ""
+                if result.returncode != 0 or not raw_body.strip():
+                    logger.warning("腾讯实时行情 curl 兜底失败: code=%s stderr=%s", result.returncode, result.stderr[:120])
+                    return {}
+            except Exception as fallback_exc:
+                logger.warning("腾讯实时行情 curl 兜底异常: %s", fallback_exc)
+                return {}
+
+        out: Dict[str, Dict[str, Any]] = {}
+        for segment in raw_body.split(";"):
+            if "=\"" not in segment:
+                continue
+            payload = segment.split("=\"", 1)[1].strip().strip('"')
+            parts = payload.split("~")
+            if len(parts) < 35:
+                continue
+            code = str(parts[2] or "").strip()
+            if not code:
+                continue
+            ts_code = self._normalize_ts_code(code)
+            price = self._quote_float(parts[3])
+            raw_time = parts[30].strip() if len(parts) > 30 else ""
+            quote_time = ""
+            quote_trade_date = ""
+            if len(raw_time) >= 14 and raw_time[:14].isdigit():
+                quote_time = f"{raw_time[:4]}-{raw_time[4:6]}-{raw_time[6:8]} {raw_time[8:10]}:{raw_time[10:12]}:{raw_time[12:14]}"
+                quote_trade_date = quote_time[:10]
+            out[ts_code] = {
+                "quote_ok": price is not None and price > 0,
+                "quote_price": price,
+                "quote_pct_change": self._quote_float(parts[32] if len(parts) > 32 else None),
+                "quote_high": self._quote_float(parts[33] if len(parts) > 33 else None),
+                "quote_low": self._quote_float(parts[34] if len(parts) > 34 else None),
+                "quote_open": self._quote_float(parts[5] if len(parts) > 5 else None),
+                "quote_pre_close": self._quote_float(parts[4] if len(parts) > 4 else None),
+                "quote_volume": self._quote_float(parts[36] if len(parts) > 36 else None),
+                "quote_time": quote_time,
+                "quote_trade_date": quote_trade_date,
+                "quote_source": "腾讯实时",
+                "quote_is_realtime": True,
+            }
+        return out
 
     def _fetch_journey_realtime_quotes_map(
         self, codes: List[str]
@@ -1245,22 +1467,47 @@ class DashboardDataService:
         quote_map = self._load_latest_daily_quote_map(
             [item.get("ts_code") or item.get("symbol") for item in candidates]
         )
+        realtime_quote_map = self._fetch_eastmoney_realtime_quotes_map(
+            [item.get("ts_code") or item.get("symbol") for item in candidates[:30]]
+        )
+        missing_realtime_symbols = [
+            item.get("ts_code") or item.get("symbol")
+            for item in candidates[:30]
+            if self._normalize_ts_code(item.get("ts_code") or item.get("symbol")) not in realtime_quote_map
+        ]
+        if missing_realtime_symbols:
+            realtime_quote_map.update(
+                self._fetch_tencent_realtime_quotes_map(missing_realtime_symbols)
+            )
         enriched_candidates = []
         for item in candidates:
             candidate = dict(item or {})
             ts_code = self._normalize_ts_code(candidate.get("ts_code") or candidate.get("symbol"))
             quote = quote_map.get(ts_code) or {}
-            # 统一候选卡片展示字段：优先实时/缓存值，缺失时回退最新日线。
-            if candidate.get("current_price") is None and quote.get("close") is not None:
-                candidate["current_price"] = quote.get("close")
-            if candidate.get("last_price") is None and quote.get("close") is not None:
-                candidate["last_price"] = quote.get("close")
-            if candidate.get("quote_pct_change") is None and quote.get("pct_chg") is not None:
-                candidate["quote_pct_change"] = quote.get("pct_chg")
-            if candidate.get("pct_chg") is None and quote.get("pct_chg") is not None:
-                candidate["pct_chg"] = quote.get("pct_chg")
-            if candidate.get("quote_trade_date") is None and quote.get("trade_date") is not None:
-                candidate["quote_trade_date"] = quote.get("trade_date")
+            realtime_quote = realtime_quote_map.get(ts_code) or {}
+            realtime_price = self._quote_float(realtime_quote.get("quote_price"))
+            if realtime_price is not None and realtime_price > 0:
+                candidate["current_price"] = realtime_price
+                candidate["last_price"] = realtime_price
+                candidate["quote_pct_change"] = realtime_quote.get("quote_pct_change")
+                candidate["pct_chg"] = realtime_quote.get("quote_pct_change")
+                candidate["quote_time"] = realtime_quote.get("quote_time")
+                candidate["quote_trade_date"] = realtime_quote.get("quote_trade_date")
+                candidate["quote_source"] = realtime_quote.get("quote_source")
+                candidate["quote_is_realtime"] = True
+            else:
+                if candidate.get("current_price") is None and quote.get("close") is not None:
+                    candidate["current_price"] = quote.get("close")
+                if candidate.get("last_price") is None and quote.get("close") is not None:
+                    candidate["last_price"] = quote.get("close")
+                if candidate.get("quote_pct_change") is None and quote.get("pct_chg") is not None:
+                    candidate["quote_pct_change"] = quote.get("pct_chg")
+                if candidate.get("pct_chg") is None and quote.get("pct_chg") is not None:
+                    candidate["pct_chg"] = quote.get("pct_chg")
+                if candidate.get("quote_trade_date") is None and quote.get("trade_date") is not None:
+                    candidate["quote_trade_date"] = quote.get("trade_date")
+                candidate["quote_is_realtime"] = False
+                candidate["quote_source"] = candidate.get("quote_source") or "最新日线"
             enriched_candidates.append(candidate)
 
         industries = Counter((item.get("industry") or "未分类") for item in enriched_candidates)
@@ -1293,7 +1540,7 @@ class DashboardDataService:
             "top_candidates": enriched_candidates[:10],
         }
 
-    def _build_virtual_trade_section(self) -> Dict[str, Any]:
+    def _build_virtual_trade_section(self, include_realtime_quotes: bool = True) -> Dict[str, Any]:
         payload = self._load_json(self.virtual_trades_path) or {}
         open_trades = list(payload.get("open_trades") or [])
         closed_trades = list(payload.get("closed_trades") or [])
@@ -1397,12 +1644,16 @@ class DashboardDataService:
 
         trade_symbols = [item.get("ts_code") or item.get("symbol") for item in open_trades]
         latest_close_map = self._load_latest_close_map(trade_symbols)
-        realtime_quotes_map, _ = self._fetch_journey_realtime_quotes_map_resilient(
-            [self._normalize_journey_symbol(s) for s in trade_symbols if s]
-        )
+        realtime_quotes_map: Dict[str, Dict[str, Any]] = {}
+        if include_realtime_quotes:
+            realtime_quotes_map, _ = self._fetch_journey_realtime_quotes_map_resilient(
+                [self._normalize_journey_symbol(s) for s in trade_symbols if s]
+            )
         normalized_open = []
         for item in open_trades[:12]:
             details = item.get("details") or {}
+            strategy_profile = self._resolve_trade_strategy_profile(item, details)
+            strategy_label = self._strategy_profile_to_label(strategy_profile)
             last_pnl_pct = details.get("last_pnl_pct")
             peak_pnl_pct = details.get("peak_pnl_pct")
             lowest_pnl_pct = details.get("lowest_pnl_pct")
@@ -1435,6 +1686,7 @@ class DashboardDataService:
                     last_pnl_pct = None
             normalized_open.append(
                 {
+                    "trade_id": item.get("trade_id"),
                     "symbol": item.get("symbol", ""),
                     "name": item.get("name", ""),
                     "buy_time": item.get("buy_time"),
@@ -1459,6 +1711,8 @@ class DashboardDataService:
                     ),
                     "buy_score": item.get("buy_score"),
                     "buy_signal": item.get("buy_signal"),
+                    "strategy_profile": strategy_profile,
+                    "strategy_label": strategy_label,
                     "pool_type": details.get("pool_type"),
                     "buy_route": details.get("buy_route") or item.get("buy_route"),
                     "signal_subtype": details.get("signal_subtype") or item.get("signal_subtype"),
@@ -1472,8 +1726,11 @@ class DashboardDataService:
         normalized_closed = []
         for item in closed_trades[:12]:
             details = item.get("details") or {}
+            strategy_profile = self._resolve_trade_strategy_profile(item, details)
+            strategy_label = self._strategy_profile_to_label(strategy_profile)
             normalized_closed.append(
                 {
+                    "trade_id": item.get("trade_id"),
                     "symbol": item.get("symbol", ""),
                     "name": item.get("name", ""),
                     "buy_time": item.get("buy_time"),
@@ -1489,6 +1746,8 @@ class DashboardDataService:
                     ),
                     "sell_reason": item.get("sell_reason"),
                     "buy_signal": item.get("buy_signal"),
+                    "strategy_profile": strategy_profile,
+                    "strategy_label": strategy_label,
                     "signal_subtype": details.get("signal_subtype") or item.get("signal_subtype"),
                 }
             )
@@ -1511,6 +1770,55 @@ class DashboardDataService:
             "open_trades": normalized_open,
             "recent_closed": normalized_closed,
         }
+
+    @staticmethod
+    def _resolve_trade_strategy_profile(item: Dict[str, Any], details: Dict[str, Any]) -> str:
+        fields = [
+            item.get("strategy_profile"),
+            details.get("strategy_profile"),
+            item.get("strategy_label"),
+            details.get("strategy_label"),
+            item.get("buy_route"),
+            details.get("buy_route"),
+            item.get("signal_subtype"),
+            details.get("signal_subtype"),
+            item.get("buy_signal"),
+        ]
+        text = " ".join(str(v or "").strip().lower().replace("-", "_") for v in fields if v)
+        if not text:
+            return "unknown"
+        if (
+            "wide_breakout" in text
+            or "breakout_wide" in text
+            or ("wide" in text and "breakout" in text)
+            or "宽进" in text
+            or "宽突破" in text
+        ):
+            return "wide_breakout"
+        if "secondary_launch" in text or "二次" in text:
+            return "secondary_launch"
+        if "breakout" in text or "突破" in text:
+            return "breakout"
+        if "alpha158" in text or "alpha_158" in text:
+            return "alpha158"
+        if "legacy" in text or "原策略" in text:
+            return "legacy"
+        if "both" in text or "融合" in text:
+            return "both"
+        return "unknown"
+
+    @staticmethod
+    def _strategy_profile_to_label(profile: str) -> str:
+        mapping = {
+            "secondary_launch": "二次启动",
+            "breakout": "突破策略",
+            "wide_breakout": "宽进突破",
+            "alpha158": "Alpha158",
+            "legacy": "原策略",
+            "both": "融合策略",
+            "unknown": "未标注策略",
+        }
+        return mapping.get(str(profile or "").strip().lower(), "未标注策略")
 
     def _build_holdings_section(self) -> Dict[str, Any]:
         rows = self._fetch_all(

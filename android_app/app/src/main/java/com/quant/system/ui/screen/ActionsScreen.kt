@@ -29,10 +29,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.quant.system.ui.theme.Border
 import com.quant.system.ui.theme.Error
 import com.quant.system.ui.theme.Primary
 import com.quant.system.ui.theme.Success
 import com.quant.system.ui.theme.Surface
+import com.quant.system.ui.theme.SurfaceVariant
 import com.quant.system.ui.theme.TextPrimary
 import com.quant.system.ui.theme.TextSecondary
 
@@ -45,7 +47,6 @@ private data class ActionItem(
 )
 
 private data class ActionOverviewCard(
-    val id: String,
     val title: String,
     val value: String,
     val subtitle: String,
@@ -68,72 +69,49 @@ fun ActionsScreen(
 
     val actionItems = remember {
         listOf(
-            ActionItem(
-                key = "generate_plan",
-                title = "生成计划",
-                description = "生成当日计划并更新概览。",
-                isLongRunning = true,
-            ),
-            ActionItem(
-                key = "run_stock_selection",
-                title = "执行选股",
-                description = "运行最新候选池选股流程。",
-            ),
-            ActionItem(
-                key = "start_monitor_runtime",
-                title = "启动监控运行时",
-                description = "启动后端监控运行服务。",
-            ),
-            ActionItem(
-                key = "stop_monitor_runtime",
-                title = "停止监控运行时",
-                description = "停止后端监控运行服务。",
-                isDanger = true,
-            ),
-            ActionItem(
-                key = "generate_post_market_review",
-                title = "生成收盘复盘",
-                description = "执行收盘复盘并更新报告。",
-                isLongRunning = true,
-            ),
+            ActionItem("generate_plan", "生成计划", "生成当日计划并回写到总览与历史。", isLongRunning = true),
+            ActionItem("run_stock_selection", "执行选股", "运行最新候选池选股流程。"),
+            ActionItem("start_monitor_runtime", "启动监控运行时", "启动后端监控运行服务。"),
+            ActionItem("stop_monitor_runtime", "停止监控运行时", "停止后端监控运行服务。", isDanger = true),
+            ActionItem("generate_post_market_review", "生成收盘复盘", "执行收盘复盘并更新报告。", isLongRunning = true),
         )
     }
-
     val overviewCards = remember(isActionRunning, runningAction, actionElapsedSeconds, actionProgress) {
         listOf(
-            ActionOverviewCard(
-                id = "status",
-                title = "执行状态",
-                value = if (isActionRunning) "执行中" else "空闲",
-                subtitle = if (isActionRunning) actionTitle(runningAction) else "可发起新动作",
-            ),
-            ActionOverviewCard(
-                id = "elapsed",
-                title = "执行时长",
-                value = "${actionElapsedSeconds}s",
-                subtitle = if (isActionRunning) "实时更新" else "等待执行",
-            ),
-            ActionOverviewCard(
-                id = "progress",
-                title = "进度",
-                value = "${(actionProgress.coerceIn(0f, 1f) * 100).toInt()}%",
-                subtitle = if (isActionRunning) "当前任务进度" else "暂无进行中任务",
-            ),
+            ActionOverviewCard("状态", if (isActionRunning) "执行中" else "空闲", if (isActionRunning) actionTitle(runningAction) else "可发起新动作"),
+            ActionOverviewCard("时长", "${actionElapsedSeconds}s", if (isActionRunning) "实时更新" else "等待执行"),
+            ActionOverviewCard("进度", "${(actionProgress.coerceIn(0f, 1f) * 100).toInt()}%", if (isActionRunning) "当前任务" else "暂无任务"),
         )
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ScreenHeader(
+            TopBar(
                 title = "动作中心",
                 subtitle = if (isActionRunning) {
-                    "执行中：${actionTitle(runningAction)}（${actionElapsedSeconds}s）"
+                    "正在执行 ${actionTitle(runningAction)}，这里是当前最重要的操作面板。"
                 } else {
-                    "关键动作需确认，避免误触发。"
+                    "关键动作集中在这里，先确认，再执行。"
                 },
+                eyebrow = "Action Desk",
+            )
+        }
+
+        item {
+            HeroSection(
+                title = "动作面板",
+                value = if (isActionRunning) "执行中" else "待执行",
+                subtitle = if (isActionRunning) "已耗时 $actionElapsedSeconds 秒" else "当前没有进行中的后台动作。",
+                stats = listOf(
+                    Triple("进度", "${(actionProgress.coerceIn(0f, 1f) * 100).toInt()}%", ""),
+                    Triple("运行", if (isActionRunning) "1" else "0", ""),
+                    Triple("动作", actionItems.size.toString(), ""),
+                ),
             )
         }
 
@@ -148,30 +126,32 @@ fun ActionsScreen(
         if (isActionRunning) {
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth().semantics {
-                        contentDescription = "动作执行状态"
-                        stateDescription = "执行中"
-                    },
+                    modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Surface),
+                    shape = RoundedCornerShape(24.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(
                             text = "正在执行 ${actionTitle(runningAction)}",
                             style = MaterialTheme.typography.titleSmall,
                             color = TextPrimary,
+                            fontWeight = FontWeight.SemiBold,
                         )
                         LinearProgressIndicator(
                             progress = { actionProgress.coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth().semantics {
-                                contentDescription = "动作执行进度"
-                                stateDescription = "${(actionProgress.coerceIn(0f, 1f) * 100).toInt()}%"
-                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "动作执行进度"
+                                    stateDescription = "${(actionProgress.coerceIn(0f, 1f) * 100).toInt()}%"
+                                },
                         )
                         Text(
-                            text = "已耗时 $actionElapsedSeconds 秒，请在本页查看实时进度。",
+                            text = "执行中请留在本页观察状态，避免重复触发同一动作。",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary,
                         )
@@ -181,45 +161,21 @@ fun ActionsScreen(
         }
 
         item {
-            Button(
+            SecondaryButton(
+                text = if (isActionRunning) "执行中..." else "刷新动作状态",
                 onClick = onRefresh,
-                modifier = Modifier.fillMaxWidth().semantics {
-                    contentDescription = "刷新看板"
-                    stateDescription = if (isActionRunning) "不可用" else "可用"
-                },
+                modifier = Modifier.fillMaxWidth(),
                 enabled = !isActionRunning,
-            ) {
-                Text(if (isActionRunning) "请稍候..." else "刷新看板")
-            }
+            )
         }
 
         item { SectionHeader("可执行动作") }
         items(actionItems, key = { it.key }) { action ->
-            val colors = when {
-                action.isDanger -> ButtonDefaults.buttonColors(containerColor = Error)
-                action.key == "run_stock_selection" -> ButtonDefaults.buttonColors(containerColor = Success)
-                action.key == "generate_plan" -> ButtonDefaults.buttonColors(containerColor = Primary)
-                else -> ButtonDefaults.buttonColors()
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(
-                    onClick = { pendingAction = action },
-                    modifier = Modifier.fillMaxWidth().semantics {
-                        contentDescription = action.title
-                        stateDescription = if (isActionRunning) "执行中不可点击" else "可点击"
-                    },
-                    enabled = !isActionRunning,
-                    colors = colors,
-                ) {
-                    Text(action.title)
-                }
-                Text(
-                    text = action.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(start = 2.dp),
-                )
-            }
+            ActionTaskCard(
+                action = action,
+                enabled = !isActionRunning,
+                onClick = { pendingAction = action },
+            )
         }
     }
 
@@ -231,12 +187,8 @@ fun ActionsScreen(
                 Text(
                     buildString {
                         append("现在执行“${action.title}”吗？")
-                        if (action.isLongRunning) {
-                            append("\n该动作可能耗时 1-2 分钟。")
-                        }
-                        if (action.isDanger) {
-                            append("\n该动作可能会中断正在运行的服务。")
-                        }
+                        if (action.isLongRunning) append("\n该动作可能耗时 1-2 分钟。")
+                        if (action.isDanger) append("\n该动作可能会中断正在运行的服务。")
                     },
                 )
             },
@@ -274,15 +226,73 @@ private fun ActionOverviewCardItem(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Surface),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(22.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(card.title, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-            Text(card.value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(card.value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
             Text(card.subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+        }
+    }
+}
+
+@Composable
+private fun ActionTaskCard(
+    action: ActionItem,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val tone = when {
+        action.isDanger -> Error
+        action.key == "run_stock_selection" -> Success
+        action.key == "generate_plan" -> Primary
+        else -> Primary.copy(alpha = 0.82f)
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = action.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = action.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+            )
+            if (action.isLongRunning || action.isDanger) {
+                StatusPill(
+                    text = if (action.isDanger) "谨慎执行" else "可能耗时较长",
+                    tone = if (action.isDanger) PillTone.Negative else PillTone.Neutral,
+                )
+            }
+            Button(
+                onClick = onClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = action.title
+                        stateDescription = if (enabled) "可点击" else "执行中不可点击"
+                    },
+                enabled = enabled,
+                colors = ButtonDefaults.buttonColors(containerColor = tone),
+                shape = RoundedCornerShape(18.dp),
+            ) {
+                Text(action.title)
+            }
         }
     }
 }

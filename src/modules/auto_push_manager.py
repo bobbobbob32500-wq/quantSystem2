@@ -339,6 +339,8 @@ class AutoPushManager:
                 strategy_label = (
                     "增强策略（enhanced / 6因子）"
                     if strategy_profile == "enhanced"
+                    else "机构核心策略（institutional_core / 多袖口）"
+                    if strategy_profile == "institutional_core"
                     else "原策略优化版（legacy_opt / 5因子）"
                     if strategy_profile == "legacy_opt"
                     else "基准原策略（legacy / 5因子）"

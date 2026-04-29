@@ -744,7 +744,10 @@ class EnhancedHybridSystem:
         known = {
             "legacy",
             "legacy_opt",
+            "alpha158",
             "enhanced",
+            "institutional_core",
+            "daily_multi_strategy",
             "secondary_launch",
             "breakout",
             "wide_breakout",
@@ -777,7 +780,10 @@ class EnhancedHybridSystem:
         mapping = {
             "legacy": "原策略",
             "legacy_opt": "原策略优化版",
+            "alpha158": "Alpha158 因子策略",
             "enhanced": "增强策略",
+            "institutional_core": "机构核心策略",
+            "daily_multi_strategy": "多策略协同",
             "secondary_launch": "二次启动策略",
             "breakout": "突破策略",
             "wide_breakout": "宽进突破策略",
@@ -787,6 +793,12 @@ class EnhancedHybridSystem:
 
     def _default_buy_template_source(self, strategy_profile: str) -> str:
         profile = self._normalize_strategy_profile(strategy_profile)
+        if profile == "alpha158":
+            return "alpha158_confirmation_v1"
+        if profile == "daily_multi_strategy":
+            return "daily_multi_confirmation_v1"
+        if profile == "institutional_core":
+            return "institutional_core_confirmation_v1"
         if profile == "enhanced":
             return "enhanced_confirmation_v1"
         if profile == "secondary_launch":
@@ -795,6 +807,12 @@ class EnhancedHybridSystem:
 
     def _default_buy_route_label(self, strategy_profile: str) -> str:
         profile = self._normalize_strategy_profile(strategy_profile)
+        if profile == "alpha158":
+            return "Alpha158 分时确认"
+        if profile == "daily_multi_strategy":
+            return "多策略协同确认"
+        if profile == "institutional_core":
+            return "机构核心确认"
         if profile == "enhanced":
             return "分时确认"
         if profile == "secondary_launch":
@@ -868,8 +886,9 @@ class EnhancedHybridSystem:
         route_label: str,
         debounce_window: Optional[int] = None,
         route_blocked: bool = False,
+        **extra_metadata: Any,
     ) -> SignalOutput:
-        return runtime_wrap_signal_metadata(
+        wrapped = runtime_wrap_signal_metadata(
             system=self,
             signal=signal,
             strategy_profile=strategy_profile,
@@ -879,6 +898,11 @@ class EnhancedHybridSystem:
             debounce_window=debounce_window,
             route_blocked=route_blocked,
         )
+        if extra_metadata:
+            details = wrapped.details if isinstance(wrapped.details, dict) else {}
+            details.update({k: v for k, v in extra_metadata.items() if v is not None})
+            wrapped.details = details
+        return wrapped
 
     def _build_false_signal(
         self,
@@ -890,7 +914,10 @@ class EnhancedHybridSystem:
         debounce_window: Optional[int] = None,
         route_blocked: bool = False,
         extra_details: Optional[Dict[str, Any]] = None,
+        **extra_metadata: Any,
     ) -> SignalOutput:
+        merged_details = dict(extra_details or {})
+        merged_details.update({k: v for k, v in extra_metadata.items() if v is not None})
         return runtime_build_false_signal(
             system=self,
             strategy_profile=strategy_profile,
@@ -900,7 +927,7 @@ class EnhancedHybridSystem:
             reason=reason,
             debounce_window=debounce_window,
             route_blocked=route_blocked,
-            extra_details=extra_details,
+            extra_details=merged_details,
         )
 
     def _collect_virtual_closed_trade_samples(self, limit: int = 500) -> List[Dict[str, Any]]:
@@ -1767,7 +1794,10 @@ class EnhancedHybridSystem:
                 for key, value in details.items():
                     if isinstance(value, dict):
                         continue
-                    print(f"{key}={value:.2f} ", end='')
+                    if isinstance(value, (int, float)) and not isinstance(value, bool):
+                        print(f"{key}={value:.2f} ", end='')
+                    else:
+                        print(f"{key}={value} ", end='')
                 print()
         
         print("\n" + "="*80)

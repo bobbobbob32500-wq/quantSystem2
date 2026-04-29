@@ -1,14 +1,21 @@
 package com.quant.system.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -17,13 +24,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -31,15 +43,16 @@ import androidx.compose.ui.unit.dp
 import com.quant.system.data.model.DashboardSnapshot
 import com.quant.system.data.model.SignalItem
 import com.quant.system.ui.screen.viewmodel.NoticeType
+import com.quant.system.ui.theme.Border
 import com.quant.system.ui.theme.Surface
 import com.quant.system.ui.theme.TextPrimary
 import com.quant.system.ui.theme.TextSecondary
+import kotlinx.coroutines.flow.distinctUntilChanged
 
-private data class SignalOverviewCard(
-    val id: String,
+private data class SignalSummary(
     val title: String,
     val value: String,
-    val subtitle: String,
+    val detail: String,
 )
 
 @Composable
@@ -52,11 +65,12 @@ fun SignalsScreen(
     onOpenStockDetail: (String) -> Unit,
 ) {
     val signals = snapshot?.signals?.latestItems.orEmpty()
+    val listState = rememberLazyListState()
     var query by rememberSaveable { mutableStateOf("") }
     var selectedType by rememberSaveable { mutableStateOf("全部") }
+    var visibleSignalCount by rememberSaveable { mutableIntStateOf(SIGNAL_PAGE_SIZE) }
 
     val normalizedQuery by remember(query) { derivedStateOf { query.trim().lowercase() } }
-
     val searchableSignals by remember(signals) {
         derivedStateOf {
             signals.map { signal ->
@@ -70,7 +84,6 @@ fun SignalsScreen(
             }
         }
     }
-
     val signalTypes by remember(signals) {
         derivedStateOf {
             listOf("全部") + signals
@@ -80,7 +93,6 @@ fun SignalsScreen(
                 .sorted()
         }
     }
-
     val filteredSignals by remember(searchableSignals, normalizedQuery, selectedType) {
         derivedStateOf {
             searchableSignals.mapNotNull { (signal, normalizedText) ->
@@ -90,39 +102,36 @@ fun SignalsScreen(
             }
         }
     }
+    val displaySignals by remember(filteredSignals, visibleSignalCount) {
+        derivedStateOf { filteredSignals.take(visibleSignalCount) }
+    }
 
-    val positiveCount = remember(signals) {
-        signals.count { s ->
-            val lower = s.signalType.orEmpty().lowercase()
-            "buy" in lower || "买" in s.signalType.orEmpty()
-        }
+    LaunchedEffect(selectedType, normalizedQuery, filteredSignals.size) {
+        visibleSignalCount = minOf(SIGNAL_PAGE_SIZE, filteredSignals.size)
     }
-    val negativeCount = remember(signals) {
-        signals.count { s ->
-            val lower = s.signalType.orEmpty().lowercase()
-            "sell" in lower || "卖" in s.signalType.orEmpty()
-        }
+
+    LaunchedEffect(listState, filteredSignals.size, visibleSignalCount) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1 }
+            .distinctUntilChanged()
+            .collect { lastVisible ->
+                if (lastVisible >= displaySignals.lastIndex - SIGNAL_PREFETCH_THRESHOLD &&
+                    visibleSignalCount < filteredSignals.size
+                ) {
+                    visibleSignalCount = minOf(
+                        visibleSignalCount + SIGNAL_PAGE_SIZE,
+                        filteredSignals.size,
+                    )
+                }
+            }
     }
-    val overviewCards = remember(signals, positiveCount, negativeCount) {
+    val positiveCount = remember(signals) { signals.count { signalTone(it.signalType) == PillTone.Positive } }
+    val negativeCount = remember(signals) { signals.count { signalTone(it.signalType) == PillTone.Negative } }
+    val signalSummaries = remember(signals, positiveCount, negativeCount, signalTypes) {
         listOf(
-            SignalOverviewCard(
-                id = "total",
-                title = "最近信号",
-                value = "${signals.size}",
-                subtitle = "当前批次总量",
-            ),
-            SignalOverviewCard(
-                id = "positive",
-                title = "偏多",
-                value = "$positiveCount",
-                subtitle = "买入/看多",
-            ),
-            SignalOverviewCard(
-                id = "negative",
-                title = "偏空",
-                value = "$negativeCount",
-                subtitle = "卖出/减仓",
-            ),
+            SignalSummary("最近信号", signals.size.toString(), "当前批次总量"),
+            SignalSummary("偏多", positiveCount.toString(), "买入 / 看多"),
+            SignalSummary("偏空", negativeCount.toString(), "卖出 / 减仓"),
+            SignalSummary("类型", (signalTypes.size - 1).coerceAtLeast(0).toString(), "筛选维度"),
         )
     }
 
@@ -131,14 +140,9 @@ fun SignalsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp),
+            state = listState,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item {
-                TopBar(
-                    title = "信号中心",
-                    subtitle = snapshot?.signals?.latestSignalLabel ?: "按类型筛选并快速查看个股",
-                )
-            }
             if (!message.isNullOrBlank()) {
                 item { NoticeBanner(message = message, type = noticeType, onRetry = onRefresh) }
             }
@@ -149,59 +153,94 @@ fun SignalsScreen(
 
             item {
                 HeroSection(
-                    title = "信号概览",
+                    title = "信号流",
                     value = "${signals.size}",
-                    subtitle = "点击卡片可继续筛选和查看详情",
+                    subtitle = snapshot?.signals?.latestSignalLabel ?: "先看高优先级，再看普通信号。",
                     stats = listOf(
-                        Triple("偏多", "$positiveCount", ""),
-                        Triple("偏空", "$negativeCount", ""),
-                        Triple("类型", "${signalTypes.size - 1}", ""),
+                        Triple("偏多", positiveCount.toString(), ""),
+                        Triple("偏空", negativeCount.toString(), ""),
+                        Triple("筛选后", filteredSignals.size.toString(), ""),
                     ),
                 )
             }
 
-            item { SectionHeader("筛选条件") }
             item {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics { contentDescription = "搜索信号" },
-                    singleLine = true,
-                    label = { Text("搜索名称/代码/类型/触发原因") },
-                )
-            }
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(signalTypes) { type ->
-                        FilterChip(
-                            selected = type == selectedType,
-                            onClick = { selectedType = type },
-                            label = { Text(type) },
-                            modifier = Modifier.semantics { contentDescription = "信号类型 $type" },
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Surface),
+                    shape = RoundedCornerShape(24.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text(
+                            text = "筛选条件",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
                         )
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = "搜索信号" },
+                            singleLine = true,
+                            label = { Text("搜索名称 / 代码 / 类型 / 原因") },
+                            shape = RoundedCornerShape(18.dp),
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(signalTypes) { type ->
+                                FilterChip(
+                                    selected = type == selectedType,
+                                    onClick = { selectedType = type },
+                                    label = { Text(type) },
+                                    modifier = Modifier.semantics { contentDescription = "信号类型 $type" },
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            item { SectionHeader("信号列表") }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    signalSummaries.take(2).forEach { summary ->
+                        SignalSummaryCard(summary = summary, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    signalSummaries.drop(2).forEach { summary ->
+                        SignalSummaryCard(summary = summary, modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+
+            item { SectionHeader("信号时间线") }
             if (filteredSignals.isEmpty()) {
                 item { EmptyStateCard("当前筛选条件下没有匹配信号，请调整关键词或类型。") }
             } else {
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        overviewCards.forEach { card ->
-                            SignalOverviewCardItem(card = card, modifier = Modifier.weight(1f))
-                        }
-                    }
+                itemsIndexed(
+                    items = displaySignals,
+                    key = { index, signal ->
+                        val symbol = signal.tsCode?.trim().orEmpty().ifBlank { "unknown" }
+                        "$symbol|${signal.signalTime.orEmpty()}|${signal.signalType.orEmpty()}|$index"
+                    },
+                    contentType = { _, _ -> "signal" },
+                ) { _, signal ->
+                    SignalTimelineCard(signal = signal, onOpenStockDetail = onOpenStockDetail)
                 }
-                items(
-                    items = filteredSignals,
-                    key = { "${it.tsCode.orEmpty()}_${it.signalTime.orEmpty()}_${it.signalType.orEmpty()}" },
-                    contentType = { "signal" },
-                ) { signal ->
-                    SignalCard(signal = signal, onOpenStockDetail = onOpenStockDetail)
+                if (displaySignals.size < filteredSignals.size) {
+                    item(key = "signal_load_more_hint") {
+                        DetailCard(
+                            title = "正在加载更多信号",
+                            lines = listOf("已显示 ${displaySignals.size}/${filteredSignals.size}"),
+                        )
+                    }
                 }
             }
         }
@@ -209,85 +248,116 @@ fun SignalsScreen(
 }
 
 @Composable
-private fun SignalOverviewCardItem(
-    card: SignalOverviewCard,
+private fun SignalSummaryCard(
+    summary: SignalSummary,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Surface),
-        shape = RoundedCornerShape(14.dp),
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(card.title, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-            Text(card.value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
-            Text(card.subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-        }
-    }
-}
-
-@Composable
-private fun SignalCard(
-    signal: SignalItem,
-    onOpenStockDetail: (String) -> Unit,
-) {
-    Card(
-        onClick = { onOpenStockDetail(signal.tsCode ?: "") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics {
-                contentDescription = "${signal.name ?: signal.tsCode ?: "--"}，${signal.signalType ?: "信号"}"
-            },
-        colors = CardDefaults.cardColors(containerColor = Surface),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(22.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        text = signal.name ?: signal.tsCode ?: "--",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text = listOfNotNull(signal.tsCode, signal.signalTime).joinToString(" · "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                    )
-                }
-                SharedSignalTypeBadge(signal.signalType ?: "信号")
-            }
-            signal.triggerReason?.takeIf { it.isNotBlank() }?.let {
-                Text(
-                    text = "触发原因：$it",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
-                )
-            }
-            signal.suggestion?.takeIf { it.isNotBlank() }?.let {
-                DetailCard(title = "建议动作", lines = listOf(it))
-            }
+            Text(summary.title, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+            Text(summary.value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(summary.detail, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
         }
     }
 }
 
 @Composable
-private fun SharedSignalTypeBadge(signalType: String) {
-    val lower = signalType.lowercase()
-    val tone = when {
-        "buy" in lower || "买" in signalType -> PillTone.Positive
-        "sell" in lower || "卖" in signalType -> PillTone.Negative
+private fun SignalTimelineCard(
+    signal: SignalItem,
+    onOpenStockDetail: (String) -> Unit,
+) {
+    val tone = signalTone(signal.signalType)
+    val railColor = when (tone) {
+        PillTone.Positive -> Color(0xFF57B39B)
+        PillTone.Negative -> Color(0xFFD2747E)
+        PillTone.Neutral -> Color(0xFFE0B858)
+    }
+    val title = signal.name ?: signal.tsCode ?: "--"
+    val tsCode = signal.tsCode?.trim().orEmpty()
+    val code = tsCode.substringBefore(".").takeIf { it.isNotBlank() } ?: "--"
+    Card(
+        onClick = {
+            if (tsCode.isNotBlank()) {
+                onOpenStockDetail(tsCode)
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = "$title，${signal.signalType ?: "信号"}" },
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        shape = RoundedCornerShape(18.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Border.copy(alpha = 0.72f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(6.dp)
+                    .height(56.dp)
+                    .background(railColor, RoundedCornerShape(999.dp)),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = TextPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = "${signal.signalTime ?: "--"} · $code",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                        )
+                    }
+                    StatusPill(text = signal.signalType ?: "信号", tone = tone)
+                }
+                val summary = buildList {
+                    signal.triggerReason?.takeIf { it.isNotBlank() }?.let { add(it) }
+                    signal.suggestion?.takeIf { it.isNotBlank() }?.let { add("建议：$it") }
+                }.joinToString(" · ")
+                if (summary.isNotBlank()) {
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        maxLines = 2,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun signalTone(signalType: String?): PillTone {
+    val lower = signalType.orEmpty().lowercase()
+    return when {
+        "buy" in lower || "买" in signalType.orEmpty() -> PillTone.Positive
+        "sell" in lower || "卖" in signalType.orEmpty() -> PillTone.Negative
         else -> PillTone.Neutral
     }
-    StatusPill(text = signalType, tone = tone)
 }
+
+private const val SIGNAL_PAGE_SIZE = 40
+private const val SIGNAL_PREFETCH_THRESHOLD = 8

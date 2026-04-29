@@ -1,6 +1,7 @@
 package com.quant.system
 
 import android.os.Bundle
+import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.quant.system.core.data.DataSyncOptimizer
 import com.quant.system.core.stability.CrashReporter
 import com.quant.system.core.stability.GlobalExceptionHandler
 import com.quant.system.ui.screen.MainScreen
@@ -22,8 +24,21 @@ class MainActivity : ComponentActivity() {
         // 记录会话开始
         CrashReporter.recordSessionStart(applicationContext)
         
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // 启动即注册后台同步：首轮尽快拉取，后续按周期维持刷新
+        DataSyncOptimizer(applicationContext).apply {
+            scheduleImmediateSync()
+            schedulePeriodicSync(intervalMinutes = 15)
+        }
+        splashScreen.setOnExitAnimationListener { splashProvider ->
+            splashProvider.view.animate()
+                .alpha(0f)
+                .setDuration(140L)
+                .setInterpolator(DecelerateInterpolator())
+                .withEndAction { splashProvider.remove() }
+                .start()
+        }
         setContent {
             QuantSystemTheme {
                 Surface(

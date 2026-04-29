@@ -169,6 +169,34 @@ def _persist_virtual_trades_payload(payload: Dict[str, Any]) -> None:
     )
 
 
+def _snake_to_camel(key: str) -> str:
+    if "_" not in key:
+        return key
+    parts = [p for p in key.split("_") if p]
+    if not parts:
+        return key
+    head = parts[0]
+    tail = "".join(part[:1].upper() + part[1:] for part in parts[1:])
+    return f"{head}{tail}"
+
+
+def _with_dual_case_keys(payload: Any) -> Any:
+    """Return payload with both snake_case and camelCase keys for app compatibility."""
+    if isinstance(payload, dict):
+        normalized: Dict[str, Any] = {}
+        for raw_key, raw_value in payload.items():
+            key = str(raw_key)
+            value = _with_dual_case_keys(raw_value)
+            normalized[key] = value
+            camel_key = _snake_to_camel(key)
+            if camel_key != key and camel_key not in normalized:
+                normalized[camel_key] = value
+        return normalized
+    if isinstance(payload, list):
+        return [_with_dual_case_keys(item) for item in payload]
+    return payload
+
+
 def _normalize_trade_payload(raw: VirtualTradeUpsertRequest) -> Dict[str, Any]:
     symbol = str(raw.symbol or "").strip()
     name = str(raw.name or "").strip()
@@ -362,8 +390,8 @@ def _strategy_catalog() -> List[Dict[str, Any]]:
         {
             "id": "alpha158",
             "name": "Alpha158 因子策略",
-            "description": "兼容移动端历史策略ID，当前由云端二次启动链路执行。",
-            "scene": "兼容旧版移动端选股入口",
+            "description": "基于 Alpha158 因子与胜率优先买点链路，适合低频高胜率跟踪。",
+            "scene": "因子选股、盘中胜率优先确认",
             "default_params": {},
         },
     ]
@@ -404,7 +432,7 @@ async def get_startup_self_check():
 async def get_dashboard():
     try:
         snapshot = data_service.build_snapshot()
-        return {"success": True, "data": snapshot}
+        return {"success": True, "data": _with_dual_case_keys(snapshot)}
     except Exception as exc:
         logger.exception("Failed to load dashboard snapshot")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -414,7 +442,7 @@ async def get_dashboard():
 async def get_overview():
     try:
         snapshot = data_service.build_terminal_home_snapshot()
-        return {"success": True, "data": snapshot}
+        return {"success": True, "data": _with_dual_case_keys(snapshot)}
     except Exception as exc:
         logger.exception("Failed to load dashboard overview")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -440,8 +468,8 @@ async def execute_action(request: ActionRequest):
 @app.get("/api/candidate_pool")
 async def get_candidate_pool():
     try:
-        snapshot = data_service.build_snapshot()
-        return {"success": True, "data": snapshot.get("candidate_pool", {})}
+        payload = data_service.build_candidate_pool_payload()
+        return {"success": True, "data": _with_dual_case_keys(payload)}
     except Exception as exc:
         logger.exception("Failed to load candidate pool")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -450,8 +478,8 @@ async def get_candidate_pool():
 @app.get("/api/signals")
 async def get_signals():
     try:
-        snapshot = data_service.build_snapshot()
-        return {"success": True, "data": snapshot.get("signals", {})}
+        payload = data_service.build_signal_payload()
+        return {"success": True, "data": _with_dual_case_keys(payload)}
     except Exception as exc:
         logger.exception("Failed to load signals")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -460,8 +488,8 @@ async def get_signals():
 @app.get("/api/virtual_trades")
 async def get_virtual_trades():
     try:
-        snapshot = data_service.build_snapshot()
-        return {"success": True, "data": snapshot.get("virtual_trades", {})}
+        payload = data_service.build_virtual_trades_payload()
+        return {"success": True, "data": _with_dual_case_keys(payload)}
     except Exception as exc:
         logger.exception("Failed to load virtual trades")
         raise HTTPException(status_code=500, detail=str(exc))

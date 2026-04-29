@@ -282,11 +282,11 @@ class DashboardTaskRunner:
             watch_items=watch_items,
             watch_date=watch_date,
             project_root=self.project_root,
-            exit_plan=strategy.export_exit_plan(),
             strategy_profile="wide_breakout",
             strategy_name="wide_breakout_watchlist",
             level_label="宽进突破观察池",
             source="wide_breakout_strategy",
+            exit_plan=strategy.export_exit_plan(),
         )
         return len(watch_items), int(sync_count), watch_date
 
@@ -304,13 +304,20 @@ class DashboardTaskRunner:
         sync_count = self._sync_alpha158_to_candidate_pool(
             trade_date=resolved_trade_date,
             selections=selections,
+            strategy_profile=str(getattr(selector, "strategy_profile", "alpha158")).strip().lower() or "alpha158",
         )
         return len(selections or []), int(sync_count), resolved_trade_date
 
-    def _sync_alpha158_to_candidate_pool(self, trade_date: str, selections: list[dict]) -> int:
+    def _sync_alpha158_to_candidate_pool(
+        self,
+        trade_date: str,
+        selections: list[dict],
+        strategy_profile: str = "alpha158",
+    ) -> int:
         if not trade_date:
             return 0
 
+        resolved_profile = str(strategy_profile or "alpha158").strip().lower() or "alpha158"
         candidates: list[dict[str, Any]] = []
         for idx, row in enumerate(list(selections or []), start=1):
             if not isinstance(row, dict):
@@ -331,13 +338,39 @@ class DashboardTaskRunner:
                 "level": str(row.get("level", "alpha158_candidate") or "alpha158_candidate"),
                 "industry": str(row.get("industry", "unknown") or "unknown"),
                 "pool_type": "core" if rank <= 5 else "reserve",
-                "strategy_profile": "alpha158",
-                "strategy_name": "alpha158",
+                "strategy_profile": str(row.get("strategy_profile", resolved_profile) or resolved_profile),
+                "strategy_name": str(row.get("strategy_profile", resolved_profile) or resolved_profile),
                 "source": "stock_selector",
                 "trade_date": str(trade_date),
             }
             if row.get("alpha158_raw") is not None:
                 candidate["alpha158_raw"] = row.get("alpha158_raw")
+            if row.get("suggested_hold_days") is not None:
+                candidate["suggested_hold_days"] = row.get("suggested_hold_days")
+            if row.get("holding_route") is not None:
+                candidate["holding_route"] = row.get("holding_route")
+            for extra_key in (
+                "alpha158_extension_score",
+                "alpha158_prototype_bonus",
+                "alpha158_prototype_label",
+                "alpha158_secondary_lgb_score",
+                "feedback_guard_level",
+                "feedback_guard_active",
+                "effective_min_score_applied",
+                "market_below_ma20",
+                "regime_name",
+                "alpha158_regime",
+                "alpha158_regime_reason",
+                "regime_breadth_state",
+                "regime_breadth_up_ratio",
+                "regime_breadth_median_return",
+                "regime_breadth_new_high_ratio",
+                "regime_downgraded",
+            ):
+                if row.get(extra_key) is not None:
+                    candidate[extra_key] = row.get(extra_key)
+            if row.get("institutional_core_raw") is not None:
+                candidate["institutional_core_raw"] = row.get("institutional_core_raw")
             candidates.append(candidate)
 
         cache_path = self.project_root / "data" / "cache" / "candidate_pool.json"
@@ -354,7 +387,7 @@ class DashboardTaskRunner:
         merged = [
             item
             for item in prev_candidates
-            if str(item.get("strategy_profile", "")).strip().lower() != "alpha158"
+            if str(item.get("strategy_profile", "")).strip().lower() != resolved_profile
         ]
         merged.extend(candidates)
         merged = sorted(

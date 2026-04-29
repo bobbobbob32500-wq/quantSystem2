@@ -102,6 +102,8 @@ data class CandidatePool(
     val avgScore: Double? = null,
     @SerialName("freshness_label")
     val freshnessLabel: String? = null,
+    @SerialName("created_time")
+    val createdTime: String? = null,
     @SerialName("top_candidates")
     val topCandidates: List<Candidate> = emptyList(),
 )
@@ -109,6 +111,8 @@ data class CandidatePool(
 @Serializable
 data class Candidate(
     val symbol: String? = null,
+    @SerialName("ts_code")
+    val tsCode: String? = null,
     val name: String? = null,
     val score: Double? = null,
     @SerialName("strategy_profile")
@@ -121,6 +125,14 @@ data class Candidate(
     val pctChg: Double? = null,
     @SerialName("quote_pct_change")
     val quotePctChange: Double? = null,
+    @SerialName("quote_time")
+    val quoteTime: String? = null,
+    @SerialName("quote_trade_date")
+    val quoteTradeDate: String? = null,
+    @SerialName("quote_source")
+    val quoteSource: String? = null,
+    @SerialName("quote_is_realtime")
+    val quoteIsRealtime: Boolean? = null,
     @SerialName("trigger_price")
     val triggerPrice: Double? = null,
     @SerialName("entry_price")
@@ -135,6 +147,20 @@ data class Candidate(
     val currentPrice: Double? = null,
     @SerialName("last_price")
     val lastPrice: Double? = null,
+    @SerialName("trade_date")
+    val tradeDate: String? = null,
+    @SerialName("created_time")
+    val createdTime: String? = null,
+    @SerialName("buy_time")
+    val buyTime: String? = null,
+    @SerialName("buy_time_label")
+    val buyTimeLabel: String? = null,
+    @SerialName("entry_time")
+    val entryTime: String? = null,
+    @SerialName("trigger_time")
+    val triggerTime: String? = null,
+    @SerialName("next_trade_date")
+    val nextTradeDate: String? = null,
     val close: Double? = null,
 )
 
@@ -190,6 +216,8 @@ data class VirtualTrades(
     val stats: TradeStats? = null,
     @SerialName("open_trades")
     val openTrades: List<Trade> = emptyList(),
+    @SerialName("recent_closed")
+    val recentClosed: List<Trade> = emptyList(),
 )
 
 @Serializable
@@ -220,6 +248,8 @@ data class Trade(
     val lastPnlPct: Double? = null,
     @SerialName("buy_time")
     val buyTime: String? = null,
+    @SerialName("sell_time")
+    val sellTime: String? = null,
     @SerialName("last_trade_date")
     val lastTradeDate: String? = null,
     @SerialName("price_source")
@@ -228,6 +258,26 @@ data class Trade(
     val quotePctChange: Double? = null,
     @SerialName("quote_time")
     val quoteTime: String? = null,
+    @SerialName("strategy_profile")
+    val strategyProfile: String? = null,
+    @SerialName("strategy_label")
+    val strategyLabel: String? = null,
+    @SerialName("buy_route")
+    val buyRoute: String? = null,
+    @SerialName("signal_subtype")
+    val signalSubtype: String? = null,
+    @SerialName("buy_signal")
+    val buySignal: String? = null,
+    @SerialName("sell_reason")
+    val sellReason: String? = null,
+    @SerialName("hold_duration")
+    val holdDuration: Int? = null,
+    @SerialName("hold_duration_label")
+    val holdDurationLabel: String? = null,
+    @SerialName("sell_price")
+    val sellPrice: Double? = null,
+    @SerialName("pnl_pct")
+    val pnlPct: Double? = null,
 )
 
 @Serializable

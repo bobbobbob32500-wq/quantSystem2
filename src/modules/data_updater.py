@@ -670,8 +670,44 @@ class DataUpdater:
             logger.warning("鏈幏鍙栧埌鑲＄エ鍩虹淇℃伅鏁版嵁")
             return 0
         
-        # 鏁版嵁娓呮礂
+        # Normalize common backup-source columns and drop invalid rows.
+        if "ts_code" not in df.columns:
+            for alt in ("stock_code", "code", "symbol"):
+                if alt in df.columns:
+                    df["ts_code"] = df[alt]
+                    break
+        if "symbol" not in df.columns:
+            for alt in ("code", "stock_code"):
+                if alt in df.columns:
+                    df["symbol"] = df[alt]
+                    break
+        if "name" not in df.columns:
+            for alt in ("short_name", "stock_name"):
+                if alt in df.columns:
+                    df["name"] = df[alt]
+                    break
+        if "symbol" not in df.columns and "ts_code" in df.columns:
+            df["symbol"] = df["ts_code"].astype(str).str.split(".").str[0]
+        if "name" not in df.columns and "ts_code" in df.columns:
+            df["name"] = df["ts_code"]
+        if "industry" not in df.columns:
+            df["industry"] = None
+        if "list_date" not in df.columns:
+            df["list_date"] = None
+
         df = df.where(pd.notnull(df), None)
+
+        # Fallback derive symbol/name from ts_code when backup source is sparse.
+        if "symbol" in df.columns and "ts_code" in df.columns:
+            df["symbol"] = df["symbol"].where(df["symbol"].notna(), df["ts_code"].astype(str).str.split(".").str[0])
+        if "name" in df.columns and "ts_code" in df.columns:
+            df["name"] = df["name"].where(df["name"].notna(), df["ts_code"])
+
+        required = ["ts_code", "symbol", "name"]
+        before_rows = len(df)
+        df = df.dropna(subset=required)
+        if len(df) < before_rows:
+            logger.warning("stock_basic dropped invalid rows: %s -> %s", before_rows, len(df))
         
         # 鍑嗗鎻掑叆鏁版嵁
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
