@@ -71,6 +71,8 @@ cache/
 *.tmp
 *.bak
 *.backup
+artifacts/portable_baseline/
+data/tmp_restore_portable/
 
 # Local third-party strategy stack (do not commit full upstream repos)
 external/

@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant Portable Dashboard
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quant-system
+Environment=PYTHONUNBUFFERED=1
+Environment=DASHBOARD_HOST=0.0.0.0
+Environment=DASHBOARD_PORT=8501
+ExecStart=/opt/quant-system/.venv/bin/python start_dashboard.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -14,7 +14,13 @@ val resolvedVersionName = (findProperty("APP_VERSION_NAME") as String?)
     ?: "1.0"
 
 /** 默认后端 API 根地址（仅首次安装且无本地保存时使用；可在应用「设置」中修改） */
-val defaultApiBaseUrl = "http://101.133.149.141/"
+val defaultApiBaseUrl = (
+    (findProperty("DEFAULT_API_BASE_URL") as String?)
+        ?.takeIf { it.isNotBlank() }
+        ?: System.getenv("QUANT_DEFAULT_API_BASE_URL")
+        ?.takeIf { it.isNotBlank() }
+        ?: "http://101.133.149.141/"
+).let { if (it.endsWith("/")) it else "$it/" }
 
 android {
     namespace = "com.quant.system"

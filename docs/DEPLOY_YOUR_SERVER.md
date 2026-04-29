@@ -1,5 +1,7 @@
 # 云服务器AI部署指南
 
+> 说明：本文件最初基于旧部署形态编写。当前真实运行环境已经切到 `/opt/quant-system`，移动 API 由 supervisor 中的 `quant-api` 管理。若你的目标是做“可迁移备份并在新环境直接恢复”，请优先使用 [docs/portable_baseline_package.md](./portable_baseline_package.md)。
+
 ## 你的服务器信息
 
 ```

@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant Portable Mobile API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quant-system
+Environment=PYTHONUNBUFFERED=1
+Environment=MOBILE_API_HOST=0.0.0.0
+Environment=MOBILE_API_PORT=8000
+ExecStart=/opt/quant-system/.venv/bin/python src/api/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Quant Portable Background Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quant-system
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/quant-system/.venv/bin/python run_service.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

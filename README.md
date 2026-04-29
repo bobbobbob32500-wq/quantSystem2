@@ -113,7 +113,71 @@ python run_service.py
 
 ```bash
 pip install -r requirements.txt
+pip install -r requirements_api.txt
 ```
+
+---
+
+## 可迁移基线包
+
+如果你要把“当前后端系统 + Android 发布物”迁移到另一台机器，建议按下面流程做：
+
+### 1. 导出当前运行数据
+
+```bash
+python scripts/export_portable_baseline.py --include-optional
+```
+
+默认会生成到：
+
+```text
+artifacts/portable_baseline/portable_baseline_YYYYMMDD_HHMMSS.zip
+```
+
+其中至少包含：
+
+- `data/database/quant_system.db`
+- `data/history_recommendation.db`
+- `data/cache/candidate_pool.json`
+
+如文件存在，也会一并包含：
+
+- `data/cache/virtual_trades.json`
+- `data/releases/android-latest.json`
+- `data/releases/android-latest.apk`
+
+### 2. 在新环境恢复运行数据
+
+```bash
+python scripts/restore_portable_baseline.py artifacts/portable_baseline/portable_baseline_xxx.zip --target-root .
+```
+
+### 3. 初始化运行环境
+
+```bash
+python scripts/bootstrap_portable_env.py
+```
+
+该脚本会：
+
+- 创建 `.venv`
+- 安装 `requirements.txt + requirements_api.txt`
+- 初始化 `data/`、`logs/` 等目录
+- 检查核心运行数据是否已经恢复
+
+### 4. 启动完整服务栈
+
+```bash
+python scripts/start_portable_stack.py
+```
+
+默认会同时启动：
+
+- `run_service.py`
+- `start_dashboard.py`
+- `src/api/app.py`
+
+更多说明见 [docs/portable_baseline_package.md](./docs/portable_baseline_package.md)。
 
 ---
 
