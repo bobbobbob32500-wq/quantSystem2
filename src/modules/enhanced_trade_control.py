@@ -493,8 +493,8 @@ def maybe_emit_trade_control_alert(
     gate_tier = str(context.get("gate_tier", "normal"))
     circuit_state = str(context.get("circuit_state", "normal"))
     feedback_guard_level = str(context.get("feedback_guard_level", "normal"))
-    avg_index_pct = float(context.get("avg_index_pct", 0.0))
-    breadth = float(context.get("breadth", 0.5))
+    avg_index_pct = _safe_float(context.get("avg_index_pct", 0.0))
+    breadth = _safe_float(context.get("breadth", 0.5))
     reason = (
         f"闸门={gate_tier}, 闭环闸门={feedback_guard_level}, 熔断={circuit_state}, 指数均值={avg_index_pct:+.2f}%, "
         f"市场广度={breadth*100:.1f}%"
@@ -540,6 +540,17 @@ def maybe_emit_trade_control_alert(
     system._last_trade_control_alert_at = now
 
 
+def _safe_float(v, default=0.0):
+    try:
+        f = float(v)
+        import math
+        if math.isnan(f) or math.isinf(f):
+            return float(default)
+        return f
+    except (TypeError, ValueError):
+        return float(default)
+
+
 def report_trade_control_status(
     system,
     context: Dict[str, Any],
@@ -557,10 +568,10 @@ def report_trade_control_status(
             context.get("gate_tier", "normal"),
             context.get("feedback_guard_level", "normal"),
             context.get("circuit_state", "normal"),
-            float(context.get("avg_index_pct", 0.0)),
-            float(context.get("breadth", 0.5)) * 100.0,
-            float(context.get("target_position", 0.0)) * 100.0,
-            float(context.get("position_multiplier", 1.0)),
+            _safe_float(context.get("avg_index_pct", 0.0)),
+            _safe_float(context.get("breadth", 0.5)) * 100.0,
+            _safe_float(context.get("target_position", 0.0)) * 100.0,
+            _safe_float(context.get("position_multiplier", 1.0)),
         )
     )
 

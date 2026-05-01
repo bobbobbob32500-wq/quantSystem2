@@ -365,8 +365,8 @@ def monitor_candidates(system) -> List[Dict]:
     if not trade_control.get("allow_new_signals", True):
         logger.warning(
             "Signals blocked by hard circuit breaker: avg_index_pct=%+.2f%%, breadth=%.1f%%",
-            float(trade_control.get("avg_index_pct", 0.0)),
-            float(trade_control.get("breadth", 0.5)) * 100.0,
+            _safe_float(trade_control.get("avg_index_pct", 0.0)),
+            _safe_float(trade_control.get("breadth", 0.5)) * 100.0,
         )
         return []
 
