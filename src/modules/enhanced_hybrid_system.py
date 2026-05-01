@@ -403,10 +403,16 @@ class EnhancedHybridSystem:
         self._last_trade_control_alert_at = None
         self._last_trade_control_status_print_at = None
         self.latest_trade_control_context = {}
+        self._trade_day_cache = {}
+        self._last_non_trade_day_log_key = None
         
         # 信号历史（用于防抖）
         self.signal_history = {}
         
+        default_debounce_window = max(
+            1,
+            int(self.system_config.get("monitor.debounce_window", 2)),
+        )
         # 配置
         self.config = {
             # 候选池配置
@@ -415,7 +421,19 @@ class EnhancedHybridSystem:
             
             # 信号配置
             'min_signal_score': 0.6,   # 最低信号评分
-            'debounce_window': 2,      # 防抖窗口
+            'debounce_window': default_debounce_window,      # 防抖窗口
+            'debounce_window_breakout': max(
+                1,
+                int(self.system_config.get("monitor.debounce_window_breakout", 1)),
+            ),
+            'debounce_window_wide_breakout': max(
+                1,
+                int(self.system_config.get("monitor.debounce_window_wide_breakout", 1)),
+            ),
+            'debounce_window_secondary_launch': max(
+                1,
+                int(self.system_config.get("monitor.debounce_window_secondary_launch", default_debounce_window)),
+            ),
             
             # 时间配置
             'monitor_start': time(9, 45),
@@ -774,6 +792,19 @@ class EnhancedHybridSystem:
                 config_obj.get("stock_selection.strategy_profile", "legacy")
             )
         return "legacy"
+
+    def _resolve_route_debounce_window(self, strategy_profile: str) -> int:
+        profile = self._normalize_strategy_profile(strategy_profile)
+        default_window = max(1, int(self.config.get("debounce_window", 2)))
+        key_map = {
+            "breakout": "debounce_window_breakout",
+            "wide_breakout": "debounce_window_wide_breakout",
+            "secondary_launch": "debounce_window_secondary_launch",
+        }
+        profile_key = key_map.get(profile)
+        if not profile_key:
+            return default_window
+        return max(1, int(self._to_float(self.config.get(profile_key, default_window), default_window)))
 
     @staticmethod
     def _strategy_profile_label(profile: str) -> str:
@@ -1825,7 +1856,7 @@ class EnhancedHybridSystem:
     
     def _is_trade_time(self, now: datetime) -> bool:
         """判断是否为交易时间。"""
-        return runtime_is_trade_time(now=now)
+        return runtime_is_trade_time(now=now, system=self)
     
     def _show_non_trade_time(self, now: datetime):
         """显示非交易时间"""
@@ -1893,6 +1924,8 @@ class EnhancedHybridSystem:
         route_name: str,
         route_label: str,
         breakout_intraday_param_key: str = "breakout",
+        debounce_window: Optional[int] = None,
+        time_filter_profile: str = "default",
     ) -> SignalOutput:
         return runtime_detect_confirmation_signal(
             system=self,
@@ -1905,6 +1938,8 @@ class EnhancedHybridSystem:
             route_name=route_name,
             route_label=route_label,
             breakout_intraday_param_key=breakout_intraday_param_key,
+            debounce_window=debounce_window,
+            time_filter_profile=time_filter_profile,
         )
 
     def _detect_legacy_gap_signal(

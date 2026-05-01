@@ -29,6 +29,8 @@ def detect_confirmation_signal(
     route_name: str,
     route_label: str,
     breakout_intraday_param_key: str = "breakout",
+    debounce_window: Optional[int] = None,
+    time_filter_profile: str = "default",
 ) -> SignalOutput:
     symbol = str(candidate.get("symbol", ""))
     intraday_data = system._get_intraday_data_for_signal(
@@ -62,6 +64,12 @@ def detect_confirmation_signal(
         ),
         market_score=market_env.get("market_score", 50.0),
         breakout_intraday_param_key=breakout_intraday_param_key,
+        time_filter_profile=time_filter_profile,
+    )
+    resolved_debounce_window = (
+        int(debounce_window)
+        if debounce_window is not None
+        else int(system.config.get("debounce_window", 2))
     )
     wrapped = system._wrap_signal_metadata(
         signal=signal,
@@ -69,7 +77,7 @@ def detect_confirmation_signal(
         template_source=template_source,
         route_name=route_name,
         route_label=route_label,
-        debounce_window=int(system.config.get("debounce_window", 2)),
+        debounce_window=resolved_debounce_window,
     )
     source = "unknown"
     source_state = getattr(system, "_last_intraday_source", None)
@@ -128,7 +136,7 @@ def resolve_strategy_routed_signal(
                     "二次启动分时确认",
                 )
             ),
-            debounce_window=int(system.config.get("debounce_window", 2)),
+            debounce_window=system._resolve_route_debounce_window("secondary_launch"),
         )
 
     if strategy_profile in {"breakout", "wide_breakout"}:
@@ -145,6 +153,8 @@ def resolve_strategy_routed_signal(
             route_name="breakout_watch_confirm",
             route_label=label,
             breakout_intraday_param_key=bk_key,
+            debounce_window=system._resolve_route_debounce_window(strategy_profile),
+            time_filter_profile="breakout",
         )
 
     if strategy_profile in {"legacy", "legacy_opt"} and bool(
@@ -167,6 +177,7 @@ def resolve_strategy_routed_signal(
             template_source="legacy_confirmation_fallback_v1",
             route_name="legacy_confirmation_fallback",
             route_label="原策略确认兜底",
+            debounce_window=system._resolve_route_debounce_window(strategy_profile),
         )
 
     return system._detect_confirmation_signal(
@@ -178,6 +189,7 @@ def resolve_strategy_routed_signal(
         template_source="enhanced_confirmation_v1",
         route_name="enhanced_confirmation",
         route_label="增强分时确认",
+        debounce_window=system._resolve_route_debounce_window(strategy_profile),
     )
 
 

@@ -7,12 +7,34 @@ import logging
 import threading
 import time as time_module
 
+from src.modules.trade_day_guard import is_cn_a_share_trade_day
+
 logger = logging.getLogger(__name__)
 
 
-def is_trade_time(now: datetime) -> bool:
+def is_trade_time(now: datetime, system=None) -> bool:
     """Return whether current time is inside the A-share trading session."""
-    if now.weekday() >= 5:
+    if system is not None:
+        cache = getattr(system, "_trade_day_cache", None)
+        if not isinstance(cache, dict):
+            cache = {}
+            setattr(system, "_trade_day_cache", cache)
+
+        config = getattr(system, "system_config", None)
+        db = getattr(system, "db", None)
+        is_open_day, source = is_cn_a_share_trade_day(
+            now=now,
+            db=db,
+            config=config,
+            cache=cache,
+        )
+        if not is_open_day:
+            key = f"{now.strftime('%Y%m%d')}::{source}"
+            if getattr(system, "_last_non_trade_day_log_key", None) != key:
+                logger.info("Monitor paused: non-trade day (%s) at %s", source, now.strftime("%Y-%m-%d"))
+                setattr(system, "_last_non_trade_day_log_key", key)
+            return False
+    elif now.weekday() >= 5:
         return False
 
     current_time = now.strftime("%H:%M")

@@ -638,6 +638,7 @@ class ConfigManager:
                 "circuit_soft_score_boost": 3.0,
                 "circuit_soft_push_boost": 2.0,
                 "circuit_soft_position_multiplier": 0.5,
+                "require_trade_calendar_open": True,
                 "position_linkage_enabled": True,
                 "position_linkage_per_signal_cap": 0.12,
                 "position_linkage_min_ratio": 0.02,

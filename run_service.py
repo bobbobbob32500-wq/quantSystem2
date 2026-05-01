@@ -23,6 +23,7 @@ from src.modules.enhanced_hybrid_system import EnhancedHybridSystem
 from src.modules.message_pusher import MessagePusher
 from src.modules.monitoring_store import MonitoringStore
 from src.modules.task_scheduler import QuantTaskManager
+from src.modules.trade_day_guard import is_cn_a_share_trade_day
 
 logger = setup_logger("service")
 
@@ -51,6 +52,8 @@ class QuantService:
             self.config.get("monitor.health_snapshot_interval_seconds", 60)
         )
         self.last_health_snapshot_at = None
+        self._trade_day_cache = {}
+        self._last_non_trade_day_log_key = None
 
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -232,7 +235,17 @@ class QuantService:
         return self.monitor.load_candidate_pool()
 
     def _is_trade_time(self, now: datetime) -> bool:
-        if now.weekday() >= 5:
+        is_open_day, source = is_cn_a_share_trade_day(
+            now=now,
+            db=self.db,
+            config=self.config,
+            cache=self._trade_day_cache,
+        )
+        if not is_open_day:
+            day_key = f"{now.strftime('%Y%m%d')}::{source}"
+            if self._last_non_trade_day_log_key != day_key:
+                logger.info("Skip monitor: non-trade day (%s) at %s", source, now.strftime("%Y-%m-%d"))
+                self._last_non_trade_day_log_key = day_key
             return False
 
         current_time = now.strftime("%H:%M")

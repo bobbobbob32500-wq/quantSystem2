@@ -75,6 +75,15 @@ class OptimizedBuySignals:
                     (time(11, 30), time(13, 0)),
                 ]
             },
+            # 突破专用时间过滤：与 breakout_strategy 实盘确认窗口对齐
+            'time_filter_breakout': {
+                'start_time': time(9, 35),
+                'end_time': time(14, 50),
+                'avoid_times': [
+                    (time(9, 30), time(9, 35)),
+                    (time(11, 30), time(13, 0)),
+                ]
+            },
             
             # 防抖参数（升级为时间确认）
             'confirmation': {
@@ -350,7 +359,13 @@ class OptimizedBuySignals:
             details=details
         )
     
-    def evaluate_time_filter(self, timestamp: datetime, open_pct: float = 0, market_score: float = 65.0) -> Tuple[bool, float]:
+    def evaluate_time_filter(
+        self,
+        timestamp: datetime,
+        open_pct: float = 0,
+        market_score: float = 65.0,
+        time_filter_profile: str = "default",
+    ) -> Tuple[bool, float]:
         """
         时间过滤（升级版）- 返回(是否通过, 建议仓位比例)
         
@@ -358,7 +373,11 @@ class OptimizedBuySignals:
         1. 开盘状态过滤
         2. 市场环境过滤 → 仓位控制（关键升级）
         """
-        params = self.params['time_filter']
+        profile = str(time_filter_profile or "default").strip().lower()
+        if profile == "breakout" and isinstance(self.params.get("time_filter_breakout"), dict):
+            params = self.params["time_filter_breakout"]
+        else:
+            params = self.params['time_filter']
         current_time = timestamp.time()
         
         # 开盘状态过滤
@@ -387,12 +406,19 @@ class OptimizedBuySignals:
         
         return True, position_ratio
 
-    def time_filter(self, timestamp: datetime, open_pct: float = 0, market_score: float = 65.0) -> bool:
+    def time_filter(
+        self,
+        timestamp: datetime,
+        open_pct: float = 0,
+        market_score: float = 65.0,
+        time_filter_profile: str = "default",
+    ) -> bool:
         """向后兼容的时间过滤接口，只返回是否允许交易。"""
         allowed, _ = self.evaluate_time_filter(
             timestamp,
             open_pct=open_pct,
             market_score=market_score,
+            time_filter_profile=time_filter_profile,
         )
         return allowed
     
@@ -509,6 +535,7 @@ class OptimizedBuySignals:
         daily_low60: float = 0.0,
         entry_price: float = 0.0,
         breakout_intraday_param_key: str = "breakout",
+        time_filter_profile: str = "default",
     ) -> SignalOutput:
         """
         互斥触发信号（P2+P3 全量优化版）
@@ -526,7 +553,10 @@ class OptimizedBuySignals:
         """
         # 时间过滤
         allowed, position_ratio = self.evaluate_time_filter(
-            timestamp, open_pct=open_pct, market_score=market_score
+            timestamp,
+            open_pct=open_pct,
+            market_score=market_score,
+            time_filter_profile=time_filter_profile,
         )
         if not allowed:
             return SignalOutput(False, "", 0, "非交易时间")

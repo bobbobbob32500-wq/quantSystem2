@@ -116,8 +116,17 @@ monitor:
   feedback_guard_threshold_boost_defensive: 3.0
   health_snapshot_interval_seconds: 60
   heartbeat_timeout_seconds: 600
-  interval_minutes: 5
+  interval_minutes: 2
+  # 防抖窗口（按监控轮次计数）
+  debounce_window: 2
+  # 提前确认优化：突破策略放宽到 1 轮防抖，降低确认延迟
+  debounce_window_breakout: 1
+  debounce_window_wide_breakout: 1
+  # 二次启动维持双轮确认，避免过度激进
+  debounce_window_secondary_launch: 2
   intraday_circuit_breaker_enabled: true
+  # 节假日防误交易：必须确认当日属于A股交易日历才允许盘中交易
+  require_trade_calendar_open: true
   intraday_industry_cache_seconds: 30
   intraday_industry_confirm_enabled: true
   allow_quote_fallback_when_minute_missing: true
