@@ -29,6 +29,7 @@ from src.modules.enhanced_monitor_runtime import (
     get_intraday_data_for_signal as runtime_get_intraday_data_for_signal,
     monitor_candidates as runtime_monitor_candidates,
     resolve_strategy_routed_signal as runtime_resolve_strategy_routed_signal,
+    run_intraday_buy_router_healthcheck as runtime_run_intraday_buy_router_healthcheck,
     show_buy_signals as runtime_show_buy_signals,
 )
 from src.modules.enhanced_optimization_bridge import (
@@ -133,6 +134,12 @@ except ImportError as e:
 
 logger = logging.getLogger(__name__)
 
+
+
+# 拆分出的子模块
+from src.modules.enhanced_candidate_manager import CandidateManager
+from src.modules.enhanced_market_context import MarketContext
+from src.modules.enhanced_signal_builder import SignalBuilder
 
 class EnhancedHybridSystem:
     """完善的融合选股系统（集成自动优化 + 虚拟交易跟踪）"""
@@ -402,10 +409,16 @@ class EnhancedHybridSystem:
         self._last_trade_control_alert_at = None
         self._last_trade_control_status_print_at = None
         self.latest_trade_control_context = {}
+        self._trade_day_cache = {}
+        self._last_non_trade_day_log_key = None
         
         # 信号历史（用于防抖）
         self.signal_history = {}
         
+        default_debounce_window = max(
+            1,
+            int(self.system_config.get("monitor.debounce_window", 2)),
+        )
         # 配置
         self.config = {
             # 候选池配置
@@ -414,7 +427,19 @@ class EnhancedHybridSystem:
             
             # 信号配置
             'min_signal_score': 0.6,   # 最低信号评分
-            'debounce_window': 2,      # 防抖窗口
+            'debounce_window': default_debounce_window,      # 防抖窗口
+            'debounce_window_breakout': max(
+                1,
+                int(self.system_config.get("monitor.debounce_window_breakout", 1)),
+            ),
+            'debounce_window_wide_breakout': max(
+                1,
+                int(self.system_config.get("monitor.debounce_window_wide_breakout", 1)),
+            ),
+            'debounce_window_secondary_launch': max(
+                1,
+                int(self.system_config.get("monitor.debounce_window_secondary_launch", default_debounce_window)),
+            ),
             
             # 时间配置
             'monitor_start': time(9, 45),
@@ -537,11 +562,20 @@ class EnhancedHybridSystem:
                 enable_filter=True
             )
         
+                # 暴露给子模块的属性
+        self.logger = logger
+        self.config = self.system_config
+        
         logger.info(f"系统初始化完成（自动优化:{self.enable_auto_optimization}, "
                    f"虚拟交易:{self.enable_virtual_trade}, "
                    f"增强优化:{self.enable_enhanced_optimization}, "
                    f"涨停过滤:{self.enable_limit_filter}）")
         
+
+        # 初始化拆分出的子模块
+        self.candidate_manager = CandidateManager(self)
+        self.market_context = MarketContext(self)
+        self.signal_builder = SignalBuilder(self)
     def _init_auto_optimization(self):
         """初始化自动优化系统"""
         try:
@@ -739,7 +773,20 @@ class EnhancedHybridSystem:
     @staticmethod
     def _normalize_strategy_profile(profile: Any) -> str:
         text = str(profile or "").strip().lower()
-        if text in {"legacy", "legacy_opt", "enhanced", "secondary_launch", "breakout"}:
+        # 与候选池 strategy_profile、resolve_strategy_routed_signal 分支一致；未列出的回退 legacy
+        known = {
+            "legacy",
+            "legacy_opt",
+            "alpha158",
+            "enhanced",
+            "institutional_core",
+            "daily_multi_strategy",
+            "secondary_launch",
+            "breakout",
+            "wide_breakout",
+            "strong_start",
+        }
+        if text in known:
             return text
         return "legacy"
 
@@ -761,18 +808,43 @@ class EnhancedHybridSystem:
             )
         return "legacy"
 
+    def _resolve_route_debounce_window(self, strategy_profile: str) -> int:
+        profile = self._normalize_strategy_profile(strategy_profile)
+        default_window = max(1, int(self.config.get("debounce_window", 2)))
+        key_map = {
+            "breakout": "debounce_window_breakout",
+            "wide_breakout": "debounce_window_wide_breakout",
+            "secondary_launch": "debounce_window_secondary_launch",
+        }
+        profile_key = key_map.get(profile)
+        if not profile_key:
+            return default_window
+        return max(1, int(self._to_float(self.config.get(profile_key, default_window), default_window)))
+
     @staticmethod
     def _strategy_profile_label(profile: str) -> str:
         mapping = {
             "legacy": "原策略",
             "legacy_opt": "原策略优化版",
+            "alpha158": "Alpha158 因子策略",
             "enhanced": "增强策略",
+            "institutional_core": "机构核心策略",
+            "daily_multi_strategy": "多策略协同",
             "secondary_launch": "二次启动策略",
+            "breakout": "突破策略",
+            "wide_breakout": "宽进突破策略",
+            "strong_start": "强势股刚启动",
         }
         return mapping.get(str(profile or "").lower(), "原策略")
 
     def _default_buy_template_source(self, strategy_profile: str) -> str:
         profile = self._normalize_strategy_profile(strategy_profile)
+        if profile == "alpha158":
+            return "alpha158_confirmation_v1"
+        if profile == "daily_multi_strategy":
+            return "daily_multi_confirmation_v1"
+        if profile == "institutional_core":
+            return "institutional_core_confirmation_v1"
         if profile == "enhanced":
             return "enhanced_confirmation_v1"
         if profile == "secondary_launch":
@@ -781,6 +853,12 @@ class EnhancedHybridSystem:
 
     def _default_buy_route_label(self, strategy_profile: str) -> str:
         profile = self._normalize_strategy_profile(strategy_profile)
+        if profile == "alpha158":
+            return "Alpha158 分时确认"
+        if profile == "daily_multi_strategy":
+            return "多策略协同确认"
+        if profile == "institutional_core":
+            return "机构核心确认"
         if profile == "enhanced":
             return "分时确认"
         if profile == "secondary_launch":
@@ -845,49 +923,7 @@ class EnhancedHybridSystem:
             fallback_price=fallback_price,
         )
 
-    def _wrap_signal_metadata(
-        self,
-        signal: SignalOutput,
-        strategy_profile: str,
-        template_source: str,
-        route_name: str,
-        route_label: str,
-        debounce_window: Optional[int] = None,
-        route_blocked: bool = False,
-    ) -> SignalOutput:
-        return runtime_wrap_signal_metadata(
-            system=self,
-            signal=signal,
-            strategy_profile=strategy_profile,
-            template_source=template_source,
-            route_name=route_name,
-            route_label=route_label,
-            debounce_window=debounce_window,
-            route_blocked=route_blocked,
-        )
 
-    def _build_false_signal(
-        self,
-        strategy_profile: str,
-        template_source: str,
-        route_name: str,
-        route_label: str,
-        reason: str = "",
-        debounce_window: Optional[int] = None,
-        route_blocked: bool = False,
-        extra_details: Optional[Dict[str, Any]] = None,
-    ) -> SignalOutput:
-        return runtime_build_false_signal(
-            system=self,
-            strategy_profile=strategy_profile,
-            template_source=template_source,
-            route_name=route_name,
-            route_label=route_label,
-            reason=reason,
-            debounce_window=debounce_window,
-            route_blocked=route_blocked,
-            extra_details=extra_details,
-        )
 
     def _collect_virtual_closed_trade_samples(self, limit: int = 500) -> List[Dict[str, Any]]:
         return bridge_collect_virtual_closed_trade_samples(self, limit=limit)
@@ -1152,62 +1188,6 @@ class EnhancedHybridSystem:
         cache["profile"] = dict(profile)
         return profile
 
-    def _get_market_environment(self):
-        """获取当前市场环境"""
-        try:
-            if not self.candidate_pool:
-                return {
-                    'trend': 'unknown',
-                    'volatility': 'normal',
-                    'market_score': 50.0,
-                    'core_ratio': 0.0,
-                    'high_score_ratio': 0.0
-                }
-
-            scores = np.array([float(stock.get('score', 0) or 0) for stock in self.candidate_pool])
-            avg_score = float(np.mean(scores))
-            score_std = float(np.std(scores))
-            core_ratio = sum(
-                1 for stock in self.candidate_pool if stock.get('pool_type') == 'core'
-            ) / max(len(self.candidate_pool), 1)
-            high_score_ratio = float(np.mean(scores >= 80))
-
-            market_score = avg_score + core_ratio * 10 + high_score_ratio * 5
-            market_score = max(0.0, min(100.0, market_score))
-
-            if market_score >= 78:
-                trend = 'up'
-            elif market_score <= 60:
-                trend = 'down'
-            else:
-                trend = 'sideways'
-
-            if score_std >= 10:
-                volatility = 'high'
-            elif score_std <= 5:
-                volatility = 'low'
-            else:
-                volatility = 'normal'
-
-            return {
-                'trend': trend,
-                'volatility': volatility,
-                'market_score': round(market_score, 2),
-                'core_ratio': round(core_ratio, 3),
-                'high_score_ratio': round(high_score_ratio, 3)
-            }
-            
-        except Exception as e:
-            logger.warning(f"获取市场环境失败: {e}")
-            return {
-                'trend': 'unknown',
-                'volatility': 'normal',
-                'market_score': 50.0,
-                'core_ratio': 0.0,
-                'high_score_ratio': 0.0
-            }
-
-    @staticmethod
     def _normalize_symbol_6(code: Any) -> str:
         text = str(code or "").strip().upper()
         if not text:
@@ -1244,21 +1224,9 @@ class EnhancedHybridSystem:
     def _get_feedback_guard_context(self, now: Optional[datetime] = None) -> Dict[str, Any]:
         return runtime_get_feedback_guard_context(system=self, now=now)
 
-    def _fetch_index_pct_change_map(self) -> Dict[str, float]:
-        return runtime_fetch_index_pct_change_map(system=self)
 
-    def _compute_intraday_market_snapshot(self, quote_df: pd.DataFrame) -> Dict[str, Any]:
-        return runtime_compute_intraday_market_snapshot(system=self, quote_df=quote_df)
 
-    def _evaluate_circuit_breaker(self, snapshot: Dict[str, Any], now: Optional[datetime] = None) -> Dict[str, Any]:
-        return runtime_evaluate_circuit_breaker(system=self, snapshot=snapshot, now=now)
 
-    def _compose_trade_control_context(
-        self,
-        now: Optional[datetime] = None,
-        quote_df: Optional[pd.DataFrame] = None,
-    ) -> Dict[str, Any]:
-        return runtime_compose_trade_control_context(system=self, now=now, quote_df=quote_df)
 
     def _maybe_emit_trade_control_alert(self, context: Dict[str, Any], circuit_changed: bool = False):
         return runtime_maybe_emit_trade_control_alert(
@@ -1267,78 +1235,10 @@ class EnhancedHybridSystem:
             circuit_changed=circuit_changed,
         )
 
-    def _report_trade_control_status(self, context: Dict[str, Any], now: Optional[datetime] = None):
-        return runtime_report_trade_control_status(system=self, context=context, now=now)
 
-    def _build_position_advice(
-        self,
-        candidate: Dict[str, Any],
-        total_score: float,
-        trade_control: Optional[Dict[str, Any]],
-        strategy_profile: str = "",
-        signal_subtype: str = "",
-    ) -> Dict[str, Any]:
-        return runtime_build_position_advice(
-            system=self,
-            candidate=candidate,
-            total_score=total_score,
-            trade_control=trade_control,
-            strategy_profile=strategy_profile,
-            signal_subtype=signal_subtype,
-        )
 
-    def _get_dynamic_signal_thresholds(
-        self,
-        candidate: Dict,
-        market_env: Dict,
-        industry_confirm: Optional[Dict] = None,
-        trade_control: Optional[Dict] = None,
-        strategy_profile: str = "",
-        signal_subtype: str = "",
-    ) -> Dict[str, float]:
-        return runtime_get_dynamic_signal_thresholds(
-            system=self,
-            candidate=candidate,
-            market_env=market_env,
-            industry_confirm=industry_confirm,
-            trade_control=trade_control,
-            strategy_profile=strategy_profile,
-            signal_subtype=signal_subtype,
-        )
 
-    def _calculate_total_signal_score(
-        self,
-        candidate: Dict,
-        signal,
-        market_env: Dict,
-        industry_score_adjustment: float = 0.0,
-    ) -> float:
-        return runtime_calculate_total_signal_score(
-            system=self,
-            candidate=candidate,
-            signal=signal,
-            market_env=market_env,
-            industry_score_adjustment=industry_score_adjustment,
-        )
 
-    def _build_buy_signal(self,
-                          candidate: Dict,
-                          current_price: float,
-                          signal,
-                          now: datetime,
-                          market_env: Dict,
-                          industry_context: Optional[Dict] = None,
-                          trade_control: Optional[Dict] = None) -> Optional[Dict]:
-        return runtime_build_buy_signal(
-            system=self,
-            candidate=candidate,
-            current_price=current_price,
-            signal=signal,
-            now=now,
-            market_env=market_env,
-            industry_context=industry_context,
-            trade_control=trade_control,
-        )
     
     def add_backtest_data(self, backtest_trades: List[Dict]):
         """
@@ -1588,103 +1488,8 @@ class EnhancedHybridSystem:
         
         return 0.0
     
-    def run_overnight_selection(self) -> List[Dict]:
-        """
-        盘后选股（T日收盘后）
-        
-        选出高质量候选股，分层管理
-        """
-        logger.info("执行盘后选股...")
-        
-        try:
-            # 调用成熟的选股系统
-            selection_result = self.overnight_selector.run_selection(
-                market_score=self._get_market_environment().get('market_score', 50.0)
-            )
-            
-            if not selection_result:
-                logger.warning("盘后选股结果为空")
-                return []
-            
-            # 分层管理
-            core_pool = []      # 核心池（高质量）
-            reserve_pool = []   # 备选池（中等质量）
-            
-            for i, stock in enumerate(selection_result):
-                score = float(stock.get('total_score', 0))
-                
-                candidate = {
-                    'symbol': stock.get('ts_code', '').split('.')[0],
-                    'name': stock.get('name', ''),
-                    'score': score,
-                    'level': stock.get('level', ''),
-                    'industry': stock.get('industry', ''),
-                    'pool_type': 'core' if i < self.config['core_pool_size'] else 'reserve',
-                    'strategy_profile': self._normalize_strategy_profile(
-                        stock.get('strategy_profile', self._resolve_candidate_strategy_profile(stock))
-                    ),
-                }
-                
-                if i < self.config['core_pool_size']:
-                    core_pool.append(candidate)
-                elif i < self.config['core_pool_size'] + self.config['reserve_pool_size']:
-                    reserve_pool.append(candidate)
-            
-            # 合并候选池
-            self.candidate_pool = core_pool + reserve_pool
-            self.candidate_date = datetime.now().strftime('%Y%m%d')
-            
-            # 保存候选池
-            self._save_candidate_pool()
-            
-            logger.info(f"盘后选股完成：核心池{len(core_pool)}只，备选池{len(reserve_pool)}只")
-            
-            return self.candidate_pool
-            
-        except Exception as e:
-            logger.error(f"盘后选股失败: {e}")
-            return []
     
-    def load_candidate_pool(self) -> bool:
-        """加载候选池"""
-        cache_file = os.path.join(self.cache_dir, 'candidate_pool.json')
-        
-        if not os.path.exists(cache_file):
-            logger.warning("候选池文件不存在")
-            return False
-        
-        try:
-            with open(cache_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            self.candidate_pool = data['candidates']
-            self.candidate_date = data['date']
-            default_profile = self._resolve_candidate_strategy_profile({})
-            for candidate in self.candidate_pool:
-                if isinstance(candidate, dict):
-                    candidate['strategy_profile'] = self._normalize_strategy_profile(
-                        candidate.get('strategy_profile', default_profile)
-                    )
-            
-            logger.info(f"加载候选池：{len(self.candidate_pool)}只股票")
-            return True
-            
-        except Exception as e:
-            logger.error(f"加载候选池失败: {e}")
-            return False
     
-    def _save_candidate_pool(self):
-        """保存候选池"""
-        cache_file = os.path.join(self.cache_dir, 'candidate_pool.json')
-        
-        data = {
-            'date': self.candidate_date,
-            'candidates': self.candidate_pool,
-            'created_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        }
-        
-        with open(cache_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
     
     def _build_intraday_data(self, price: float, volume: float, 
                             high: float, low: float) -> IntradayData:
@@ -1715,54 +1520,43 @@ class EnhancedHybridSystem:
             timestamp=np.arange(n)
         )
     
-    def print_buy_signals(self, signals: List[Dict]):
-        """打印买点信号"""
-        now = datetime.now()
-        
-        print("\n" + "="*80)
-        print(f"买点信号 - {now.strftime('%Y-%m-%d %H:%M:%S')}")
-        print("="*80)
-        
-        if not signals:
-            print("未发现买点信号")
-            return
-        
-        for i, signal in enumerate(signals, 1):
-            pool_str = "核心池" if signal['pool_type'] == 'core' else "备选池"
-            
-            print(f"\n{i}. {signal['symbol']} - {signal['name']} [{pool_str}]")
-            print(f"   价格: {signal['price']:.2f}")
-            print(f"   盘后评分: {signal['overnight_score']:.1f}")
-            print(f"   盘中信号: {signal['intraday_score']:.1f}")
-            print(f"   综合评分: {signal['total_score']:.1f}")
-            industry_confirm = signal.get("industry_confirm", {})
-            print(
-                "   行业确认: %s %.1f (%s)"
-                % (
-                    industry_confirm.get("industry", "未知"),
-                    float(industry_confirm.get("score", 50.0)),
-                    industry_confirm.get("level", "neutral"),
-                )
-            )
-            print(f"   信号类型: {signal['signal_type']}")
-            print(f"   时间: {signal['timestamp']}")
-            
-            if signal.get('signal_details'):
-                details = signal['signal_details']
-                print(f"   详情: ", end='')
-                for key, value in details.items():
-                    if isinstance(value, dict):
-                        continue
-                    print(f"{key}={value:.2f} ", end='')
-                print()
-        
-        print("\n" + "="*80)
-        print("建议操作：")
-        print("- 评分≥80: 立即买入")
-        print("- 评分70-80: 观察5分钟后买入")
-        print("- 评分<70: 等待确认")
-        print("="*80)
     
+
+    # ── 委托方法（委托给拆分出的子模块） ──
+
+    def load_candidate_pool(self) -> bool:
+        return self.candidate_manager.load_candidate_pool()
+
+    def _save_candidate_pool(self):
+        self.candidate_manager._save_candidate_pool()
+
+    def run_overnight_selection(self):
+        return self.candidate_manager.run_overnight_selection()
+
+    def print_buy_signals(self, signals):
+        self.candidate_manager.print_buy_signals(signals)
+
+    def _get_market_environment(self):
+        return self.market_context._get_market_environment()
+
+    def _report_trade_control_status(self, context, now=None):
+        self.market_context._report_trade_control_status(context, now)
+
+    def _build_buy_signal(self, symbol, name, price, score, reason, strategy_profile="default", extra=None):
+        return self.signal_builder._build_buy_signal(symbol, name, price, score, reason, strategy_profile, extra)
+
+    def _build_false_signal(self, symbol, reason):
+        return self.signal_builder._build_false_signal(symbol, reason)
+
+    def _wrap_signal_metadata(self, symbol, price, signal_type, source):
+        return self.signal_builder._wrap_signal_metadata(symbol, price, signal_type, source)
+
+    def _get_dynamic_signal_thresholds(self, market_score):
+        return self.signal_builder._get_dynamic_signal_thresholds(market_score)
+
+    def _calculate_total_signal_score(self, base_score, market_score, adjustments=None):
+        return self.signal_builder._calculate_total_signal_score(base_score, market_score, adjustments)
+
     def start_realtime_monitor(self, interval_seconds: int = 10):
         """启动实时监控。"""
         return runtime_start_realtime_monitor(system=self, interval_seconds=interval_seconds)
@@ -1781,7 +1575,7 @@ class EnhancedHybridSystem:
     
     def _is_trade_time(self, now: datetime) -> bool:
         """判断是否为交易时间。"""
-        return runtime_is_trade_time(now=now)
+        return runtime_is_trade_time(now=now, system=self)
     
     def _show_non_trade_time(self, now: datetime):
         """显示非交易时间"""
@@ -1848,6 +1642,9 @@ class EnhancedHybridSystem:
         template_source: str,
         route_name: str,
         route_label: str,
+        breakout_intraday_param_key: str = "breakout",
+        debounce_window: Optional[int] = None,
+        time_filter_profile: str = "default",
     ) -> SignalOutput:
         return runtime_detect_confirmation_signal(
             system=self,
@@ -1859,6 +1656,9 @@ class EnhancedHybridSystem:
             template_source=template_source,
             route_name=route_name,
             route_label=route_label,
+            breakout_intraday_param_key=breakout_intraday_param_key,
+            debounce_window=debounce_window,
+            time_filter_profile=time_filter_profile,
         )
 
     def _detect_legacy_gap_signal(
@@ -1975,6 +1775,10 @@ class EnhancedHybridSystem:
     def monitor_candidates(self) -> List[Dict]:
         """Use realtime minute bars only; missing minute data downgrades to observe/skip."""
         return runtime_monitor_candidates(self)
+
+    def run_intraday_buy_router_healthcheck(self) -> List[Dict[str, Any]]:
+        """盘中买点路由冒烟：各 strategy_profile 调用一次 resolve 不抛异常即视为链路可用。"""
+        return runtime_run_intraday_buy_router_healthcheck(self)
 
     def _default_strategy_for_optimization(self, bar):
         """Default strategy hook for auto optimization with realtime minute input only."""

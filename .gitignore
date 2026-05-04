@@ -77,3 +77,58 @@ cache/
 # System specific
 Thumbs.db
 desktop.ini
+
+# Android build artifacts
+android_app/.gradle/
+android_app/build/
+android_app/local.properties
+
+# Generated reports & research
+reports/
+data/reports/
+data/research/
+results/
+
+# Generated test files
+tests/*.pyc
+nul
+
+# Screenshots and UI dumps
+*.png
+*.xml
+!web/templates/*.xml
+
+# Backup directories
+*backup*/
+scripts_archive/
+backup_code_refactor_*/
+
+# Docker files (deployment-specific)
+deploy/
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-entrypoint.sh
+
+# Export scripts
+export_cloud_data.py
+
+# Data files (WAL/SHM)
+*.db-shm
+*.db-wal
+
+# Compiled model files
+models/
+*.txt
+*.json
+
+# Android dev artifacts (disabled files, compatibility shims)
+android_app/app/src/main/java/com/quant/system/core/performance/
+android_app/app/src/main/java/com/quant/system/core/stability/
+android_app/app/src/main/java/com/quant/system/core/test/
+android_app/app/src/main/java/com/quant/system/core/ux/UiJankSampler.kt
+android_app/app/src/main/java/com/quant/system/ui/screen/BrandExperience.kt
+android_app/app/src/main/java/com/quant/system/ui/screen/viewmodel/DashboardViewModelCompat.kt
+
+# Old log files
+data/logs/

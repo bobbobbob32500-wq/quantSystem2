@@ -339,6 +339,8 @@ class AutoPushManager:
                 strategy_label = (
                     "增强策略（enhanced / 6因子）"
                     if strategy_profile == "enhanced"
+                    else "机构核心策略（institutional_core / 多袖口）"
+                    if strategy_profile == "institutional_core"
                     else "原策略优化版（legacy_opt / 5因子）"
                     if strategy_profile == "legacy_opt"
                     else "基准原策略（legacy / 5因子）"
@@ -363,6 +365,10 @@ class AutoPushManager:
             secondary_success = True
             if push_secondary and secondary_payload.get("stock_selection"):
                 self.secondary_launch_selector.persist_daily_selection(
+                    trade_date=selection_end_date,
+                    selections=secondary_payload.get("stock_selection", []),
+                )
+                self.secondary_launch_selector.sync_to_candidate_pool(
                     trade_date=selection_end_date,
                     selections=secondary_payload.get("stock_selection", []),
                 )
@@ -489,7 +495,15 @@ class AutoPushManager:
             success = self.pusher.push_pre_market_selection(payload.get("legacy_payload") or {})
         secondary_success = True
         if strategy_key in {"secondary_launch", "secondary", "both"} and payload.get("secondary_payload"):
-            secondary_success = self.pusher.push_pre_market_selection(payload.get("secondary_payload") or {})
+            secondary_payload = payload.get("secondary_payload") or {}
+            trade_date = str(payload.get("trade_date", "") or "")
+            stock_selection = secondary_payload.get("stock_selection", [])
+            if trade_date and stock_selection:
+                self.secondary_launch_selector.sync_to_candidate_pool(
+                    trade_date=trade_date,
+                    selections=stock_selection,
+                )
+            secondary_success = self.pusher.push_pre_market_selection(secondary_payload)
         return bool(success and secondary_success)
 
     def _push_cached_post_market_payload(self, strategy: str, payload: Dict[str, Any]) -> bool:

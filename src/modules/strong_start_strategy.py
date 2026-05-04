@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
@@ -186,6 +186,36 @@ class StrongStartParams:
             top_k=12,
             allow_breakout_setup=True,
             allow_pullback_setup=True,
+            chip_factor_profile_key="tradeable_v3_research",
+        )
+
+    @classmethod
+    def tradeable_v4_parameter_reverse_loose(cls) -> "StrongStartParams":
+        """
+        将「参数反推报告」宽松档映射为可交易字段（在 v3 研究预设上增量收紧/对齐）。
+
+        依据：`data/research/strong_start_full/parameter_reverse_engineering_report.md` 第 3 节宽松下界。
+        显式映射（研究 f_* → StrongStartParams）：
+          - f_strength_rs20_xsec_q 宽松 [0.748430, +∞) → rs_quantile_min = 0.7484
+          - f_chip_winner_rate 宽松 [0.860202, +∞) → winner_rate_min = 0.8602
+          - f_breakout_vol_ratio20 宽松 [1.620811, +∞) → breakout_volume_ratio = 1.62
+          - f_k_close_pos 宽松 [0.798841, +∞) → breakout_close_pos_min = 0.80
+
+        未逐字段对齐的 f_*（如 f_trend_close_ma20_gap、f_ind_rank_pctchg、f_chip_stability_std10）：
+        交易端已有 close≥MA20、筹码集中度 std 上限等约束，与研究侧特征定义不完全相同，
+        后续若需一致，应在特征层增加列再挂参。
+
+        chip_factor_profile_key 沿用 v3 研究物化键，避免新建 profile 尚未入库导致选股为空。
+        """
+        base = cls.tradeable_v3_research()
+        return replace(
+            base,
+            rs_quantile_min=0.7484,
+            winner_rate_min=0.8602,
+            breakout_volume_ratio=1.62,
+            breakout_close_pos_min=0.80,
+            min_signal_score=45.0,
+            top_k=10,
             chip_factor_profile_key="tradeable_v3_research",
         )
 

@@ -155,12 +155,23 @@ class PushOutboxStore:
         if row:
             self._record_stat(row[0]["channel"], row[0]["msg_type"], "success", latency_ms=latency_ms)
 
-    def mark_failed(self, row_id: int, error: str, base_retry_delay: int = 60):
+    def mark_failed(
+        self,
+        row_id: int,
+        error: str,
+        base_retry_delay: int = 60,
+        retry_delay_seconds: Optional[int] = None,
+    ):
         row = self.db.query("SELECT attempts, channel, msg_type FROM push_outbox WHERE id=?", (int(row_id),))
         if not row:
             return
         current_attempts = int(row[0].get("attempts", 0))
-        backoff_delay = self._compute_backoff_delay(current_attempts + 1, base_retry_delay)
+        delay_base = (
+            int(retry_delay_seconds)
+            if retry_delay_seconds is not None
+            else int(base_retry_delay)
+        )
+        backoff_delay = self._compute_backoff_delay(current_attempts + 1, delay_base)
         next_retry = (datetime.now() + timedelta(seconds=backoff_delay)).strftime(
             "%Y-%m-%d %H:%M:%S"
         )

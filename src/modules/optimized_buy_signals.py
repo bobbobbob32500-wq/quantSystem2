@@ -46,11 +46,17 @@ class OptimizedBuySignals:
                 'trend_ma_period': 20,        # 趋势MA周期
             },
             
-            # 突破买点参数
+            # 突破买点参数（与 strategy_profile=breakout 对应）
             'breakout': {
                 'lookback': 30,               # 前高周期
                 'volume_multiplier': 1.5,     # 放量倍数
                 'hold_minutes': 3,            # 突破维持时间
+            },
+            # 宽进突破（日线 wide_pool_strict_entry_v2 / buy_tuning_v1 档）：分时突破分支更严
+            'breakout_wide': {
+                'lookback': 30,
+                'volume_multiplier': 1.75,    # 高于默认 1.5，贴近更强量能确认
+                'hold_minutes': 4,              # 多 1 分钟维持，降低假突破
             },
             
             # 横盘买点参数
@@ -66,6 +72,15 @@ class OptimizedBuySignals:
                 'end_time': time(14, 30),
                 'avoid_times': [
                     (time(9, 30), time(9, 45)),
+                    (time(11, 30), time(13, 0)),
+                ]
+            },
+            # 突破专用时间过滤：与 breakout_strategy 实盘确认窗口对齐
+            'time_filter_breakout': {
+                'start_time': time(9, 35),
+                'end_time': time(14, 50),
+                'avoid_times': [
+                    (time(9, 30), time(9, 35)),
                     (time(11, 30), time(13, 0)),
                 ]
             },
@@ -192,17 +207,20 @@ class OptimizedBuySignals:
             details=details
         )
     
-    def signal_breakout(self, data: IntradayData) -> SignalOutput:
+    def signal_breakout(self, data: IntradayData, param_key: str = "breakout") -> SignalOutput:
         """
         突破买点（次策略）- 优化版
         
         条件：
         1. 突破前高
-        2. 放量（量比 > 1.5倍）
-        3. 突破后维持（连续3分钟维持在前高之上）
+        2. 放量（量比阈值见 params[param_key]）
+        3. 突破后维持（连续 N 分钟维持在前高之上）
         4. 突破前横盘（过去15分钟振幅 < 2%）【新增关键条件】
+
+        param_key: breakout | breakout_wide（宽进突破，与日线严买点档位对齐）
         """
-        params = self.params['breakout']
+        pk = param_key if param_key in self.params and isinstance(self.params.get(param_key), dict) else "breakout"
+        params = self.params[pk]
         price = data.price
         volume = data.volume
         
@@ -341,7 +359,13 @@ class OptimizedBuySignals:
             details=details
         )
     
-    def evaluate_time_filter(self, timestamp: datetime, open_pct: float = 0, market_score: float = 65.0) -> Tuple[bool, float]:
+    def evaluate_time_filter(
+        self,
+        timestamp: datetime,
+        open_pct: float = 0,
+        market_score: float = 65.0,
+        time_filter_profile: str = "default",
+    ) -> Tuple[bool, float]:
         """
         时间过滤（升级版）- 返回(是否通过, 建议仓位比例)
         
@@ -349,7 +373,11 @@ class OptimizedBuySignals:
         1. 开盘状态过滤
         2. 市场环境过滤 → 仓位控制（关键升级）
         """
-        params = self.params['time_filter']
+        profile = str(time_filter_profile or "default").strip().lower()
+        if profile == "breakout" and isinstance(self.params.get("time_filter_breakout"), dict):
+            params = self.params["time_filter_breakout"]
+        else:
+            params = self.params['time_filter']
         current_time = timestamp.time()
         
         # 开盘状态过滤
@@ -378,12 +406,19 @@ class OptimizedBuySignals:
         
         return True, position_ratio
 
-    def time_filter(self, timestamp: datetime, open_pct: float = 0, market_score: float = 65.0) -> bool:
+    def time_filter(
+        self,
+        timestamp: datetime,
+        open_pct: float = 0,
+        market_score: float = 65.0,
+        time_filter_profile: str = "default",
+    ) -> bool:
         """向后兼容的时间过滤接口，只返回是否允许交易。"""
         allowed, _ = self.evaluate_time_filter(
             timestamp,
             open_pct=open_pct,
             market_score=market_score,
+            time_filter_profile=time_filter_profile,
         )
         return allowed
     
@@ -499,6 +534,8 @@ class OptimizedBuySignals:
         daily_high60: float = 0.0,
         daily_low60: float = 0.0,
         entry_price: float = 0.0,
+        breakout_intraday_param_key: str = "breakout",
+        time_filter_profile: str = "default",
     ) -> SignalOutput:
         """
         互斥触发信号（P2+P3 全量优化版）
@@ -511,10 +548,15 @@ class OptimizedBuySignals:
         新增：
           - P2 安全买入窗口过滤（追顶/出货日拦截）
           - P3 每条信号自动附带止损/止盈价位
+
+        breakout_intraday_param_key: 突破分支参数组（breakout / breakout_wide），宽进突破传 breakout_wide。
         """
         # 时间过滤
         allowed, position_ratio = self.evaluate_time_filter(
-            timestamp, open_pct=open_pct, market_score=market_score
+            timestamp,
+            open_pct=open_pct,
+            market_score=market_score,
+            time_filter_profile=time_filter_profile,
         )
         if not allowed:
             return SignalOutput(False, "", 0, "非交易时间")
@@ -551,10 +593,12 @@ class OptimizedBuySignals:
             logger.info("触发横盘买点，置信度%.2f", s3.confidence)
             return _attach_exit(s3)
 
-        # 优先级3：突破信号（要求最严，置信度门槛提高到0.75）
-        s2 = self.signal_breakout(data)
-        if s2.signal and s2.confidence > 0.75:
-            logger.info("触发突破买点，置信度%.2f", s2.confidence)
+        # 优先级3：突破信号（宽进突破时参数与置信门槛更严）
+        bk_key = breakout_intraday_param_key if breakout_intraday_param_key in self.params else "breakout"
+        breakout_min_conf = 0.78 if bk_key == "breakout_wide" else 0.75
+        s2 = self.signal_breakout(data, param_key=bk_key)
+        if s2.signal and s2.confidence > breakout_min_conf:
+            logger.info("触发突破买点(param=%s)，置信度%.2f", bk_key, s2.confidence)
             return _attach_exit(s2)
 
         return SignalOutput(False, "", 0, "无信号")

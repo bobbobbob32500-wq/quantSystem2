@@ -56,10 +56,28 @@ __all__ = [
 ]
 
 try:
-    from src.modules.breakout_strategy import BreakoutStrategy, BreakoutParams
-    from src.modules.breakout_selector_menu import breakout_selector_menu
+    from src.modules.breakout_strategy import (
+        BreakoutStrategy,
+        BreakoutParams,
+        get_breakout_params_for_backtest,
+        build_breakout_strategy_from_config,
+        build_wide_breakout_strategy_from_config,
+        resolve_breakout_preset_from_config,
+    )
+    from src.modules.breakout_selector_menu import breakout_selector_menu, wide_breakout_selector_menu
 
-    __all__.extend(["BreakoutStrategy", "BreakoutParams", "breakout_selector_menu"])
+    __all__.extend(
+        [
+            "BreakoutStrategy",
+            "BreakoutParams",
+            "get_breakout_params_for_backtest",
+            "build_breakout_strategy_from_config",
+            "build_wide_breakout_strategy_from_config",
+            "resolve_breakout_preset_from_config",
+            "breakout_selector_menu",
+            "wide_breakout_selector_menu",
+        ]
+    )
 except ImportError:
     BreakoutStrategy = None  # type: ignore[misc, assignment]
     BreakoutParams = None  # type: ignore[misc, assignment]
@@ -72,3 +90,27 @@ try:
 except ImportError:
     StrongStartStrategy = None  # type: ignore[misc, assignment]
     StrongStartParams = None  # type: ignore[misc, assignment]
+
+# AI集成模块（可选依赖，Ollama不可用时降级）
+try:
+    from src.modules.ai_integration import (
+        LLMClient,
+        StockExplainer,
+        SignalAnalyzer,
+        NewsSentimentAnalyzer,
+        AIAssistant,
+    )
+
+    __all__.extend([
+        "LLMClient",
+        "StockExplainer",
+        "SignalAnalyzer",
+        "NewsSentimentAnalyzer",
+        "AIAssistant",
+    ])
+except ImportError:
+    LLMClient = None  # type: ignore[misc, assignment]
+    StockExplainer = None  # type: ignore[misc, assignment]
+    SignalAnalyzer = None  # type: ignore[misc, assignment]
+    NewsSentimentAnalyzer = None  # type: ignore[misc, assignment]
+    AIAssistant = None  # type: ignore[misc, assignment]

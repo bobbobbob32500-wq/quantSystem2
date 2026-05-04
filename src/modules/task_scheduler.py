@@ -15,6 +15,7 @@ from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 from src.core.logger import get_logger
 from src.core.runtime_monitor import IncidentCategory
 from src.core.config import ConfigManager
+from src.core.database import DatabaseManager
 from src.core.exceptions import SchedulerException
 
 logger = get_logger("scheduler")

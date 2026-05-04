@@ -58,6 +58,17 @@ class DailyReportGenerator:
         
         logger.info("日报生成器初始化完成")
 
+    def _secondary_launch_tier_threshold_overrides(self) -> Dict[str, float]:
+        """二次启动分层阈值：从配置读取，供盘中分层与日报复盘一致。"""
+        return {
+            "direct_score_min": float(self.config.get("stock_selection.secondary_launch.direct_score_min", 76.0) or 76.0),
+            "direct_lgb_min": float(self.config.get("stock_selection.secondary_launch.direct_lgb_min", 0.58) or 0.58),
+            "semi_score_min": float(self.config.get("stock_selection.secondary_launch.semi_score_min", 70.0) or 70.0),
+            "semi_lgb_min": float(self.config.get("stock_selection.secondary_launch.semi_lgb_min", 0.55) or 0.55),
+            "direct_conf_min": float(self.config.get("stock_selection.secondary_launch.direct_conf_min", 0.45) or 0.45),
+            "semi_conf_min": float(self.config.get("stock_selection.secondary_launch.semi_conf_min", 0.58) or 0.58),
+        }
+
     @staticmethod
     def _market_status_label(score: float) -> str:
         """根据评分映射市场状态标签。"""
@@ -291,10 +302,18 @@ class DailyReportGenerator:
                 "symbol": symbol,
                 "name": row["name"],
                 "score": float(item.get("signal_score", item.get("total_score", 80.0)) or 80.0),
+                "signal_score": float(item.get("signal_score", item.get("total_score", 80.0)) or 80.0),
+                "rank": int(item.get("rank", 1) or 1),
                 "pool_type": "core" if int(item.get("rank", 1) or 1) == 1 else "reserve",
                 "industry": str(item.get("industry", "") or ""),
                 "strategy_profile": "secondary_launch",
             }
+            if item.get("lgb_prob") is not None:
+                try:
+                    candidate["lgb_prob"] = float(item.get("lgb_prob"))
+                except (TypeError, ValueError):
+                    pass
+            candidate.update(self._secondary_launch_tier_threshold_overrides())
             for _k in ("pct_chg", "vol_ratio_5", "upper_shadow_pct"):
                 if item.get(_k) is not None:
                     candidate[_k] = item[_k]

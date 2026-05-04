@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from datetime import datetime, time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -394,6 +394,135 @@ def _check_daily_profile_gate(candidate: Dict[str, Any]) -> Optional[SignalOutpu
     return None
 
 
+def _resolve_execution_tier(candidate: Dict[str, Any]) -> Tuple[str, str]:
+    """根据日线强弱把候选划分为直通层/确认层。"""
+    # 分层阈值：默认与全量寻优结果对齐（2026-04-15 secondary_launch_layered_threshold_opt_20260415_033344）
+    # 允许上游在 candidate 中注入覆盖值，避免多处硬编码漂移。
+    direct_score_min = float(candidate.get("direct_score_min", 76.0) or 76.0)
+    direct_lgb_min = float(candidate.get("direct_lgb_min", 0.58) or 0.58)
+    semi_score_min = float(candidate.get("semi_score_min", 70.0) or 70.0)
+    semi_lgb_min = float(candidate.get("semi_lgb_min", 0.55) or 0.55)
+
+    rank_raw = candidate.get("rank", 99)
+    score_raw = candidate.get("score", candidate.get("signal_score", 0.0))
+    lgb_raw = candidate.get("lgb_prob")
+    try:
+        rank = int(rank_raw)
+    except (TypeError, ValueError):
+        rank = 99
+    try:
+        score = float(score_raw or 0.0)
+    except (TypeError, ValueError):
+        score = 0.0
+    try:
+        lgb_prob = float(lgb_raw) if lgb_raw is not None else None
+    except (TypeError, ValueError):
+        lgb_prob = None
+
+    if rank == 1 and score >= direct_score_min and (lgb_prob is None or lgb_prob >= direct_lgb_min):
+        return "direct", "A层强票：允许弱确认先执行"
+    if rank == 1 and score >= semi_score_min and (lgb_prob is None or lgb_prob >= semi_lgb_min):
+        return "semi", "A层次强票：弱确认后执行"
+    return "confirm", "B层候选：必须强确认后执行"
+
+
+def _build_layered_execution_signal(
+    prepared: pd.DataFrame,
+    candidate: Dict[str, Any],
+    quote: Dict[str, float],
+    now: datetime,
+    industry_confirm: Optional[Dict[str, Any]] = None,
+    market_confirm: Optional[Dict[str, Any]] = None,
+) -> SignalOutput:
+    """分层确认 + 双通道执行。"""
+    market_gate = _resolve_market_gate(market_confirm)
+    industry_info = industry_confirm or {}
+    industry_score = float(industry_info.get("score", 50.0) or 50.0)
+    industry_level = str(industry_info.get("level", "neutral") or "neutral")
+    industry_blocked = industry_score < 45.0 or industry_level in {"weak", "poor"}
+
+    pullback_signal = _build_pullback_signal(prepared, candidate, quote, now)
+    breakout_signal = _build_breakout_signal(prepared, candidate, quote, now, market_confirm=market_confirm)
+    execution_tier, execution_note = _resolve_execution_tier(candidate)
+
+    best_signal = pullback_signal if float(pullback_signal.confidence or 0.0) >= float(breakout_signal.confidence or 0.0) else breakout_signal
+    best_signal.details = dict(best_signal.details or {})
+    best_signal.details["industry_score"] = round(industry_score, 1)
+    best_signal.details["industry_level"] = industry_level
+    best_signal.details["market_score"] = round(float(market_gate.get("market_score", 50.0)), 1)
+    best_signal.details["market_trend"] = str(market_gate.get("trend", "neutral"))
+    best_signal.details["execution_tier"] = execution_tier
+    best_signal.details["execution_note"] = execution_note
+
+    if industry_blocked:
+        best_signal.signal = False
+        best_signal.reason = "行业共振不足，分层执行失效"
+        best_signal.details["route_blocked"] = True
+        best_signal.details["blocker_tag"] = "industry_blocked"
+        best_signal.details["blocker_detail"] = "行业分时强度不足"
+        return best_signal
+
+    if execution_tier == "direct":
+        direct_conf_min = float(candidate.get("direct_conf_min", 0.45) or 0.45)
+        direct_ok = (
+            now.time() >= time(9, 40)
+            and float(best_signal.confidence or 0.0) >= direct_conf_min
+            and not bool(best_signal.details.get("route_blocked", False))
+            and not market_gate.get("weak_market")
+        )
+        best_signal.signal = bool(direct_ok)
+        best_signal.reason = "A层强票弱确认直通" if direct_ok else "A层强票直通条件未满足"
+        best_signal.details["entry_trigger"] = "A层强票弱确认先执行"
+        best_signal.details["buy_route"] = "secondary_launch_direct"
+        best_signal.details["buy_route_label"] = "二次启动A层直通"
+        best_signal.details["confidence_threshold"] = direct_conf_min
+        if not direct_ok:
+            best_signal.details["blocker_tag"] = "below_threshold"
+            best_signal.details["blocker_detail"] = "A层直通弱确认阈值未满足或市场偏弱"
+        return best_signal
+
+    if execution_tier == "semi":
+        semi_conf_min = float(candidate.get("semi_conf_min", 0.58) or 0.58)
+        semi_ok = (
+            now.time() >= time(9, 40)
+            and float(best_signal.confidence or 0.0) >= semi_conf_min
+            and not bool(best_signal.details.get("route_blocked", False))
+        )
+        best_signal.signal = bool(semi_ok)
+        best_signal.reason = "A层次强票弱确认通过" if semi_ok else "A层次强票待进一步确认"
+        best_signal.details["entry_trigger"] = "A层次强票弱确认后执行"
+        best_signal.details["buy_route"] = "secondary_launch_semi_confirm"
+        best_signal.details["buy_route_label"] = "二次启动A层弱确认"
+        best_signal.details["confidence_threshold"] = semi_conf_min
+        if not semi_ok:
+            best_signal.details["blocker_tag"] = "below_threshold"
+            best_signal.details["blocker_detail"] = "A层弱确认阈值未满足"
+        return best_signal
+
+    breakout_threshold = _resolve_breakout_threshold(now, market_gate)
+    confirm_ok = bool(
+        (pullback_signal.signal and float(pullback_signal.confidence or 0.0) >= 0.60)
+        or (breakout_signal.signal and float(breakout_signal.confidence or 0.0) >= breakout_threshold)
+    )
+    chosen = pullback_signal if float(pullback_signal.confidence or 0.0) >= float(breakout_signal.confidence or 0.0) else breakout_signal
+    chosen.details = dict(chosen.details or {})
+    chosen.details["industry_score"] = round(industry_score, 1)
+    chosen.details["industry_level"] = industry_level
+    chosen.details["market_score"] = round(float(market_gate.get("market_score", 50.0)), 1)
+    chosen.details["market_trend"] = str(market_gate.get("trend", "neutral"))
+    chosen.details["execution_tier"] = execution_tier
+    chosen.details["execution_note"] = execution_note
+    chosen.details["confidence_threshold"] = 0.60 if chosen.signal_type == "secondary_launch_pullback" else round(float(breakout_threshold), 2)
+    if confirm_ok:
+        chosen.reason = "B层强确认通过"
+    else:
+        chosen.reason = "B层候选待强确认"
+        chosen.details.setdefault("blocker_tag", "below_threshold")
+        chosen.details.setdefault("blocker_detail", "B层候选尚未满足强确认条件")
+    chosen.signal = confirm_ok
+    return chosen
+
+
 def detect_secondary_launch_signal(
     candidate: Dict[str, Any],
     quote: Dict[str, float],
@@ -402,7 +531,7 @@ def detect_secondary_launch_signal(
     industry_confirm: Optional[Dict[str, Any]] = None,
     market_confirm: Optional[Dict[str, Any]] = None,
 ) -> SignalOutput:
-    """二次启动盘中专用路由：先回踩确认，再平台突破。"""
+    """二次启动盘中专用路由：分层确认 + 双通道执行。"""
     if now.time() < time(9, 35) or now.time() > time(14, 20):
         return SignalOutput(False, "", 0.0, "非二次启动监控窗口", details={"route_blocked": True})
 
@@ -414,45 +543,14 @@ def detect_secondary_launch_signal(
     if prepared.empty:
         return SignalOutput(False, "", 0.0, "缺少有效分钟数据", details={"route_blocked": True})
 
-    industry_info = industry_confirm or {}
-    market_gate = _resolve_market_gate(market_confirm)
-    industry_score = float(industry_info.get("score", 50.0) or 50.0)
-    industry_level = str(industry_info.get("level", "neutral") or "neutral")
-    industry_blocked = industry_score < 45.0 or industry_level in {"weak", "poor"}
-
-    pullback_signal = _build_pullback_signal(prepared, candidate, quote, now)
-    pullback_signal.details = dict(pullback_signal.details or {})
-    pullback_signal.details["industry_score"] = round(industry_score, 1)
-    pullback_signal.details["industry_level"] = industry_level
-    pullback_signal.details["market_score"] = round(float(market_gate.get("market_score", 50.0)), 1)
-    pullback_signal.details["market_trend"] = str(market_gate.get("trend", "neutral"))
-    if industry_blocked:
-        pullback_signal.signal = False
-        pullback_signal.reason = "行业共振不足，回踩信号失效"
-        pullback_signal.details["route_blocked"] = True
-        pullback_signal.details["expiry_hint"] = "所属行业分时强度不足，暂不执行"
-        pullback_signal.details["blocker_tag"] = "industry_blocked"
-        pullback_signal.details["blocker_detail"] = "行业分时强度不足"
-    if pullback_signal.signal and pullback_signal.confidence >= 0.60:
-        return pullback_signal
-
-    breakout_signal = _build_breakout_signal(prepared, candidate, quote, now, market_confirm=market_confirm)
-    breakout_signal.details = dict(breakout_signal.details or {})
-    breakout_signal.details["industry_score"] = round(industry_score, 1)
-    breakout_signal.details["industry_level"] = industry_level
-    if industry_blocked:
-        breakout_signal.signal = False
-        breakout_signal.reason = "行业共振不足，突破信号失效"
-        breakout_signal.details["route_blocked"] = True
-        breakout_signal.details["expiry_hint"] = "所属行业分时强度不足，暂不执行"
-        breakout_signal.details["blocker_tag"] = "industry_blocked"
-        breakout_signal.details["blocker_detail"] = "行业分时强度不足"
-    breakout_threshold = _resolve_breakout_threshold(now, market_gate)
-    breakout_signal.details["confidence_threshold"] = round(float(breakout_threshold), 2)
-    if breakout_signal.signal and breakout_signal.confidence >= breakout_threshold:
-        return breakout_signal
-
-    return breakout_signal if breakout_signal.confidence >= pullback_signal.confidence else pullback_signal
+    return _build_layered_execution_signal(
+        prepared=prepared,
+        candidate=candidate,
+        quote=quote,
+        now=now,
+        industry_confirm=industry_confirm,
+        market_confirm=market_confirm,
+    )
 
 
 def explain_secondary_launch_blocked(
@@ -469,6 +567,8 @@ def explain_secondary_launch_blocked(
         "blocker_detail": "全天未形成有效回踩确认或平台突破",
         "trigger_time": "",
         "signal_type": "",
+        "execution_tier": "",
+        "execution_note": "",
         "confidence": 0.0,
     }
     if prepared.empty or "timestamp" not in prepared.columns:
@@ -489,29 +589,27 @@ def explain_secondary_launch_blocked(
             continue
         now = ts.to_pydatetime()
         current_price = float(frame.iloc[-1]["close"])
-        pullback_signal = _build_pullback_signal(frame, candidate, {"price": current_price}, now)
-        breakout_signal = _build_breakout_signal(
-            frame,
-            candidate,
-            {"price": current_price},
-            now,
+        layered_signal = _build_layered_execution_signal(
+            prepared=frame,
+            candidate=candidate,
+            quote={"price": current_price},
+            now=now,
+            industry_confirm=industry_confirm,
             market_confirm=market_confirm,
         )
-        breakout_threshold = _resolve_breakout_threshold(now, _resolve_market_gate(market_confirm))
 
         signal_type = ""
         confidence = 0.0
-        if pullback_signal.signal and pullback_signal.confidence >= 0.60:
-            signal_type = "secondary_launch_pullback"
-            confidence = float(pullback_signal.confidence or 0.0)
-        elif breakout_signal.signal and breakout_signal.confidence >= breakout_threshold:
-            signal_type = "secondary_launch_breakout"
-            confidence = float(breakout_signal.confidence or 0.0)
+        if layered_signal.signal:
+            signal_type = str(layered_signal.signal_type or "")
+            confidence = float(layered_signal.confidence or 0.0)
 
         if signal_type:
             if earliest_signal_time is None:
                 earliest_signal_time = now
                 earliest_signal_type = signal_type
+                result["execution_tier"] = str(layered_signal.details.get("execution_tier", "") or "")
+                result["execution_note"] = str(layered_signal.details.get("execution_note", "") or "")
             latest_signal_time = now
             latest_signal_type = signal_type
             result["confidence"] = round(max(float(result["confidence"]), confidence), 4)

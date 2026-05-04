@@ -10,7 +10,7 @@
   5. 参数调整预览（修改阈值后实时查看筛选变化）
 
 选股完成后会自动合并写入 data/cache/candidate_pool.json，
-与首页指挥台、Web 看板「候选池」对齐（strategy_profile=breakout）；
+与首页指挥台、Web 看板「候选池」对齐（默认 strategy_profile=breakout；「宽进突破」为 wide_breakout，可与原突破并存）；
 「一键日报」仍走原 StockSelector，与突破池独立。
 """
 
@@ -26,7 +26,15 @@ import pandas as pd
 from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
 from src.core.logger import get_logger
-from src.modules.breakout_strategy import BreakoutStrategy, BreakoutParams, WatchItem, BreakoutSignal
+from src.modules.breakout_strategy import (
+    BreakoutStrategy,
+    BreakoutParams,
+    WatchItem,
+    BreakoutSignal,
+    build_breakout_strategy_from_config,
+    build_wide_breakout_strategy_from_config,
+    resolve_breakout_preset_from_config,
+)
 
 logger = get_logger("breakout_selector_menu")
 
@@ -35,16 +43,22 @@ def merge_breakout_watchlist_to_candidate_cache(
     watch_items: List[WatchItem],
     watch_date: str,
     project_root: Optional[Path] = None,
+    strategy_profile: str = "breakout",
+    strategy_name: str = "breakout_watchlist",
+    level_label: str = "突破观察池",
+    source: str = "breakout_strategy",
+    exit_plan: Optional[Dict[str, Any]] = None,
 ) -> int:
     """
     将突破观察池写入 data/cache/candidate_pool.json，供首页终端指挥台与 Web 看板「候选池」读取。
 
-    会移除缓存中历史 strategy_profile=breakout 的条目，再写入本次结果，避免重复；
-    其他策略（如二次启动）写入的同文件条目予以保留。
+    仅移除缓存中 **与本次 strategy_profile 相同** 的历史条目，再写入本次结果；
+    其他策略（含另一类突破档案）条目予以保留。
     """
     root = project_root or Path(__file__).resolve().parents[2]
     cache_path = root / "data" / "cache" / "candidate_pool.json"
     cache_path.parent.mkdir(parents=True, exist_ok=True)
+    profile_key = str(strategy_profile or "breakout").strip() or "breakout"
 
     prev_candidates: List[dict] = []
     if cache_path.is_file():
@@ -56,7 +70,7 @@ def merge_breakout_watchlist_to_candidate_cache(
                     prev_candidates = [
                         c
                         for c in raw
-                        if isinstance(c, dict) and c.get("strategy_profile") != "breakout"
+                        if isinstance(c, dict) and c.get("strategy_profile") != profile_key
                     ]
         except Exception as exc:
             logger.warning("读取候选池缓存失败，将覆盖写入: %s", exc)
@@ -64,6 +78,7 @@ def merge_breakout_watchlist_to_candidate_cache(
 
     new_rows: List[dict] = []
     wd = str(watch_date or "").strip()
+    resolved_exit_plan = exit_plan if isinstance(exit_plan, dict) else {}
     for item in watch_items or []:
         code = str(getattr(item, "ts_code", "") or "").strip()
         if not code:
@@ -75,16 +90,17 @@ def merge_breakout_watchlist_to_candidate_cache(
                 "ts_code": code,
                 "name": str(getattr(item, "name", "") or ""),
                 "score": float(getattr(item, "signal_score", 0.0) or 0.0),
-                "level": "突破观察池",
+                "level": level_label,
                 "industry": str(getattr(item, "industry", "") or "未知"),
                 "pool_type": "core",
-                "strategy_profile": "breakout",
-                "strategy_name": "breakout_watchlist",
-                "source": "breakout_strategy",
+                "strategy_profile": profile_key,
+                "strategy_name": strategy_name,
+                "source": source,
                 "trade_date": wd,
                 "trigger_price": float(getattr(item, "trigger_price", 0.0) or 0.0),
                 "pivot": float(getattr(item, "pivot", 0.0) or 0.0),
                 "stop_loss": float(getattr(item, "stop_loss", 0.0) or 0.0),
+                "exit_plan": resolved_exit_plan,
             }
         )
 
@@ -103,6 +119,8 @@ def build_breakout_pre_market_payload(
     watch_items: List[WatchItem],
     trade_date: str,
     market_analysis: Optional[Dict[str, Any]] = None,
+    pool_level_label: str = "突破观察池",
+    strategy_label: str = "选强→等突破（观察池）",
 ) -> Dict[str, Any]:
     """组装与企业微信盘前计划模板兼容的 payload。"""
     stocks: List[Dict[str, Any]] = []
@@ -112,7 +130,7 @@ def build_breakout_pre_market_payload(
                 "ts_code": it.ts_code,
                 "name": it.name,
                 "total_score": float(it.signal_score or 0.0),
-                "level": "突破观察池",
+                "level": pool_level_label,
             }
         )
     td = str(trade_date or "").strip()
@@ -123,7 +141,7 @@ def build_breakout_pre_market_payload(
     return {
         "report_date": report_date,
         "report_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "strategy_label": "选强→等突破（观察池）",
+        "strategy_label": strategy_label,
         "stock_selection": stocks,
         "market_analysis": market_analysis if isinstance(market_analysis, dict) else {},
     }
@@ -134,6 +152,8 @@ def offer_breakout_wechat_push(
     db: DatabaseManager,
     watch_items: List[WatchItem],
     trade_date: str,
+    pool_level_label: str = "突破观察池",
+    strategy_label: str = "选强→等突破（观察池）",
 ) -> None:
     """控制台询问后推送盘前计划。"""
     if not watch_items:
@@ -154,7 +174,11 @@ def offer_breakout_wechat_push(
         except Exception:
             market_analysis = {}
 
-        payload = build_breakout_pre_market_payload(watch_items, trade_date, market_analysis)
+        payload = build_breakout_pre_market_payload(
+            watch_items, trade_date, market_analysis,
+            pool_level_label=pool_level_label,
+            strategy_label=strategy_label,
+        )
         pusher = MessagePusher(config, db)
         if pusher.push_pre_market_selection(payload):
             print("  已推送 ✓")
@@ -168,15 +192,18 @@ def offer_breakout_wechat_push(
 def sync_breakout_watchlist_to_system_cache(
     watch_items: List[WatchItem],
     watch_date: str,
+    **merge_kw: Any,
 ) -> int:
     """
     选股完成后同步候选池并打印提示。
     返回本次写入的突破标的数量。
+    merge_kw 透传 merge_breakout_watchlist_to_candidate_cache（如 strategy_profile、level_label）。
     """
-    n = merge_breakout_watchlist_to_candidate_cache(watch_items, watch_date)
+    n = merge_breakout_watchlist_to_candidate_cache(watch_items, watch_date, **merge_kw)
+    label = str(merge_kw.get("level_label") or "突破观察池")
     print(
         f"\n  已写入候选池缓存 data/cache/candidate_pool.json："
-        f"突破观察池 {n} 只（已合并保留其他策略标的，刷新首页/看板可见）"
+        f"{label} {n} 只（已合并保留其他策略标的，刷新首页/看板可见）"
     )
     return n
 
@@ -419,31 +446,37 @@ def _run_backtest_review(
 # 主菜单
 # ═══════════════════════════════════════════════════════════════
 
-def breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = None) -> None:
-    """选股模块主菜单"""
-    if config is None:
-        config = ConfigManager()
-    if db is None:
-        db = DatabaseManager(config)
-
-    params = BreakoutParams()
-    # 与 scripts/run_breakout_backtest.py 对齐，避免菜单与脚本两套默认
-    params.min_amt_ma20 = 8e4
-    params.rs_quantile_max = 0.97
-    params.min_signal_score = 60.0
-    params.top_k = 15
-    strategy = BreakoutStrategy(db=db, params=params)
+def _breakout_selector_menu_impl(
+    config: ConfigManager,
+    db: DatabaseManager,
+    *,
+    banner_title: str,
+    preset_line: str,
+    strategy: BreakoutStrategy,
+    sync_merge_kw: Optional[Dict[str, Any]] = None,
+    wechat_pool_level: str = "突破观察池",
+    wechat_strategy_label: str = "选强→等突破（观察池）",
+    allow_adjust_params: bool = True,
+) -> None:
+    """突破类选股菜单共用循环（原突破 / 宽进突破）。"""
+    merge_kw: Dict[str, Any] = dict(sync_merge_kw or {})
+    merge_kw.setdefault("exit_plan", strategy.export_exit_plan())
+    params = strategy.params
     last_items: List[WatchItem] = []
 
     while True:
         print(f"\n{'═' * 60}")
-        print("  选强→等突破→跟强留强  策略系统")
+        print(f"  {banner_title}")
+        print(f"  {preset_line}")
         print(f"{'═' * 60}")
         print("  1. 执行今日选股（取数据库最新交易日）")
         print("  2. 执行指定日期选股")
         print("  3. 查看单只股票因子详情")
         print("  4. 批量回溯选股效果")
-        print("  5. 调整关键参数")
+        if allow_adjust_params:
+            print("  5. 调整关键参数")
+        else:
+            print("  5. 调整关键参数（宽进突破为固定预设，此项仅作说明）")
         print("  6. 显示当前参数")
         print("  7. 盘中突破监控")
         print("  0. 返回上级菜单")
@@ -461,8 +494,12 @@ def breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = N
                     if last_items
                     else strategy._resolve_end_date(None)
                 )
-                sync_breakout_watchlist_to_system_cache(last_items, wd)
-                offer_breakout_wechat_push(config, db, last_items, wd)
+                sync_breakout_watchlist_to_system_cache(last_items, wd, **merge_kw)
+                offer_breakout_wechat_push(
+                    config, db, last_items, wd,
+                    pool_level_label=wechat_pool_level,
+                    strategy_label=wechat_strategy_label,
+                )
             except Exception as e:
                 print(f"  选股失败: {e}")
                 logger.exception("选股执行失败")
@@ -475,8 +512,12 @@ def breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = N
                     last_items = strategy.run(end_date=date_str)
                     _print_watch_list(last_items)
                     wd = last_items[0].watch_date if last_items else date_str
-                    sync_breakout_watchlist_to_system_cache(last_items, wd)
-                    offer_breakout_wechat_push(config, db, last_items, wd)
+                    sync_breakout_watchlist_to_system_cache(last_items, wd, **merge_kw)
+                    offer_breakout_wechat_push(
+                        config, db, last_items, wd,
+                        pool_level_label=wechat_pool_level,
+                        strategy_label=wechat_strategy_label,
+                    )
                 except Exception as e:
                     print(f"  选股失败: {e}")
                     logger.exception("选股执行失败")
@@ -514,6 +555,9 @@ def breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = N
                 print("  日期格式错误")
 
         elif choice == "5":
+            if not allow_adjust_params:
+                print("  宽进突破策略参数固定，请通过配置文件或代码修改预设。")
+                continue
             _adjust_params_menu(params, strategy)
 
         elif choice == "6":
@@ -532,6 +576,52 @@ def breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = N
 
         else:
             print("  无效输入，请重新选择")
+
+
+def breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = None) -> None:
+    """选股模块主菜单（原突破：参数来自 stock_selection.breakout.params_preset）"""
+    if config is None:
+        config = ConfigManager()
+    if db is None:
+        db = DatabaseManager(config)
+
+    preset_name = resolve_breakout_preset_from_config(config)
+    strategy = build_breakout_strategy_from_config(db, config)
+    _breakout_selector_menu_impl(
+        config,
+        db,
+        banner_title="选强→等突破→跟强留强  策略系统",
+        preset_line=f"参数预设: {preset_name}（配置项 stock_selection.breakout.params_preset）",
+        strategy=strategy,
+        sync_merge_kw={},
+        allow_adjust_params=True,
+    )
+
+
+def wide_breakout_selector_menu(config: ConfigManager = None, db: DatabaseManager = None) -> None:
+    """宽进突破策略：选股放宽 + 买点最严（回测预设 wide_pool_strict_entry_v2），独立候选池档案 wide_breakout。"""
+    if config is None:
+        config = ConfigManager()
+    if db is None:
+        db = DatabaseManager(config)
+
+    strategy = build_wide_breakout_strategy_from_config(db, config)
+    _breakout_selector_menu_impl(
+        config,
+        db,
+        banner_title="宽进突破策略（选强→等突破）",
+        preset_line="固定参数: wide_pool_strict_entry_v2（宽选股 + 最严买点 buy_tuning_v1 档）",
+        strategy=strategy,
+        sync_merge_kw={
+            "strategy_profile": "wide_breakout",
+            "strategy_name": "wide_breakout_watchlist",
+            "level_label": "宽进突破观察池",
+            "source": "wide_breakout_strategy",
+        },
+        wechat_pool_level="宽进突破观察池",
+        wechat_strategy_label="宽进突破策略（观察池）",
+        allow_adjust_params=False,
+    )
 
 
 def _adjust_params_menu(params: BreakoutParams, strategy: BreakoutStrategy) -> None:

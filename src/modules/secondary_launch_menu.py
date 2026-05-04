@@ -12,9 +12,10 @@ import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 import pandas as pd
+import numpy as np
 
 from src.modules.backtest.history_recommendation_db import HistoryRecommendationDB
 from src.modules.secondary_launch_intraday import (
@@ -43,8 +44,12 @@ class SecondaryLaunchMenu:
         self.results_dir.mkdir(parents=True, exist_ok=True)
         self.cache_dir = self.root / "data" / "cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.selection_runtime_marker_path = self.cache_dir / "secondary_launch_selection_runtime.json"
         self.history_db = HistoryRecommendationDB(
             db_path=str(self.root / self.config.get("feedback.history_recommendation_db", "data/history_recommendation.db"))
+        )
+        self.use_selection_history_cache = bool(
+            self.config.get("stock_selection.secondary_launch.use_selection_history_cache", True)
         )
         self._ensure_storage()
 
@@ -76,6 +81,17 @@ class SecondaryLaunchMenu:
             "CREATE INDEX IF NOT EXISTS idx_secondary_launch_history_code ON secondary_launch_selection_history(ts_code)"
         )
 
+    def _secondary_launch_tier_threshold_overrides(self) -> Dict[str, float]:
+        """二次启动分层阈值：与日报复盘、盘中检测共用配置，避免多处硬编码不一致。"""
+        return {
+            "direct_score_min": float(self.config.get("stock_selection.secondary_launch.direct_score_min", 76.0) or 76.0),
+            "direct_lgb_min": float(self.config.get("stock_selection.secondary_launch.direct_lgb_min", 0.58) or 0.58),
+            "semi_score_min": float(self.config.get("stock_selection.secondary_launch.semi_score_min", 70.0) or 70.0),
+            "semi_lgb_min": float(self.config.get("stock_selection.secondary_launch.semi_lgb_min", 0.55) or 0.55),
+            "direct_conf_min": float(self.config.get("stock_selection.secondary_launch.direct_conf_min", 0.45) or 0.45),
+            "semi_conf_min": float(self.config.get("stock_selection.secondary_launch.semi_conf_min", 0.58) or 0.58),
+        }
+
     def _build_intraday_review_for_signal(self, trade_date: str, row: dict) -> dict:
         """基于分钟数据回放单只股票盘中买点触发情况。"""
         symbol = str(row.get("ts_code", "") or "").strip().upper()
@@ -88,6 +104,8 @@ class SecondaryLaunchMenu:
             "blocker_tag": "",
             "blocker_label": "",
             "blocker_detail": "",
+            "execution_tier": "",
+            "execution_note": "",
             "confidence": 0.0,
         }
         if not trade_date or not symbol:
@@ -110,10 +128,19 @@ class SecondaryLaunchMenu:
             "symbol": symbol,
             "name": str(row.get("name", "") or ""),
             "score": float(row.get("signal_score", row.get("total_score", 80.0)) or 80.0),
+            "signal_score": float(row.get("signal_score", row.get("total_score", 80.0)) or 80.0),
+            "rank": int(row.get("rank", 1) or 1),
+            "lgb_prob": row.get("lgb_prob"),
             "pool_type": "core" if int(row.get("rank", 1) or 1) == 1 else "reserve",
             "industry": str(row.get("industry", "") or ""),
             "strategy_profile": "secondary_launch",
         }
+        if row.get("lgb_prob") is not None:
+            try:
+                candidate["lgb_prob"] = float(row.get("lgb_prob"))
+            except (TypeError, ValueError):
+                pass
+        candidate.update(self._secondary_launch_tier_threshold_overrides())
         industry_confirm = {"score": 50.0, "level": "neutral", "industry": candidate["industry"] or "未知"}
 
         minute_df = minute_df.sort_values("trade_time").reset_index(drop=True)
@@ -134,6 +161,8 @@ class SecondaryLaunchMenu:
                 result["trigger_time"] = now.strftime("%H:%M:%S")
                 result["confidence"] = round(float(signal.confidence or 0.0), 4)
                 details = signal.details or {}
+                result["execution_tier"] = str(details.get("execution_tier", "") or "")
+                result["execution_note"] = str(details.get("execution_note", "") or "")
                 result["push_reason"] = str(details.get("entry_trigger", "") or signal.reason or "")
                 result["blocker_tag"] = ""
                 result["blocker_detail"] = ""
@@ -151,6 +180,8 @@ class SecondaryLaunchMenu:
         result["blocker_detail"] = str(blocked.get("blocker_detail", "") or "")
         result["trigger_time"] = str(blocked.get("trigger_time", "") or result["trigger_time"])
         result["signal_type"] = str(blocked.get("signal_type", "") or result["signal_type"])
+        result["execution_tier"] = str(blocked.get("execution_tier", "") or result["execution_tier"])
+        result["execution_note"] = str(blocked.get("execution_note", "") or result["execution_note"])
         result["confidence"] = round(max(float(result.get("confidence", 0.0) or 0.0), float(blocked.get("confidence", 0.0) or 0.0)), 4)
         return result
 
@@ -214,8 +245,33 @@ class SecondaryLaunchMenu:
             weak_market_ret5_threshold=float(self.config.get("stock_selection.secondary_launch.weak_market_ret5_threshold", -0.03)),
             weak_market_min_score_boost=float(self.config.get("stock_selection.secondary_launch.weak_market_min_score_boost", 5.0)),
             weak_market_max_picks=int(self.config.get("stock_selection.secondary_launch.weak_market_max_picks", 1)),
+            sideways_market_ret5_low=float(self.config.get("stock_selection.secondary_launch.sideways_market_ret5_low", -0.02)),
+            sideways_market_ret5_high=float(self.config.get("stock_selection.secondary_launch.sideways_market_ret5_high", 0.02)),
+            sideways_market_min_score_boost=float(self.config.get("stock_selection.secondary_launch.sideways_market_min_score_boost", 12.0)),
+            sideways_market_max_picks=int(self.config.get("stock_selection.secondary_launch.sideways_market_max_picks", 0)),
             second_pick_min_score=float(self.config.get("stock_selection.secondary_launch.second_pick_min_score", 64.0)),
             second_pick_score_gap=float(self.config.get("stock_selection.secondary_launch.second_pick_score_gap", 6.0)),
+            risk_penalty_weight=float(self.config.get("stock_selection.secondary_launch.risk_penalty_weight", 12.0)),
+            upper_shadow_penalty_threshold=float(self.config.get("stock_selection.secondary_launch.upper_shadow_penalty_threshold", 0.60)),
+            upper_shadow_penalty_weight=float(self.config.get("stock_selection.secondary_launch.upper_shadow_penalty_weight", 0.35)),
+            high_volume_penalty_threshold=float(self.config.get("stock_selection.secondary_launch.high_volume_penalty_threshold", 1.30)),
+            high_volume_penalty_weight=float(self.config.get("stock_selection.secondary_launch.high_volume_penalty_weight", 0.35)),
+            deep_negative_penalty_low=float(self.config.get("stock_selection.secondary_launch.deep_negative_penalty_low", -5.0)),
+            deep_negative_penalty_high=float(self.config.get("stock_selection.secondary_launch.deep_negative_penalty_high", -3.0)),
+            deep_negative_penalty_weight=float(self.config.get("stock_selection.secondary_launch.deep_negative_penalty_weight", 0.30)),
+            direct_score_min=float(self.config.get("stock_selection.secondary_launch.direct_score_min", 76.0)),
+            direct_lgb_min=float(self.config.get("stock_selection.secondary_launch.direct_lgb_min", 0.58)),
+            semi_score_min=float(self.config.get("stock_selection.secondary_launch.semi_score_min", 70.0)),
+            semi_lgb_min=float(self.config.get("stock_selection.secondary_launch.semi_lgb_min", 0.55)),
+            direct_conf_min=float(self.config.get("stock_selection.secondary_launch.direct_conf_min", 0.45) or 0.45),
+            semi_conf_min=float(self.config.get("stock_selection.secondary_launch.semi_conf_min", 0.58) or 0.58),
+            lgb_enabled=bool(self.config.get("stock_selection.secondary_launch.lgb_enabled", False)),
+            lgb_mode=str(self.config.get("stock_selection.secondary_launch.lgb_mode", "blend")),
+            lgb_weight=float(self.config.get("stock_selection.secondary_launch.lgb_weight", 0.35)),
+            lgb_min_score=float(self.config.get("stock_selection.secondary_launch.lgb_min_score", 0.569)),
+
+            lgb_config_path=str(self.config.get("stock_selection.secondary_launch.lgb_config_path", "models/secondary_launch_lgb_model.json")),
+            lgb_model_path=str(self.config.get("stock_selection.secondary_launch.lgb_model_path", "models/secondary_launch_lgb_model.txt")),
         )
         cost = CostConfig(
             buy_fee_rate=float(self.config.get("feedback.buy_fee_rate", 0.0003)),
@@ -258,6 +314,13 @@ class SecondaryLaunchMenu:
                 "cooldown_days": int(strategy.params.cooldown_days),
                 "second_pick_min_score": float(strategy.params.second_pick_min_score),
                 "second_pick_score_gap": float(strategy.params.second_pick_score_gap),
+                "risk_penalty_weight": float(strategy.params.risk_penalty_weight),
+                "direct_score_min": float(strategy.params.direct_score_min),
+                "direct_lgb_min": float(strategy.params.direct_lgb_min),
+                "semi_score_min": float(strategy.params.semi_score_min),
+                "semi_lgb_min": float(strategy.params.semi_lgb_min),
+                "direct_conf_min": float(strategy.params.direct_conf_min),
+                "semi_conf_min": float(strategy.params.semi_conf_min),
             },
         }
 
@@ -314,6 +377,18 @@ class SecondaryLaunchMenu:
             trade_date = self.db.get_latest_trade_date("stock_daily")
         if not trade_date:
             return []
+        marker = self._load_runtime_marker()
+        marker_row_count = marker.get("row_count", -1)
+        try:
+            marker_row_count = int(marker_row_count)
+        except (TypeError, ValueError):
+            marker_row_count = -1
+        if marker.get("trade_date") == str(trade_date) and marker_row_count == 0:
+            return []
+        if self.use_selection_history_cache:
+            cached = self._load_persisted_daily_selection(trade_date)
+            if cached:
+                return cached
 
         start_date = (pd.Timestamp(trade_date) - pd.Timedelta(days=90)).strftime("%Y%m%d")
         strategy, backtester = self._build_strategy()
@@ -321,15 +396,19 @@ class SecondaryLaunchMenu:
         features = strategy.prepare_features(data["daily"], data["basic"])
         signal_frame = strategy.build_signal_frame(features)
         if signal_frame.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         daily_rows = signal_frame[signal_frame["signal_date"] == pd.Timestamp(trade_date)].copy()
         if daily_rows.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         daily_rows = self._filter_recent_duplicates(trade_date, daily_rows, strategy.params.cooldown_days)
         if daily_rows.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         picks = strategy.generate_signals_from_frame(daily_rows)
         if picks.empty:
+            self._save_runtime_marker(str(trade_date), 0)
             return []
         feature_map = (
             daily_rows.sort_values(["signal_date", "ts_code"])
@@ -350,16 +429,106 @@ class SecondaryLaunchMenu:
                     "short_cycle_score": round(float(row.get("rs20", 0.0) * 100), 2),
                     "tradeability_score": round(float((1.0 - feature_row.get("drawdown_from_peak", 0.0)) * 100), 2),
                     "signal_score": round(float(row.get("signal_score", 0.0)), 2),
+                    "quality_score": round(float(row.get("quality_score", row.get("signal_score", 0.0)) or 0.0), 2),
+                    "risk_penalty_score": round(float(row.get("risk_penalty_score", 0.0) or 0.0), 2),
+                    "execution_tier_hint": str(row.get("execution_tier_hint", "confirm") or "confirm"),
                     "rank": int(row.get("rank", 0) or 0),
                     "rs20": round(float(row.get("rs20", 0.0)), 4),
                     "drawdown_from_peak": round(float(feature_row.get("drawdown_from_peak", 0.0)), 4),
                     "days_since_last_limit_up": int(feature_row.get("days_since_last_limit_up", 0) or 0),
+                    "lgb_prob": round(float(feature_row.get("lgb_prob", np.nan)), 4) if pd.notna(feature_row.get("lgb_prob", np.nan)) else None,
                     "strategy_name": "secondary_launch_walkforward",
                     "strategy_label": self.get_strategy_label(),
                     **gate,
                 }
             )
         return results
+
+    def _load_persisted_daily_selection(self, trade_date: str) -> list[dict]:
+        """Load persisted secondary-launch picks for a date to avoid repeated heavy recomputation."""
+        try:
+            rows = self.db.query(
+                """
+                SELECT
+                    ts_code, name, industry, rank, rs20, drawdown_from_peak,
+                    days_since_last_limit_up, strategy_name, strategy_label, extra_json
+                FROM secondary_launch_selection_history
+                WHERE trade_date = ? AND strategy_name = ?
+                ORDER BY rank ASC
+                """,
+                (str(trade_date), "secondary_launch_walkforward"),
+            )
+        except Exception:
+            return []
+        if not rows:
+            return []
+
+        results: list[dict] = []
+        for row in rows:
+            extra_raw = row.get("extra_json")
+            extra: dict = {}
+            if isinstance(extra_raw, str) and extra_raw.strip():
+                try:
+                    obj = json.loads(extra_raw)
+                    if isinstance(obj, dict):
+                        extra = obj
+                except Exception:
+                    extra = {}
+            gate = extra.get("v3_daily_gate", {}) if isinstance(extra.get("v3_daily_gate"), dict) else {}
+            results.append(
+                {
+                    "ts_code": row.get("ts_code"),
+                    "name": row.get("name", ""),
+                    "industry": row.get("industry", "未知"),
+                    "total_score": round(float(extra.get("total_score", 0.0) or 0.0), 2),
+                    "level": "二次启动候选",
+                    "short_cycle_score": round(float(extra.get("short_cycle_score", 0.0) or 0.0), 2),
+                    "tradeability_score": round(float(extra.get("tradeability_score", 0.0) or 0.0), 2),
+                    "signal_score": round(float(extra.get("total_score", 0.0) or 0.0), 2),
+                    "quality_score": round(float(extra.get("quality_score", 0.0) or 0.0), 2),
+                    "risk_penalty_score": round(float(extra.get("risk_penalty_score", 0.0) or 0.0), 2),
+                    "execution_tier_hint": str(extra.get("execution_tier_hint", "confirm") or "confirm"),
+                    "rank": int(row.get("rank", 0) or 0),
+                    "rs20": round(float(row.get("rs20", 0.0) or 0.0), 4),
+                    "drawdown_from_peak": round(float(row.get("drawdown_from_peak", 0.0) or 0.0), 4),
+                    "days_since_last_limit_up": int(row.get("days_since_last_limit_up", 0) or 0),
+                    "lgb_prob": (
+                        round(float(extra.get("lgb_prob", 0.0) or 0.0), 4)
+                        if extra.get("lgb_prob") is not None
+                        else None
+                    ),
+                    "strategy_name": str(row.get("strategy_name", "secondary_launch_walkforward") or "secondary_launch_walkforward"),
+                    "strategy_label": str(row.get("strategy_label", self.get_strategy_label()) or self.get_strategy_label()),
+                    "pct_chg": gate.get("pct_chg"),
+                    "vol_ratio_5": gate.get("vol_ratio_5"),
+                    "upper_shadow_pct": gate.get("upper_shadow_pct"),
+                }
+            )
+        self._save_runtime_marker(str(trade_date), len(results))
+        return results
+
+    def _load_runtime_marker(self) -> dict:
+        try:
+            if not self.selection_runtime_marker_path.exists():
+                return {}
+            raw = json.loads(self.selection_runtime_marker_path.read_text(encoding="utf-8"))
+            return raw if isinstance(raw, dict) else {}
+        except Exception:
+            return {}
+
+    def _save_runtime_marker(self, trade_date: str, row_count: int) -> None:
+        payload = {
+            "trade_date": str(trade_date),
+            "row_count": int(row_count or 0),
+            "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        try:
+            self.selection_runtime_marker_path.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
 
     @staticmethod
     def _compute_v3_daily_gate_fields(feature_row: Any) -> dict:
@@ -413,6 +582,10 @@ class SecondaryLaunchMenu:
                             "total_score": row.get("total_score"),
                             "short_cycle_score": row.get("short_cycle_score"),
                             "tradeability_score": row.get("tradeability_score"),
+                            "quality_score": row.get("quality_score"),
+                            "risk_penalty_score": row.get("risk_penalty_score"),
+                            "execution_tier_hint": row.get("execution_tier_hint"),
+                            "lgb_prob": row.get("lgb_prob"),
                             "strategy_version": str(
                                 self.config.get("stock_selection.secondary_launch.strategy_version", "")
                             ),
@@ -484,9 +657,12 @@ class SecondaryLaunchMenu:
                 "symbol": ts_code.split(".")[0],
                 "name": str(row.get("name", "") or ""),
                 "score": float(row.get("signal_score", row.get("total_score", 0.0)) or 0.0),
+                "signal_score": float(row.get("signal_score", row.get("total_score", 0.0)) or 0.0),
+                "rank": int(row.get("rank", 0) or 0),
+                "lgb_prob": row.get("lgb_prob"),
                 "level": str(row.get("level", "二次启动候选") or "二次启动候选"),
                 "industry": str(row.get("industry", "未知") or "未知"),
-                "pool_type": "core",
+                "pool_type": "core" if int(row.get("rank", 0) or 0) == 1 else "reserve",
                 "strategy_profile": "secondary_launch",
                 "strategy_name": str(row.get("strategy_name", "secondary_launch_walkforward")),
                 "source": "secondary_launch_menu",
@@ -495,6 +671,7 @@ class SecondaryLaunchMenu:
             for k in ("pct_chg", "vol_ratio_5", "upper_shadow_pct"):
                 if k in row and row.get(k) is not None:
                     cand[k] = row[k]
+            cand.update(self._secondary_launch_tier_threshold_overrides())
             candidates.append(cand)
 
         cache_path = self.cache_dir / "candidate_pool.json"
@@ -831,6 +1008,8 @@ class SecondaryLaunchMenu:
                         "push_reason": str(intraday_review.get("push_reason", "") or ""),
                         "not_pushed_reason": str(intraday_review.get("not_pushed_reason", "") or ""),
                         "confidence": float(intraday_review.get("confidence", 0.0) or 0.0),
+                        "execution_tier": str(intraday_review.get("execution_tier", "") or ""),
+                        "execution_note": str(intraday_review.get("execution_note", "") or ""),
                     }
                 )
 

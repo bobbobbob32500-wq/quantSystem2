@@ -18,10 +18,12 @@ from src.core.config import ConfigManager
 from src.core.database import DatabaseManager
 from src.core.logger import setup_logger
 from src.core.runtime_monitor import IncidentCategory, RuntimeHealthMonitor
+from src.modules.data_updater import DataUpdater
 from src.modules.enhanced_hybrid_system import EnhancedHybridSystem
 from src.modules.message_pusher import MessagePusher
 from src.modules.monitoring_store import MonitoringStore
 from src.modules.task_scheduler import QuantTaskManager
+from src.modules.trade_day_guard import is_cn_a_share_trade_day
 
 logger = setup_logger("service")
 
@@ -47,9 +49,11 @@ class QuantService:
         self.monitor = None
         self.last_status_report = None
         self.health_snapshot_interval = int(
-            self.config.get("monitor.health_snapshot_interval_seconds", 60)
+            self.config.get("monitor.health_snapshot_interval_seconds", 300)
         )
         self.last_health_snapshot_at = None
+        self._trade_day_cache = {}
+        self._last_non_trade_day_log_key = None
 
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -106,6 +110,18 @@ class QuantService:
                 runtime_monitor=self.health_monitor,
             )
             self.task_manager.setup_auto_push_tasks()
+
+            # 注册每日17:30自动增量数据更新
+            data_updater = DataUpdater(self.config, self.db)
+            auto_data_update_enabled = bool(
+                self.config.get("data_source.auto_daily_update_enabled", True)
+            )
+            if auto_data_update_enabled:
+                self.task_manager.setup_default_tasks(
+                    data_update_func=data_updater.ensure_latest_market_data,
+                )
+                logger.info("已注册每日17:30自动增量数据更新任务")
+
             self.task_manager.start()
             jobs = self.task_manager.get_task_list()
             self.health_monitor.record_success(
@@ -219,7 +235,17 @@ class QuantService:
         return self.monitor.load_candidate_pool()
 
     def _is_trade_time(self, now: datetime) -> bool:
-        if now.weekday() >= 5:
+        is_open_day, source = is_cn_a_share_trade_day(
+            now=now,
+            db=self.db,
+            config=self.config,
+            cache=self._trade_day_cache,
+        )
+        if not is_open_day:
+            day_key = f"{now.strftime('%Y%m%d')}::{source}"
+            if self._last_non_trade_day_log_key != day_key:
+                logger.info("Skip monitor: non-trade day (%s) at %s", source, now.strftime("%Y-%m-%d"))
+                self._last_non_trade_day_log_key = day_key
             return False
 
         current_time = now.strftime("%H:%M")

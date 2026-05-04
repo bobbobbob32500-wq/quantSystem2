@@ -28,6 +28,9 @@ def detect_confirmation_signal(
     template_source: str,
     route_name: str,
     route_label: str,
+    breakout_intraday_param_key: str = "breakout",
+    debounce_window: Optional[int] = None,
+    time_filter_profile: str = "default",
 ) -> SignalOutput:
     symbol = str(candidate.get("symbol", ""))
     intraday_data = system._get_intraday_data_for_signal(
@@ -60,6 +63,13 @@ def detect_confirmation_signal(
             system._to_float(quote.get("pre_close"), default=system._to_float(quote.get("open"))),
         ),
         market_score=market_env.get("market_score", 50.0),
+        breakout_intraday_param_key=breakout_intraday_param_key,
+        time_filter_profile=time_filter_profile,
+    )
+    resolved_debounce_window = (
+        int(debounce_window)
+        if debounce_window is not None
+        else int(system.config.get("debounce_window", 2))
     )
     wrapped = system._wrap_signal_metadata(
         signal=signal,
@@ -67,7 +77,7 @@ def detect_confirmation_signal(
         template_source=template_source,
         route_name=route_name,
         route_label=route_label,
-        debounce_window=int(system.config.get("debounce_window", 2)),
+        debounce_window=resolved_debounce_window,
     )
     source = "unknown"
     source_state = getattr(system, "_last_intraday_source", None)
@@ -126,10 +136,13 @@ def resolve_strategy_routed_signal(
                     "二次启动分时确认",
                 )
             ),
-            debounce_window=int(system.config.get("debounce_window", 2)),
+            debounce_window=system._resolve_route_debounce_window("secondary_launch"),
         )
 
-    if strategy_profile == "breakout":
+    if strategy_profile in {"breakout", "wide_breakout"}:
+        label = "宽进突破观察池确认" if strategy_profile == "wide_breakout" else "突破观察池确认"
+        # 日线 wide_pool_strict_entry_v2 已用更严买点；分时突破分支用 breakout_wide 参数组对齐
+        bk_key = "breakout_wide" if strategy_profile == "wide_breakout" else "breakout"
         return system._detect_confirmation_signal(
             candidate=candidate,
             quote=quote,
@@ -138,7 +151,10 @@ def resolve_strategy_routed_signal(
             market_env=market_env,
             template_source="breakout_confirmation_v1",
             route_name="breakout_watch_confirm",
-            route_label="突破观察池确认",
+            route_label=label,
+            breakout_intraday_param_key=bk_key,
+            debounce_window=system._resolve_route_debounce_window(strategy_profile),
+            time_filter_profile="breakout",
         )
 
     if strategy_profile in {"legacy", "legacy_opt"} and bool(
@@ -161,6 +177,7 @@ def resolve_strategy_routed_signal(
             template_source="legacy_confirmation_fallback_v1",
             route_name="legacy_confirmation_fallback",
             route_label="原策略确认兜底",
+            debounce_window=system._resolve_route_debounce_window(strategy_profile),
         )
 
     return system._detect_confirmation_signal(
@@ -172,6 +189,7 @@ def resolve_strategy_routed_signal(
         template_source="enhanced_confirmation_v1",
         route_name="enhanced_confirmation",
         route_label="增强分时确认",
+        debounce_window=system._resolve_route_debounce_window(strategy_profile),
     )
 
 
@@ -232,6 +250,94 @@ def get_intraday_data_for_signal(
     if isinstance(source_state, dict):
         source_state[symbol] = "unavailable"
     return None
+
+
+def run_intraday_buy_router_healthcheck(system) -> List[Dict[str, Any]]:
+    """
+    盘中买点路由自检：对各类 strategy_profile 各做一次 resolve_strategy_routed_signal 冒烟调用。
+
+    不依赖候选池是否有票、不要求真实分钟线；若调用抛异常则该档记为失败。
+    用于验证融合监控能覆盖各策略对应的分支（二次启动 / 突破 / 宽进 / 原策略 / 增强兜底 / 强势股启动）。
+    """
+    now = datetime.now()
+    market_env: Dict[str, Any] = {"market_score": 65.0}
+    minute_map: Optional[Dict[str, pd.DataFrame]] = {}
+    quote: Dict[str, float] = {
+        "price": 10.0,
+        "open": 9.9,
+        "high": 10.1,
+        "low": 9.8,
+        "pre_close": 9.85,
+        "volume": 100000.0,
+    }
+    profiles: List[tuple[str, str]] = [
+        ("legacy", "原策略"),
+        ("legacy_opt", "原策略优化"),
+        ("enhanced", "增强策略"),
+        ("secondary_launch", "二次启动"),
+        ("breakout", "突破观察池"),
+        ("wide_breakout", "宽进突破"),
+        ("strong_start", "强势股刚启动"),
+    ]
+    rows: List[Dict[str, Any]] = []
+    for pid, label in profiles:
+        cand: Dict[str, Any] = {
+            "symbol": "600000",
+            "name": "路由自检",
+            "strategy_profile": pid,
+            "pool_type": "core",
+            "score": 50.0,
+        }
+        try:
+            sig = resolve_strategy_routed_signal(
+                system=system,
+                candidate=cand,
+                quote=quote,
+                now=now,
+                minute_map=minute_map,
+                market_env=market_env,
+            )
+            blocked = bool((sig.details or {}).get("route_blocked")) if isinstance(sig.details, dict) else False
+            rows.append(
+                {
+                    "profile": pid,
+                    "label": label,
+                    "ok": True,
+                    "error": "",
+                    "signal": bool(getattr(sig, "signal", False)),
+                    "route_blocked": blocked,
+                }
+            )
+        except Exception as exc:
+            logger.exception("intraday router healthcheck failed profile=%s", pid)
+            rows.append(
+                {
+                    "profile": pid,
+                    "label": label,
+                    "ok": False,
+                    "error": str(exc),
+                    "signal": False,
+                    "route_blocked": False,
+                }
+            )
+    return rows
+
+
+def print_intraday_buy_router_healthcheck_report(rows: List[Dict[str, Any]]) -> None:
+    """终端打印自检表格。"""
+    print("\n    ---------- 盘中买点路由自检（各策略一条冒烟路径）----------")
+    for r in rows:
+        status = "通过" if r.get("ok") else "失败"
+        extra = ""
+        if r.get("ok"):
+            extra = f" signal={r.get('signal')} route_blocked={r.get('route_blocked')}"
+        else:
+            extra = f" err={r.get('error', '')[:80]}"
+        print(f"    [{status}] {r.get('label')} ({r.get('profile')}){extra}")
+    ok_n = sum(1 for x in rows if x.get("ok"))
+    print(f"    合计: {ok_n}/{len(rows)} 档链路可调用")
+    print("    说明: 无分钟线时部分档位可能 route_blocked=True，属预期；仅「失败」表示代码异常。")
+    print("    --------------------------------------------------------")
 
 
 def monitor_candidates(system) -> List[Dict]:

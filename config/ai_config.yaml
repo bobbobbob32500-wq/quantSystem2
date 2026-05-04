@@ -1,0 +1,90 @@
+ai:
+  enabled: true
+  provider: deepseek
+  local_deepseek:
+    api_key_env: LOCAL_DEEPSEEK_API_KEY
+    api_key: ''
+    base_url: http://localhost:8000/v1
+    timeout: 120
+    max_retries: 2
+    retry_delay: 3
+  deepseek:
+    api_key_env: DEEPSEEK_API_KEY
+    api_key: ''
+    base_url: https://api.deepseek.com/v1
+    timeout: 120
+    max_retries: 2
+    retry_delay: 3
+  ollama:
+    base_url: http://localhost:11434
+    timeout: 120
+    max_retries: 2
+    retry_delay: 3
+  models:
+    default: deepseek-chat
+    code: deepseek-coder
+  generation:
+    temperature: 0.4
+    max_tokens: 2048
+    scenarios:
+      chat:
+        temperature: 0.3
+        max_tokens: 1200
+        timeout: 40
+      explain:
+        temperature: 0.25
+        max_tokens: 1400
+        timeout: 60
+      report:
+        temperature: 0.25
+        max_tokens: 1800
+        timeout: 80
+      code:
+        temperature: 0.2
+        max_tokens: 2200
+        timeout: 120
+  prompts:
+    assistant_system: ''
+    assistant_quick_prompts: {}
+    stock_explainer_system: ''
+    signal_analyzer_system: ''
+  session:
+    db_path: ''
+    max_messages: 200
+    max_prompt_tokens: 6000
+    reserved_answer_tokens: 1200
+  features:
+    stock_explanation: true
+    signal_analysis: true
+    news_sentiment: true
+    ai_assistant: true
+    action_execution: false
+    action_whitelist:
+    - run_stock_selection
+    - update_holding
+    - generate_plan
+    - generate_post_market_review
+    require_action_confirmation: true
+    action_confirmation_keywords:
+    - 确认
+    - 执行
+    - 立即执行
+    - confirm
+    code_generation: true
+    stream_output: false
+    rag: false
+  butler:
+    auto_start: true
+    strong_reminder_levels:
+    - HIGH
+    - CRITICAL
+  cache:
+    enabled: true
+    ttl: 3600
+    max_size: 100
+  protection:
+    max_concurrency: 2
+    circuit_breaker:
+      enabled: true
+      fail_threshold: 5
+      cooldown_seconds: 60

@@ -26,6 +26,17 @@ def _safe_int(value, default: int = 0) -> int:
         return default
 
 
+def _execution_tier_label(tier: str) -> str:
+    t = str(tier or "").strip().lower()
+    if t == "direct":
+        return "A层强票直通"
+    if t == "semi":
+        return "A层次强票弱确认"
+    if t == "confirm":
+        return "B层候选强确认"
+    return ""
+
+
 def build_daily_report_markdown(report_data: Dict) -> str:
     report_date = report_data.get("report_date", datetime.now().strftime("%Y-%m-%d"))
     report_time = report_data.get("report_time", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -255,10 +266,19 @@ def build_trade_signals_markdown(
         signal_type = str(signal.get("signal_type", "unknown") or "unknown")
         signal_subtype = str(signal.get("signal_subtype", "") or "").strip()
         position_note = str(signal.get("position_note", "") or "").strip()
+        execution_tier = str(signal.get("execution_tier", "") or "").strip()
+        execution_tier_label = _execution_tier_label(execution_tier)
+        execution_note = str(signal.get("execution_note", "") or "").strip()
 
         lines.append(f"### 信号{i}: {signal.get('symbol', '')} {signal.get('name', '')}")
         lines.append(f"- 当前动作: `{action}` | 价格 `{float(signal.get('price', 0) or 0):.2f}`")
         lines.append(f"- 策略: `{strategy_label}` | 类型 `{signal_type}`")
+        if str(signal.get("strategy_profile", "") or "").strip().lower() == "secondary_launch":
+            tier_part = execution_tier_label or (execution_tier if execution_tier else "未分层")
+            if execution_note:
+                lines.append(f"- 二次启动档次: `{tier_part}` | 档次说明: {execution_note}")
+            else:
+                lines.append(f"- 二次启动档次: `{tier_part}`")
         if signal_subtype and signal_subtype != signal_type:
             lines.append(f"- 子类型标签: `{signal_subtype}`")
         lines.append(f"- 建议仓位: `{suggest_position_pct:.2f}%` | 信号强度 `{total_score:.1f}`")
@@ -277,6 +297,8 @@ def build_trade_signals_markdown(
         expiry_hint = str(signal_details.get("expiry_hint", "") or "").strip()
         if entry_trigger:
             lines.append(f"- 触发机制: {entry_trigger}")
+        if signal_subtype:
+            lines.append(f"- 触发类型: `{signal_subtype}`")
         if invalid_below is not None:
             lines.append(f"- 失效价位: `{float(invalid_below):.2f}`")
         if expiry_hint:

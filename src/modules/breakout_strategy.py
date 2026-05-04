@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -100,6 +100,19 @@ class BreakoutParams:
     max_intraday_gain: float = 0.05    # 当日涨幅上限（不追涨停板附近）
     max_hold_days: int = 4           # 最大持仓天数（时间止损）
 
+    # ── v2 灰度保护：高分但确认弱的突破更像低波趋势尾段，默认关闭以保持生产兼容 ──
+    enable_high_score_weak_confirm_guard: bool = False
+    high_score_weak_confirm_score_min: float = 80.0
+    high_score_weak_confirm_volume_min: float = 1.35
+    enable_market_ret5_median_guard: bool = False
+    market_ret5_median_stop: float = -0.01
+    enable_trailing_exit_guard: bool = False
+    exit_trail_arm_pct: float = 0.04
+    exit_trailing_stop_pct: float = 0.025
+    exit_fixed_stop_loss_pct: Optional[float] = None
+    exit_use_weakness_rules: bool = True
+    exit_grade_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
     # ── 选股输出 ──
     top_k: int = 15                  # 观察池最大股票数量
     min_signal_score: float = 60.0   # 最低综合评分（0~100）
@@ -120,6 +133,259 @@ class BreakoutParams:
     mainboard_sz_prefixes: Tuple[str, ...] = field(
         default_factory=lambda: ("000", "001", "002", "003")
     )
+
+
+def get_breakout_params_for_backtest(preset: str, use_ma120: bool) -> BreakoutParams:
+    """
+    回测脚本用参数预设。
+
+    预设说明：
+      - baseline：选股 + 买点均与历史主报告默认一致。
+      - selection_relaxed_v1：仅放宽选股；买点与 baseline 相同（用于拉频率）。
+      - win_rate_priority：选股与 baseline **完全相同**；仅收紧买点（提高纯度/胜率倾向，
+        成交频率通常下降）。
+      - wide_pool_strict_entry_v1：**选股**同 selection_relaxed_v1（池更大），**买点**同
+        win_rate_priority（确认更严）；用于在「机会面」与「成交质量」之间折中，需回测验证。
+      - wide_pool_strict_entry_v2：选股同 selection_relaxed_v1，**买点**同 buy_tuning_v1（比 v1
+        更严一档）；用于检验「宽池 + 最严买点」是否优于 v1 / baseline。
+      - buy_tuning_v1：选股同 baseline；在 win_rate_priority 基础上 **进一步收紧** 缓冲、量能与
+        日内涨幅，用于买点专项优化（成交频率通常再降，需样本外验证）。
+
+    Args:
+        preset: baseline / selection_relaxed_v1 / win_rate_priority /
+            wide_pool_strict_entry_v1 / wide_pool_strict_entry_v2 / buy_tuning_v1
+        use_ma120: 是否使用 MA120 趋势过滤（与回测脚本入参对齐）
+    """
+    key = (preset or "baseline").strip().lower()
+    p = BreakoutParams()
+    p.min_amt_ma20 = 8e4
+    p.rs_quantile_max = 0.97
+    p.volume_confirm_ratio = 1.2
+    p.volume_normal_ratio = 1.0
+
+    if key == "baseline":
+        p.rs_quantile_min = 0.80
+        p.min_signal_score = 60.0
+        p.top_k = 20
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        return p
+
+    if key == "selection_relaxed_v1":
+        p.rs_quantile_min = 0.78
+        p.min_signal_score = 58.0
+        p.top_k = 28
+        p.atr_quantile_max = 0.55
+        p.box_max_range = 0.095
+        return p
+
+    if key == "win_rate_priority":
+        # 选股与 baseline 一致
+        p.rs_quantile_min = 0.80
+        p.min_signal_score = 60.0
+        p.top_k = 20
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        # 买点收紧：减少假突破与缩量跟风
+        p.breakout_buffer = 0.003
+        p.breakout_max_chase = 0.006
+        p.volume_confirm_ratio = 1.35
+        p.volume_normal_ratio = 1.05
+        p.max_intraday_gain = 0.04
+        return p
+
+    if key == "buy_tuning_v1":
+        p.rs_quantile_min = 0.80
+        p.min_signal_score = 60.0
+        p.top_k = 20
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        p.breakout_buffer = 0.004
+        p.breakout_max_chase = 0.005
+        p.volume_confirm_ratio = 1.42
+        p.volume_normal_ratio = 1.08
+        p.max_intraday_gain = 0.035
+        return p
+
+    if key == "wide_pool_strict_entry_v1":
+        # 选股层：selection_relaxed_v1
+        p.rs_quantile_min = 0.78
+        p.min_signal_score = 58.0
+        p.top_k = 28
+        p.atr_quantile_max = 0.55
+        p.box_max_range = 0.095
+        # 买点层：win_rate_priority
+        p.breakout_buffer = 0.003
+        p.breakout_max_chase = 0.006
+        p.volume_confirm_ratio = 1.35
+        p.volume_normal_ratio = 1.05
+        p.max_intraday_gain = 0.04
+        return p
+
+    if key == "wide_pool_strict_entry_v2":
+        # 选股层：selection_relaxed_v1
+        p.rs_quantile_min = 0.78
+        p.min_signal_score = 58.0
+        p.top_k = 28
+        p.atr_quantile_max = 0.55
+        p.box_max_range = 0.095
+        # 买点层：buy_tuning_v1
+        p.breakout_buffer = 0.004
+        p.breakout_max_chase = 0.005
+        p.volume_confirm_ratio = 1.42
+        p.volume_normal_ratio = 1.08
+        p.max_intraday_gain = 0.035
+        return p
+
+    if key == "optuna_optimized_v1":
+        # Optuna三阶段优化后的最优参数（2026-04-14）
+        # 样本内: T1胜率50.31%, T1收益0.0473%
+        # 样本外: T1胜率59.62%, T1收益1.28%
+        p.rs_quantile_min = 0.80
+        p.rs_quantile_max = 0.97
+        p.min_signal_score = 60.0
+        p.top_k = 15
+        p.atr_quantile_max = 0.50
+        p.box_max_range = 0.08
+        # 评分权重（优化后）
+        p.weight_rs = 35.0
+        p.weight_trend = 25.0
+        p.weight_stability = 20.0
+        p.weight_box = 12.0
+        p.weight_volume = 8.0
+        return p
+
+    raise ValueError(
+        f"未知回测预设: {preset!r}，支持: baseline, selection_relaxed_v1, "
+        f"win_rate_priority, wide_pool_strict_entry_v1, wide_pool_strict_entry_v2, buy_tuning_v1, optuna_optimized_v1"
+    )
+
+
+_BREAKOUT_PRESET_KEYS = frozenset(
+    {
+        "baseline",
+        "selection_relaxed_v1",
+        "win_rate_priority",
+        "wide_pool_strict_entry_v1",
+        "wide_pool_strict_entry_v2",
+        "buy_tuning_v1",
+        "optuna_optimized_v1",
+    }
+)
+
+
+def resolve_breakout_preset_from_config(config: Optional[ConfigManager]) -> str:
+    """
+    从 config.yaml 的 stock_selection.breakout.params_preset 读取预设名。
+
+    未配置或非法值时回退 baseline，并打日志。
+    """
+    if config is None:
+        return "baseline"
+    raw = config.get("stock_selection.breakout", {}) or {}
+    if not isinstance(raw, dict):
+        return "baseline"
+    preset = str(raw.get("params_preset") or "baseline").strip().lower()
+    if preset not in _BREAKOUT_PRESET_KEYS:
+        logger.warning("未知突破参数预设 %s，已回退 baseline", preset)
+        return "baseline"
+    return preset
+
+
+def _resolve_use_ma120_for_breakout(db: DatabaseManager) -> bool:
+    """与回测脚本对齐：样本交易日足够时传入 use_ma120=True（预设内部可扩展分支）。"""
+    row = db.query_one("SELECT COUNT(DISTINCT trade_date) AS c FROM stock_daily")
+    ntd = int(row["c"]) if row and row.get("c") is not None else 0
+    return ntd >= 180
+
+
+def build_breakout_strategy_from_config(
+    db: DatabaseManager,
+    config: Optional[ConfigManager] = None,
+) -> BreakoutStrategy:
+    """
+    按配置构建突破策略实例（菜单、主程序一键选股、看板后台任务共用）。
+
+    配置路径：stock_selection.breakout.params_preset
+    """
+    preset = resolve_breakout_preset_from_config(config)
+    use_ma120 = _resolve_use_ma120_for_breakout(db)
+    params = get_breakout_params_for_backtest(preset, use_ma120)
+    if config is not None:
+        raw = config.get("stock_selection.breakout", {}) or {}
+        if isinstance(raw, dict):
+            guard = raw.get("high_score_weak_confirm_guard", {}) or {}
+            if isinstance(guard, dict):
+                enabled = guard.get("enabled", False)
+                if isinstance(enabled, bool):
+                    params.enable_high_score_weak_confirm_guard = enabled
+                else:
+                    params.enable_high_score_weak_confirm_guard = (
+                        str(enabled).strip().lower() in {"1", "true", "yes", "on"}
+                    )
+                if guard.get("score_min") is not None:
+                    params.high_score_weak_confirm_score_min = float(guard.get("score_min"))
+                if guard.get("volume_min") is not None:
+                    params.high_score_weak_confirm_volume_min = float(guard.get("volume_min"))
+            market_guard = raw.get("market_ret5_median_guard", {}) or {}
+            if isinstance(market_guard, dict):
+                enabled = market_guard.get("enabled", False)
+                if isinstance(enabled, bool):
+                    params.enable_market_ret5_median_guard = enabled
+                else:
+                    params.enable_market_ret5_median_guard = (
+                        str(enabled).strip().lower() in {"1", "true", "yes", "on"}
+                    )
+                if market_guard.get("stop") is not None:
+                    params.market_ret5_median_stop = float(market_guard.get("stop"))
+            exit_guard = raw.get("exit_guard", {}) or {}
+            if isinstance(exit_guard, dict):
+                if exit_guard.get("max_hold_days") is not None:
+                    params.max_hold_days = int(exit_guard.get("max_hold_days"))
+                enabled = exit_guard.get("trailing_enabled", False)
+                if isinstance(enabled, bool):
+                    params.enable_trailing_exit_guard = enabled
+                else:
+                    params.enable_trailing_exit_guard = (
+                        str(enabled).strip().lower() in {"1", "true", "yes", "on"}
+                    )
+                if exit_guard.get("trail_arm_pct") is not None:
+                    params.exit_trail_arm_pct = float(exit_guard.get("trail_arm_pct"))
+                if exit_guard.get("trailing_stop_pct") is not None:
+                    params.exit_trailing_stop_pct = float(exit_guard.get("trailing_stop_pct"))
+                if exit_guard.get("fixed_stop_loss_pct") is not None:
+                    params.exit_fixed_stop_loss_pct = float(exit_guard.get("fixed_stop_loss_pct"))
+                use_weakness = exit_guard.get("use_weakness_rules", True)
+                if isinstance(use_weakness, bool):
+                    params.exit_use_weakness_rules = use_weakness
+                else:
+                    params.exit_use_weakness_rules = (
+                        str(use_weakness).strip().lower() in {"1", "true", "yes", "on"}
+                    )
+                grade_overrides = exit_guard.get("grade_overrides", {}) or {}
+                if isinstance(grade_overrides, dict):
+                    params.exit_grade_overrides = {
+                        str(k).upper(): v
+                        for k, v in grade_overrides.items()
+                        if isinstance(v, dict)
+                    }
+    return BreakoutStrategy(db=db, params=params)
+
+
+def build_wide_breakout_strategy_from_config(
+    db: DatabaseManager,
+    config: Optional[ConfigManager] = None,
+) -> BreakoutStrategy:
+    """
+    宽进突破策略：选股层同「放宽选股」、买点层同 buy_tuning_v1（回测预设 wide_pool_strict_entry_v2）。
+
+    与 `build_breakout_strategy_from_config` 独立，不读取 params_preset，供专用菜单与一键选股入口。
+    config 参数预留与主程序签名对齐，当前未参与参数分支。
+    """
+    _ = config
+    use_ma120 = _resolve_use_ma120_for_breakout(db)
+    params = get_breakout_params_for_backtest("wide_pool_strict_entry_v2", use_ma120)
+    return BreakoutStrategy(db=db, params=params)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -195,6 +461,33 @@ class BreakoutStrategy:
     ):
         self.db = db
         self.params = params or BreakoutParams()
+
+    def resolve_exit_plan(self, signal_grade: Optional[str] = None) -> Dict[str, Any]:
+        """返回指定信号等级的退出参数，供看板/持仓管理复用。"""
+        p = self.params
+        grade = str(signal_grade or "").upper()
+        override = dict(getattr(p, "exit_grade_overrides", {}).get(grade, {}) or {})
+        fixed_stop = override.get("fixed_stop_loss_pct", p.exit_fixed_stop_loss_pct)
+        plan = {
+            "max_hold_days": int(override.get("max_hold_days", p.max_hold_days)),
+            "trailing_enabled": bool(getattr(p, "enable_trailing_exit_guard", False)),
+            "trail_arm_pct": float(override.get("trail_arm_pct", p.exit_trail_arm_pct)),
+            "trailing_stop_pct": float(override.get("trailing_stop_pct", p.exit_trailing_stop_pct)),
+            "fixed_stop_loss_pct": None if fixed_stop is None else float(fixed_stop),
+            "use_weakness_rules": bool(override.get("use_weakness_rules", p.exit_use_weakness_rules)),
+        }
+        if grade:
+            plan["signal_grade"] = grade
+        return plan
+
+    def export_exit_plan(self) -> Dict[str, Any]:
+        """导出基础退出方案和分级覆盖，写入候选池/看板缓存。"""
+        p = self.params
+        grades = sorted(set(["A", "B", *getattr(p, "exit_grade_overrides", {}).keys()]))
+        return {
+            "base": self.resolve_exit_plan(),
+            "by_grade": {grade: self.resolve_exit_plan(grade) for grade in grades},
+        }
 
     # ───────────────────────────────────────────
     # 公开主接口
@@ -763,13 +1056,30 @@ class BreakoutStrategy:
             td_mask = ts == target
         all_stocks = features.loc[td_mask]
         breadth = 0.50  # 默认中性
+        market_ret5_median = float("nan")
         if not all_stocks.empty and "ret_1d" in all_stocks.columns:
             valid_rets = all_stocks["ret_1d"].dropna()
             if len(valid_rets) > 50:
                 breadth = float((valid_rets > 0).mean())
+        if not all_stocks.empty and "ret5" in all_stocks.columns:
+            valid_ret5 = all_stocks["ret5"].dropna()
+            if len(valid_ret5) > 50:
+                market_ret5_median = float(valid_ret5.median())
+
+        if (
+            getattr(p, "enable_market_ret5_median_guard", False)
+            and pd.notna(market_ret5_median)
+            and market_ret5_median <= getattr(p, "market_ret5_median_stop", -0.01)
+        ):
+            logger.info(
+                "市场环境: 禁止开仓（全市场5日中位收益=%.2f%% <= %.2f%%）",
+                market_ret5_median * 100,
+                getattr(p, "market_ret5_median_stop", -0.01) * 100,
+            )
+            return 999.0, 0
 
         if idx.empty:
-            logger.debug("未找到指数数据，使用默认闸门")
+            logger.debug("未找到指数数据，使用默认闸门（breadth=%.1f%%）", breadth * 100)
             return p.min_signal_score, p.top_k
 
         idx = idx.sort_values("trade_date")
@@ -886,31 +1196,47 @@ class BreakoutStrategy:
         daily_df: pd.DataFrame,
         stop_loss: float,
         hold_days: int,
+        entry_price: Optional[float] = None,
+        peak_price: Optional[float] = None,
+        signal_grade: Optional[str] = None,
     ) -> Tuple[bool, str]:
         """
         检查持仓是否走弱（供持仓管理模块调用）
 
         判断逻辑（满足任一则退出）：
-          1. 时间止损：持仓达最大天数
-          2. ATR止损：当日最低价触及止损线
-          3. 跌破MA5：收盘价低于5日均线
-          4. 跌破前日低点：收盘价低于前一日最低价
+          1. 移动止盈：盈利达到启动线后，从峰值回撤超过阈值
+          2. 时间止损：持仓达最大天数
+          3. ATR止损：当日最低价触及止损线
+          4. 跌破MA5：收盘价低于5日均线
+          5. 跌破前日低点：收盘价低于前一日最低价
 
         Args:
             ts_code: 股票代码（仅用于日志）
             daily_df: 最近N日行情，至少包含 close/low/ma5 列，按时间升序
             stop_loss: 入场时确定的初始止损价
             hold_days: 已持仓天数
+            entry_price: 入场价；提供后可启用移动止盈
+            peak_price: 外部记录的持仓峰值价；不传则用 daily_df 内 high 兜底
+            signal_grade: 突破确认等级；提供后可使用 A/B 分层退出参数
 
         Returns:
             (should_exit, exit_reason)
         """
         p = self.params
-
-        if hold_days >= p.max_hold_days:
-            return True, f"时间止损（持仓{hold_days}天达上限{p.max_hold_days}天）"
+        grade_cfg = {}
+        if signal_grade:
+            grade_cfg = dict(getattr(p, "exit_grade_overrides", {}).get(str(signal_grade).upper(), {}) or {})
+        max_hold_days = int(grade_cfg.get("max_hold_days", p.max_hold_days))
+        trail_arm_pct = float(grade_cfg.get("trail_arm_pct", p.exit_trail_arm_pct))
+        trailing_stop_pct = float(grade_cfg.get("trailing_stop_pct", p.exit_trailing_stop_pct))
+        fixed_stop_loss_pct = grade_cfg.get("fixed_stop_loss_pct", p.exit_fixed_stop_loss_pct)
+        use_weakness_rules = grade_cfg.get("use_weakness_rules", p.exit_use_weakness_rules)
+        if not isinstance(use_weakness_rules, bool):
+            use_weakness_rules = str(use_weakness_rules).strip().lower() in {"1", "true", "yes", "on"}
 
         if daily_df.empty or len(daily_df) < 2:
+            if hold_days >= max_hold_days:
+                return True, f"时间止损（持仓{hold_days}天达上限{max_hold_days}天）"
             return False, ""
 
         latest = daily_df.iloc[-1]
@@ -921,8 +1247,36 @@ class BreakoutStrategy:
         ma5 = float(latest.get("ma5", 0.0)) if pd.notna(latest.get("ma5")) else 0.0
         prev_low = float(prev.get("low", 0.0))
 
-        if low <= stop_loss:
-            return True, f"ATR止损触发（最低价{low:.2f}≤止损线{stop_loss:.2f}）"
+        ep = float(entry_price or 0.0)
+        effective_stop_loss = float(stop_loss)
+        if ep > 0 and fixed_stop_loss_pct is not None:
+            effective_stop_loss = ep * (1.0 + float(fixed_stop_loss_pct))
+
+        if low <= effective_stop_loss:
+            if ep > 0 and fixed_stop_loss_pct is not None:
+                return True, f"固定止损触发（最低价{low:.2f}≤止损线{effective_stop_loss:.2f}）"
+            return True, f"ATR止损触发（最低价{low:.2f}≤止损线{effective_stop_loss:.2f}）"
+
+        if getattr(p, "enable_trailing_exit_guard", False):
+            if ep > 0 and close > 0:
+                high_series = pd.to_numeric(daily_df.get("high", pd.Series(dtype=float)), errors="coerce")
+                observed_peak = float(high_series.max()) if not high_series.dropna().empty else close
+                if peak_price is not None and float(peak_price) > 0:
+                    observed_peak = max(observed_peak, float(peak_price))
+                peak_ret = observed_peak / ep - 1.0
+                close_ret = close / ep - 1.0
+                trail_floor_ret = peak_ret - trailing_stop_pct
+                if peak_ret >= trail_arm_pct and close_ret <= trail_floor_ret:
+                    return (
+                        True,
+                        f"移动止盈触发（峰值收益{peak_ret*100:.2f}%回落至{close_ret*100:.2f}%）",
+                    )
+
+        if hold_days >= max_hold_days:
+            return True, f"时间止损（持仓{hold_days}天达上限{max_hold_days}天）"
+
+        if not use_weakness_rules:
+            return False, ""
 
         if ma5 > 0 and close < ma5:
             return True, f"跌破MA5（收盘{close:.2f}<MA5={ma5:.2f}）"
@@ -1035,6 +1389,13 @@ class BreakoutStrategy:
                 pos_ratio = 0.5
                 confirm_type = "breakout"
 
+            if (
+                p.enable_high_score_weak_confirm_guard
+                and item.signal_score >= p.high_score_weak_confirm_score_min
+                and vol_ratio < p.high_score_weak_confirm_volume_min
+            ):
+                continue
+
             confirm_date_str = str(row.get("trade_date", ""))
             if hasattr(row.get("trade_date"), "strftime"):
                 confirm_date_str = row["trade_date"].strftime("%Y%m%d")
@@ -1131,6 +1492,13 @@ class BreakoutStrategy:
                 grade = "B"
                 pos_ratio = 0.5
                 confirm_type = "breakout"
+
+            if (
+                p.enable_high_score_weak_confirm_guard
+                and item.signal_score >= p.high_score_weak_confirm_score_min
+                and vol_ratio < p.high_score_weak_confirm_volume_min
+            ):
+                continue
 
             signals.append(BreakoutSignal(
                 ts_code=item.ts_code,
