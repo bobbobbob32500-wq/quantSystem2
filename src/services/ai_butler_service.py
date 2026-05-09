@@ -76,6 +76,11 @@ class AIButlerService:
         self._last_briefing: Optional[Dict] = None
         self._last_review: Optional[Dict] = None
         self._active_alerts: List[Dict] = []
+        # 新增：各分析结果缓存 + 版本号（用于 App 增量轮询）
+        self._last_monitor_result: Optional[Dict] = None
+        self._last_risk_check: Optional[Dict] = None
+        self._last_signal_analysis: Optional[Dict] = None
+        self._analysis_version: int = 0
 
         # 数据服务(懒加载)
         self._dashboard_service = None
@@ -197,6 +202,7 @@ class AIButlerService:
             "api_key": api_key,
             "default_model": models_config.get("default", default_model),
             "code_model": models_config.get("code", code_model),
+            "model_routes": models_config.get("routes", {}) or {},
             "timeout": provider_config.get("timeout", 120),
             "max_retries": provider_config.get("max_retries", 2),
             "retry_delay": provider_config.get("retry_delay", 3),
@@ -301,6 +307,7 @@ class AIButlerService:
             )
 
             self._last_briefing = briefing
+            self._analysis_version += 1
 
             if self._push_callback:
                 self._push_callback("盘前简报", briefing["briefing"])
@@ -323,6 +330,9 @@ class AIButlerService:
                 signals=signals,
                 market_status=market_status,
             )
+
+            self._last_monitor_result = monitor_result
+            self._analysis_version += 1
 
             alerts = monitor_result.get("alerts", [])
             for alert in alerts:
@@ -356,6 +366,7 @@ class AIButlerService:
             )
 
             self._last_review = review
+            self._analysis_version += 1
 
             if self._push_callback:
                 self._push_callback("盘后复盘", review["review_report"])
@@ -373,6 +384,9 @@ class AIButlerService:
             market_data = self._get_market_status()
 
             risk_result = self.butler.risk_check(holdings=holdings, market_data=market_data)
+
+            self._last_risk_check = risk_result
+            self._analysis_version += 1
 
             if risk_result["risk_level"] in ["HIGH", "CRITICAL"]:
                 for alert in risk_result["alerts"]:
@@ -417,6 +431,8 @@ class AIButlerService:
                 extra={"signal": signal, "stock_info": stock_info, "confidence": confidence},
             )
 
+        self._last_signal_analysis = result
+        self._analysis_version += 1
         return result
 
     def on_position_changed(self, position: Dict):
@@ -431,19 +447,31 @@ class AIButlerService:
 
     def generate_briefing_now(self, **kwargs) -> Dict:
         """立即生成盘前简报"""
-        return self.butler.morning_briefing(**kwargs)
+        result = self.butler.morning_briefing(**kwargs)
+        self._last_briefing = result
+        self._analysis_version += 1
+        return result
 
     def do_intraday_monitor_now(self, **kwargs) -> Dict:
         """立即执行盘中监控"""
-        return self.butler.intraday_monitor(**kwargs)
+        result = self.butler.intraday_monitor(**kwargs)
+        self._last_monitor_result = result
+        self._analysis_version += 1
+        return result
 
     def generate_review_now(self, **kwargs) -> Dict:
         """立即生成盘后复盘"""
-        return self.butler.post_market_review(**kwargs)
+        result = self.butler.post_market_review(**kwargs)
+        self._last_review = result
+        self._analysis_version += 1
+        return result
 
     def do_risk_check_now(self, **kwargs) -> Dict:
         """立即执行风险检查"""
-        return self.butler.risk_check(**kwargs)
+        result = self.butler.risk_check(**kwargs)
+        self._last_risk_check = result
+        self._analysis_version += 1
+        return result
 
     # ==================== 数据获取（对接系统模块） ====================
 
@@ -477,17 +505,22 @@ class AIButlerService:
             return None
 
     def _get_today_selection(self) -> Optional[List[Dict]]:
-        """获取今日选股结果 - 从候选池获取"""
+        """获取今日选股结果 - 从候选池获取（仅读缓存，不联网）"""
         try:
-            snapshot = self._get_system_snapshot()
-            pool = snapshot.get("candidate_pool", {})
-            candidates = pool.get("top_candidates", [])
+            # 优先直接读取候选池缓存文件，避免调用 build_snapshot（会产生联网请求）
+            cache_path = _PROJECT_ROOT / "data" / "cache" / "candidate_pool.json"
+            candidates = None
+            if cache_path.exists():
+                data = json.loads(cache_path.read_text(encoding="utf-8"))
+                candidates = data.get("candidates") or data.get("top_candidates") or []
+
             if not candidates:
-                # 尝试直接读取候选池缓存文件
-                cache_path = _PROJECT_ROOT / "data" / "cache" / "candidate_pool.json"
-                if cache_path.exists():
-                    data = json.loads(cache_path.read_text(encoding="utf-8"))
-                    candidates = data.get("candidates", [])[:10]
+                snapshot = self._get_system_snapshot()
+                pool = snapshot.get("candidate_pool", {})
+                candidates = pool.get("top_candidates", pool.get("candidates", []))
+
+            if not candidates:
+                return None
 
             # 转换为管家需要的格式
             result = []
@@ -744,3 +777,84 @@ class AIButlerService:
     def get_last_review(self) -> Optional[Dict]:
         """获取最近的盘后复盘"""
         return self._last_review
+
+    def get_latest_analysis(self) -> Dict:
+        """获取所有最新的AI分析结果（App轮询用）"""
+        items = []
+        now = datetime.now().isoformat()
+
+        if self._last_briefing:
+            briefing = self._last_briefing
+            items.append({
+                "type": "briefing",
+                "title": "盘前简报",
+                "summary": (briefing.get("briefing") or "")[:200],
+                "generated_at": briefing.get("created_at", now),
+                "detail": briefing,
+            })
+        if self._last_monitor_result:
+            monitor = self._last_monitor_result
+            items.append({
+                "type": "monitor",
+                "title": "盘中监控",
+                "summary": (monitor.get("status_summary") or "")[:200],
+                "generated_at": now,
+                "detail": monitor,
+            })
+        if self._last_review:
+            review = self._last_review
+            items.append({
+                "type": "review",
+                "title": "盘后复盘",
+                "summary": (review.get("review_report") or "")[:200],
+                "generated_at": review.get("created_at", now),
+                "detail": review,
+            })
+        if self._last_risk_check:
+            risk = self._last_risk_check
+            items.append({
+                "type": "risk_check",
+                "title": f"风险检查 - {risk.get('risk_level', 'UNKNOWN')}",
+                "summary": (
+                    risk.get("alerts")[0].get("message", "")[:200]
+                    if risk.get("alerts") else "无风险预警"
+                ),
+                "generated_at": now,
+                "detail": risk,
+            })
+        if self._last_signal_analysis:
+            signal = self._last_signal_analysis
+            items.append({
+                "type": "signal_analysis",
+                "title": f"信号分析 - {signal.get('action', 'UNKNOWN')}",
+                "summary": (signal.get("reason") or "")[:200],
+                "generated_at": now,
+                "detail": signal,
+            })
+
+        # 今日候选股AI分析
+        today_selection = self._get_today_selection()
+        if today_selection:
+            selection_lines = []
+            for s in today_selection[:10]:
+                score = s.get("score", 0)
+                strategy = s.get("strategy_profile", "")
+                reason = s.get("trigger_reason", "")
+                line = f"{s.get('name', '')}({s.get('code', '')}) - 评分:{score}"
+                if strategy:
+                    line += f" | {strategy}"
+                if reason:
+                    line += f"\n    理由: {reason}"
+                selection_lines.append(line)
+            items.append({
+                "type": "candidate_analysis",
+                "title": f"今日候选股({len(today_selection)}只)",
+                "summary": f"共{len(today_selection)}只候选股，按评分排序。最高评分: {today_selection[0].get('score', 'N/A')}",
+                "generated_at": now,
+                "detail": "\n\n".join(selection_lines),
+            })
+
+        return {
+            "version": self._analysis_version,
+            "items": items,
+        }
